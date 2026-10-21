@@ -112,7 +112,7 @@ def read_events(p,mode,directory):
                 if kind=='receiving_audio':CURRENT['audio_bytes']=amount
                 if kind=='slide_saved':CURRENT['slides']=amount
                 if kind=='stopped':CURRENT['audio_bytes']=amount
-                if any(word in kind for word in ['failed','error','timeout','missing','revoked']):CURRENT['last_error']={'state':kind,'code':code}
+                if any(word in kind for word in ['failed','error','timeout','missing','revoked','denied']):CURRENT['last_error']={'state':kind,'code':code}
                 persist()
         rc=p.wait()
         with MUTEX:

@@ -38,7 +38,8 @@ static bool permissionRequested=false,authOnly=true;
 static int exitCode=0;
 static uint64_t ticks(){return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();}
 static std::string jwt,number,passcode,displayName,obf,outputDir;
-static uint64_t audioBytes=0,lastAudioNotice=0,lastSlide=0;
+static std::atomic<uint64_t> audioBytes{0};
+static uint64_t lastAudioNotice=0,lastSlide=0;
 static unsigned slideCount=0;
 static uint32_t sampleRate=0,channels=0;
 static std::fstream wave;
@@ -99,7 +100,7 @@ class Slides : public IZoomSDKRendererDelegate {public:
 static auto createMeetingService=(SDKError(*)(IMeetingService**))nullptr;
 static auto getAudio=(IZoomSDKAudioRawDataHelper*(*)())nullptr;
 static auto makeRenderer=(SDKError(*)(IZoomSDKRenderer**,IZoomSDKRendererDelegate*))nullptr;
-static auto destroyRenderer=(SDKError(*)(IZoomSDKRenderer*))nullptr;
+static auto destroyRendererFn=(SDKError(*)(IZoomSDKRenderer*))nullptr;
 static void stopRaw(){rawStarted=false;if(audioHelper)audioHelper->unSubscribe();if(renderer)renderer->unSubscribe();if(meeting&&inMeeting)meeting->GetMeetingRecordingController()->StopRawRecording();}
 static void tryRaw(){
  if(!meeting||!inMeeting||rawStarted||quitting)return;
@@ -110,7 +111,7 @@ static void tryRaw(){
 }
 class RecordingEvents : public IMeetingRecordingCtrlEventAdapter {public:
  void onRecordPrivilegeChanged(bool allowed) override {if(allowed)tryRaw();else if(rawStarted){stopRaw();event("record_permission_revoked");quitting=true;}}
- void onLocalRecordingPrivilegeRequestStatus(RequestLocalRecordingStatus s) override {event("record_permission_response",s);if(s==RequestLocalRecording_Granted)tryRaw();}
+ void onLocalRecordingPrivilegeRequestStatus(RequestLocalRecordingStatus s) override {event("record_permission_response",s);if(s==RequestLocalRecording_Granted)tryRaw();else if(s==RequestLocalRecording_Denied){event("record_permission_denied",s);exitCode=33;quitting=true;}}
 } recordingEvents;
 class MeetingEvents : public IMeetingServiceEventAdapter {public:
  void onMeetingStatusChanged(MeetingStatus status,int code=0) override {event("meeting_status",(int)status,code);inMeeting=status==MEETING_STATUS_INMEETING;if(inMeeting){auto a=meeting->GetMeetingAudioController();if(a){a->EnablePlayMeetingAudio(false);a->JoinVoip();auto p=meeting->GetMeetingParticipantsController();auto me=p?p->GetMySelfUser():nullptr;if(me)a->MuteAudio(me->GetUserID());}tryRaw();}if(status==MEETING_STATUS_FAILED){exitCode=30;quitting=true;}if(status==MEETING_STATUS_ENDED)quitting=true;}
@@ -127,7 +128,7 @@ int main(int argc,char** argv){
  if(std::string(argv[2])!="ipc"){event("invalid_launch");return 2;}
  try{auto mode=field();if(mode!="join"&&mode!="auth-test")throw std::runtime_error("mode");authOnly=mode=="auth-test";jwt=field();number=field();passcode=field();displayName=field();obf=field();outputDir=field();}catch(...){event("invalid_input");return 3;}
  if(jwt.empty()||(!authOnly&&(number.empty()||outputDir.empty()||obf.empty()))){event("missing_authorization");return 4;}
- createMeetingService=&CreateMeetingService;getAudio=&GetAudioRawdataHelper;makeRenderer=&createRenderer;destroyRenderer=&ZOOM_SDK_NAMESPACE::destroyRenderer;
+ createMeetingService=&CreateMeetingService;getAudio=&GetAudioRawdataHelper;makeRenderer=&createRenderer;destroyRendererFn=&ZOOM_SDK_NAMESPACE::destroyRenderer;
  auto result=InitSDK(ip);event("sdk_initialized",result);if(result!=SDKERR_SUCCESS)return 7;
  auto authServiceResult=CreateAuthService(&auth);event("auth_service_created",authServiceResult);if(!auth){event("sdk_service_missing");CleanUPSDK();return 8;}
  auth->SetEvent(&authEvents);AuthContext ac;ac.jwt_token=jwt.c_str();result=auth->SDKAuth(ac);event("sdk_auth_requested",result);if(result!=SDKERR_SUCCESS){CleanUPSDK();return 10;}
@@ -140,15 +141,18 @@ int main(int argc,char** argv){
   if(!authSeen&&now-began>60000){event("sdk_auth_timeout");exitCode=21;quitting=true;}
   if(!authOnly&&!sawMeeting&&now-began>180000){event("admission_timeout");exitCode=32;quitting=true;}
   if(inMeeting)sawMeeting=true;
+  if(inMeeting&&!rawStarted&&now-began>300000){event("record_permission_timeout");exitCode=33;quitting=true;}
   if(now-began>10800000){event("session_time_limit");quitting=true;}
-  if(rawStarted&&now-lastTick>3000){
+  if(inMeeting&&now-lastTick>3000){
+   tryRaw();
+   if(!rawStarted){lastTick=now;continue;}
    lastTick=now;auto share=meeting->GetMeetingShareController();auto users=share?share->GetViewableSharingUserList():nullptr;unsigned source=0;
    if(users)for(int i=0;i<users->GetCount()&&!source;i++){auto list=share->GetSharingSourceInfoList(users->GetItem(i));if(list&&list->GetCount())source=list->GetItem(0).shareSourceID;}
    if(source&&makeRenderer){if(!renderer)makeRenderer(&renderer,&slideDelegate);if(renderer&&renderer->getSubscribeId()!=source){renderer->unSubscribe();renderer->setRawDataResolution(ZoomSDKResolution_720P);event("share_subscribe",renderer->subscribe(source,RAW_DATA_TYPE_SHARE));}}
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(25));
  }
- stopRaw();if(meeting&&!authOnly)meeting->Leave(LEAVE_MEETING);if(renderer&&destroyRenderer)destroyRenderer(renderer);
+ stopRaw();if(meeting&&!authOnly)meeting->Leave(LEAVE_MEETING);if(renderer&&destroyRendererFn)destroyRendererFn(renderer);
  {std::lock_guard<std::mutex> lock(audioMutex);waveHeader();if(wave.is_open())wave.close();}
  event("stopped",exitCode,audioBytes);if(meeting)DestroyMeetingService(meeting);if(auth)DestroyAuthService(auth);CleanUPSDK();return exitCode;
 }
