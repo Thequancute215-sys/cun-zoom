@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     g++ pkg-config libglib2.0-dev libjpeg-dev xvfb pulseaudio pulseaudio-utils \
     libx11-xcb1 libxcb-xfixes0 libxcb-shape0 libxcb-shm0 libxcb-randr0 \
     libxcb-image0 libxcb-keysyms1 libxcb-xtest0 libdbus-1-3 libgbm1 libxfixes3 \
-    libgl1 libdrm2 libgssapi-krb5-2 libcurl4 libegl-mesa0 libsdl2-2.0-0 \
+    libgl1 libdrm2 libgssapi-krb5-2 libcurl4 libegl1 libegl-mesa0 libopengl0 libpulse-mainloop-glib0 libsdl2-2.0-0 \
     libasound2 libnss3 libgtk-3-0 libxkbcommon-x11-0 libxcb-cursor0 \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app

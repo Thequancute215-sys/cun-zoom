@@ -1,6 +1,6 @@
 """Foreground Linux/container service. No tray, hidden browser or host credential import."""
 import os
-os.environ.setdefault('CUN_ZOOM_CONTAINER','1')
+os.environ['CUN_ZOOM_CONTAINER']='1'
 os.umask(0o077)
 import signal
 import threading
