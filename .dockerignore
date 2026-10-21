@@ -1,0 +1,17 @@
+**
+!Dockerfile
+!requirements.txt
+!requirements-transcription.txt
+!LICENSE
+!THIRD_PARTY_NOTICES.md
+!src
+!src/*.py
+!web
+!web/**
+!native
+!native/linux_bot.cpp
+!scripts
+!scripts/build_linux.py
+!scripts/container_entry.py
+**/__pycache__
+**/*.pyc

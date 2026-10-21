@@ -1,0 +1,25 @@
+name: cun-zoom
+services:
+  app:
+    image: ghcr.io/thequancute215-sys/cun-zoom:2.0.0
+    build: .
+    platform: linux/amd64
+    init: true
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:18767:18766"
+    environment:
+      PUBLIC_ORIGIN: http://127.0.0.1:18767
+      TZ: Asia/Bangkok
+    volumes:
+      - cun_zoom_data:/data
+      - type: bind
+        source: ./vendor/zoom-linux
+        target: /opt/zoom-sdk
+        read_only: true
+    shm_size: 256m
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    stop_grace_period: 45s
+volumes:
+  cun_zoom_data:

@@ -1,0 +1,4 @@
+icalendar>=6.1,<8
+recurring-ical-events>=3.3,<4
+tzdata>=2025.1
+cryptography>=44,<51

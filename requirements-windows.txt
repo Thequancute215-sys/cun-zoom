@@ -1,0 +1,5 @@
+-r requirements-transcription.txt
+pywebview>=5,<7
+pystray>=0.19,<1
+Pillow>=11,<14
+pyinstaller>=6,<7
