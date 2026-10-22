@@ -196,6 +196,34 @@ class StudyPipelineTests(unittest.TestCase):
         engine.request('subject', 'Kinh tế vi mô')
         self.assertEqual(len(engine.jobs), 1)
 
+    def test_a_broken_lesson_does_not_hold_back_the_subject(self):
+        good = self.lesson()
+        broken = self.lesson(title='File hỏng', transcript='')
+        (broken / study.MATERIALS).mkdir(parents=True)
+        (broken / study.MATERIALS / 'hong.docx').write_bytes(b'not a zip')
+        engine = study.Engine()
+        for _ in range(4):
+            engine.scan()
+            engine.run_jobs()
+        overview = study.overview(engine)['subjects'][0]
+        self.assertEqual((overview['ready'], overview['stale']), (1, 1))
+        self.assertTrue(overview['map_current'] and overview['outline_current'])
+        self.assertEqual(study.knowledge_map(good.parent)['_meta']['sessions'], [study.sessions(good.parent)[0]['label']])
+        # The failing lesson stays visible after the subject updates, and is not retried on every scan.
+        self.assertIn('hong.docx', overview['error'])
+        # A manual sync retries it once, still builds the subject map from the good lesson, and keeps the error.
+        engine.request('subject', 'Kinh tế vi mô')
+        engine.run_jobs()
+        self.assertIn('hong.docx', study.overview(engine)['subjects'][0]['error'])
+        # Fixing the file clears the error.
+        (broken / study.MATERIALS / 'hong.docx').unlink()
+        (broken / study.MATERIALS / 'sua.txt').write_text('Độ co giãn', encoding='utf-8')
+        for _ in range(4):
+            engine.scan()
+            engine.run_jobs()
+        overview = study.overview(engine)['subjects'][0]
+        self.assertEqual((overview['ready'], overview['error']), (2, ''))
+
     def test_long_input_is_split_and_attachments_ride_with_the_first_part(self):
         folder = self.lesson(transcript='\n'.join('[00:%02d] câu %d' % (i % 60, i) for i in range(400)))
         (folder / '01_Tai_lieu_goc/slide_0001.jpg').write_bytes(b'jpg')

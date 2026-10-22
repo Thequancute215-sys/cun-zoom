@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "reviewedAt": "2026-10-22T15:44:12.776069+00:00",
-  "sourceBaseCommit": "53decc9d4b95fc032f132c375f05960eb5e824a2",
-  "reviewNote": "Ôn tập: không gọi AI khi buổi không có nội dung đọc được; buổi chỉ có ảnh báo lỗi với mô hình Ollama chỉ đọc chữ; link mục lục mã hoá. Tìm ra khi chạy thật với Ollama.",
+  "reviewedAt": "2026-10-22T15:47:42.272665+00:00",
+  "sourceBaseCommit": "b1451d57b4603e9790874111851d5ed68eec49cb",
+  "reviewNote": "Ôn tập: buổi lỗi (vd. chỉ có file hỏng) không chặn hệ thống môn/đề cương; lỗi buổi vẫn hiện sau khi môn cập nhật. Tìm ra khi chạy thật với Ollama.",
   "sourceFiles": {
     ".dockerignore": "adc297c63c84ec0349097ec584416f959ac1daf8a1b07806051fda28a1f260dc",
     ".github/workflows/docker-release.yml": "03d744af2c682be75ff8f926cab01be7be1de1c15ef7920a6cb343f1f5009fc6",
@@ -54,7 +54,7 @@
     "src/runner.py": "270643737c0802f95a798e2cda553700a9b7b99792835bdda930387b8ed5888d",
     "src/sdk_setup.py": "fe19a92d36e3bcf58b25670d6d0cb60b60047be0f396d16839e57c32fa5516ef",
     "src/server.py": "681f0f598b77e1eb779c99296e3a692662b5992f69a1633f8da86e0e41abe559",
-    "src/study.py": "32b65348728a62726bad758d86f77271d197b08912cd44eb657b30577ff89d66",
+    "src/study.py": "2bc7a0176ce6031b84f4bd2ac15631aa8f2c1f6780cee3ac6fd678d933a91794",
     "src/transcribe.py": "4a67771819baec41fbd8d2bbe6c22bcd5c0d220046bf933d16eb8b84f451fbb4",
     "src/vault.py": "8b61b45d678883fee33555fd23f94baad9921877e5ab992f6a73c6690b2683a3",
     "tests/bootstrap.py": "1a5491d3ac2a51cf82f2815e4f5580761cfdb3173bd16bffcf54d9013784ab39",
@@ -65,7 +65,7 @@
     "tests/test_room_link.py": "59ea0248a9478aa17d2072320b726a171ba65923b1efade0fc4d5fdc5b54f108",
     "tests/test_sdk_setup.py": "34e24faf83ec2f56c14d7b33d8d60cb2ad26afcffb6e3ac27e3a734e25d681e9",
     "tests/test_server.py": "98fa32b07fddec33ae01a2c7297e155cc12bdebf85bb2ab7ba577d70323ca559",
-    "tests/test_study.py": "40383896cd19018c453a573e3b0f9e10b971c3050049870eedb2ee9e84516656",
+    "tests/test_study.py": "6e01b4b981243ac80f67d0491ef036786fa6e10286ead154a3ac1db83201b03f",
     "tests/test_workflow_map.py": "c86e42bbeb74c65a19de49de5ca4fab4b980364bc28d998ec4be56a8976d752a",
     "tokens.css": "2fcc50ba1980b33b18fe9b63dfa20f27029b2e2f254df3525dd7ae6ac34c1095",
     "vendor/README.md": "424038efe9778ddc86ea1b3c303993d52d46615e0b60d40a49f842ec8ed813cc",
@@ -88,10 +88,10 @@
     "web/tokens.css": "2fcc50ba1980b33b18fe9b63dfa20f27029b2e2f254df3525dd7ae6ac34c1095"
   },
   "artifacts": {
-    ".ua/domain-graph.json": "c22138f4898b71c5554e416cc2b3417bffb15bf731cd968072dc63ee4c0339bd",
-    ".ua/knowledge-graph.json": "efd495946d48b203a18d2453c400f0556732744f92fadc1c3d3d5de8b3c05380",
+    ".ua/domain-graph.json": "4a9715e4a5804bc3808a12800eb53036bfc4953e556666af4c0c1d3ca22d62cb",
+    ".ua/knowledge-graph.json": "4d1bc57bc8a1b0e8e4c1b96edae51398aae85a362b9d0887ba2e14432d0bb43d",
     ".ua/config.json": "fc45c2c2e3bbd9a1f0df975e5b3e8605705401f2709fb67fa1206b8ac196c0e1",
     ".ua/tooling.json": "b4425175a232d702308d6ca43730e0f373aab604a1b2a625414e43789c56205e",
-    "docs/WORKFLOW.md": "487241ebf93f3026afa447b845c06196c2d41069bf346ba38c1aef5f0d2c46b3"
+    "docs/WORKFLOW.md": "fe49cad269f7f2744837b2d4af59d9794fc6da3bf35c122ed4f37ffe39175455"
   }
 }

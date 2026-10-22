@@ -553,6 +553,7 @@ class Engine:
         self.current = None
         self.errors = {}
         self.failed = {}
+        self.reasons = {}
         self.message = ''
         self.thread = None
 
@@ -615,8 +616,9 @@ class Engine:
             for item in sessions(subject):
                 folder = item['folder']
                 if auto and session_status(folder) == 'stale':
-                    self.queue(('session', folder, ()), fingerprint(folder)[0])
-                    subject_changed = True
+                    # A lesson that failed for its current files (e.g. only a broken document) must not hold back the
+                    # subject map and outline for every other lesson.
+                    subject_changed = self.queue(('session', folder, ()), fingerprint(folder)[0]) or subject_changed
             if not auto or subject_changed:
                 continue
             notes_ready = any(session_notes(i['folder']) for i in sessions(subject))
@@ -629,11 +631,26 @@ class Engine:
                     self.queue(('outline', subject, ()), data.get('_meta', {}).get('fingerprint'))
 
     def queue(self, job, version):
+        """Queue job unless it already failed for these exact inputs; True while it is waiting or running."""
         with self.lock:
             # A job that already failed for these exact inputs waits for new files or a manual retry.
-            if self.failed.get(job) == version or job in self.jobs or self.current == job:
-                return
-            self.jobs.append(job)
+            if self.failed.get(job) == version:
+                return False
+            if job not in self.jobs and self.current != job:
+                self.jobs.append(job)
+            return True
+
+    def _stale_lessons(self, subject):
+        with self.lock:
+            return [item['folder'] for item in sessions(subject) if session_status(item['folder']) == 'stale'
+                    and self.failed.get(('session', item['folder'], ())) != fingerprint(item['folder'])[0]]
+
+    def _lesson_problems(self, subject):
+        """Errors of lessons that still fail for their current files, so a later subject update does not hide them."""
+        with self.lock:
+            return [item['label'] + ': ' + self.reasons[job] for item in sessions(subject)
+                    for job in [('session', item['folder'], ())]
+                    if job in self.reasons and self.failed.get(job) == fingerprint(item['folder'])[0]]
 
     def run_jobs(self):
         worked = False
@@ -650,31 +667,37 @@ class Engine:
                 if kind == 'session':
                     analyze_session(subject, folder, config)
                 elif kind == 'subject':
-                    for item in sessions(subject):
-                        if session_status(item['folder']) == 'stale':
-                            analyze_session(subject, item['folder'], config)
+                    for lesson in self._stale_lessons(subject):
+                        try:
+                            analyze_session(subject, lesson, config)
+                        except ai.AIError as error:
+                            # This lesson waits for new files; the others still make the subject map.
+                            with self.lock:
+                                self.failed[('session', lesson, ())] = fingerprint(lesson)[0]
+                                self.reasons[('session', lesson, ())] = str(error)
                     aggregate_subject(subject, config)
                 elif kind == 'outline':
-                    if not knowledge_map(subject) or session_status_any_stale(subject):
+                    if not knowledge_map(subject) or self._stale_lessons(subject):
                         aggregate_subject(subject, config)
                     make_outline(subject, config)
                 elif kind == 'exam':
                     make_exam(subject, config=config, **dict(params))
+                problems = self._lesson_problems(subject)
                 with self.lock:
-                    self.errors.pop(subject.name, None)
+                    if problems:
+                        self.errors[subject.name] = ' · '.join(problems)
+                    else:
+                        self.errors.pop(subject.name, None)
                     self.message = 'Đã cập nhật ' + _job_label(self.current)
             except (ai.AIError, ValueError, OSError) as error:
                 with self.lock:
                     self.errors[subject.name] = str(error)
                     version = fingerprint(folder)[0] if kind == 'session' else subject_fingerprint(subject)
                     self.failed[self.current] = version
+                    self.reasons[self.current] = str(error)
             finally:
                 with self.lock:
                     self.current = None
-
-
-def session_status_any_stale(subject):
-    return any(session_status(item['folder']) == 'stale' for item in sessions(subject))
 
 
 def _job_label(job):

@@ -468,7 +468,7 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Quét thay đổi và xếp việc | Mỗi 30 giây hoặc khi được đánh thức: khởi chạy một lượt chép lời nếu cần, xếp việc cho buổi/môn/đề cương đã cũ. | [src/study.py](../src/study.py#L600) |
+| 1. Quét thay đổi và xếp việc | Mỗi 30 giây hoặc khi được đánh thức: khởi chạy một lượt chép lời nếu cần, xếp việc cho buổi/môn/đề cương đã cũ. | [src/study.py](../src/study.py#L601) |
 | 2. So dấu vân tay nội dung | Ghi chú hợp lệ khi dấu vân tay bản chép lời, tài liệu và slide trùng lúc tạo; khác thì là cũ. | [src/study.py](../src/study.py#L184) |
 | 3. Chuẩn bị tài liệu cho AI | PDF gửi nguyên cho Claude hoặc tách chữ cho Ollama; DOCX/PPTX đọc XML; ảnh giới hạn 5 MB; file lỗi thành cảnh báo. | [src/documents.py](../src/documents.py#L60) |
 | 4. Hệ thống hoá một buổi | Gửi bản chép lời, tài liệu và tối đa 20 ảnh slide; bài quá dài được chia phần rồi gộp; kết quả sắp theo độ liên quan và độ khó; không có nội dung đọc được (chỉ có file hỏng) thì báo lỗi, không gọi AI. | [src/study.py](../src/study.py#L240) |
@@ -476,7 +476,7 @@ flowchart LR
 | 6. Tổng hợp kiến thức của môn | Gộp ghi chú các buổi, bỏ trùng, đánh giá lại độ liên quan/độ khó, ghi buổi nguồn và liên kết khái niệm. | [src/study.py](../src/study.py#L322) |
 | 7. Lập đề cương | Chia chương, đánh dấu ý trọng tâm, câu hỏi tự kiểm tra, trọng tâm thi và kế hoạch ôn; đánh dấu cũ khi hệ thống kiến thức đổi. | [src/study.py](../src/study.py#L365) |
 | 8. Cập nhật mục lục tổng | Ghi 00_Tong_hop/Muc_luc.md khi nội dung đổi, liên kết tới file của từng môn. | [src/study.py](../src/study.py#L498) |
-| 9. Không lặp lại việc lỗi | Việc lỗi được nhớ theo dữ liệu đầu vào; chỉ chạy lại khi file đổi hoặc người dùng yêu cầu. | [src/study.py](../src/study.py#L631) |
+| 9. Không lặp lại việc lỗi | Việc lỗi được nhớ theo dữ liệu đầu vào; chỉ chạy lại khi file đổi hoặc người dùng yêu cầu. Buổi lỗi không chặn hệ thống kiến thức và đề cương của các buổi khác, lỗi của buổi vẫn hiện. | [src/study.py](../src/study.py#L633) |
 
 </details>
 
@@ -501,7 +501,7 @@ flowchart LR
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
 | 1. Chọn số câu và mức độ | Tối đa 60 trắc nghiệm và 10 tự luận, mức cân bằng / cơ bản / nâng cao. | [web/study.js](../web/study.js#L86) |
-| 2. Xếp việc tạo đề | Server kiểm tra mức độ rồi đưa việc vào hàng chờ, không trùng việc đang chạy. | [src/study.py](../src/study.py#L570) |
+| 2. Xếp việc tạo đề | Server kiểm tra mức độ rồi đưa việc vào hàng chờ, không trùng việc đang chạy. | [src/study.py](../src/study.py#L571) |
 | 3. Soạn đề từ hệ thống kiến thức | Gửi hệ thống kiến thức trước (dùng lại cache), yêu cầu sau; loại câu trắc nghiệm không đủ 4 lựa chọn; lưu JSON và Markdown có đáp án cuối file. | [src/study.py](../src/study.py#L379) |
 | 4. Làm bài và chấm trắc nghiệm | Chọn đáp án, nộp để xem đúng/sai, giải thích và điểm; tự luận có ô trả lời và gợi ý chấm. | [web/study.js](../web/study.js#L99) |
 
