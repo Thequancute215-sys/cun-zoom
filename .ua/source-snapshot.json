@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "reviewedAt": "2026-10-22T10:01:24.813660+00:00",
-  "sourceBaseCommit": "32cf59da668dafcb2716fac30228c0965395d9fc",
-  "reviewNote": "Exe Windows khong kem Zoom SDK: buoc nguoi dung cai SDK tu ZIP chinh thuc (sdk_setup, bao loi ZIP hong), CI self-test voi SDK dat ngoai va chan exe chua SDK; tai lieu cai dat tung buoc cho nguoi moi.",
+  "reviewedAt": "2026-10-22T10:16:27.462716+00:00",
+  "sourceBaseCommit": "213e03164c91287959eabcb3da34de22cf254a82",
+  "reviewNote": "Kho SDK AI-Zoom chi giu Private (khong archive); chi doi mot cau trong WINDOWS.md, luong va so dong khong doi.",
   "sourceFiles": {
     ".dockerignore": "adc297c63c84ec0349097ec584416f959ac1daf8a1b07806051fda28a1f260dc",
     ".github/workflows/docker-release.yml": "999a1cf0ca1cd4b7fac1ec146dfe116251268e91bfdd69ea328e6f04c6366b3f",
@@ -20,7 +20,7 @@
     "docs/OPERATIONS.md": "1524c981a8e2c8718ee14c7f84ea55e661d4927b83c1d757063a12d995612a3d",
     "docs/RELEASE_NOTES.md": "e945d182af7fef7bd3f895bb8774069585a148c4bcf15c677ca0ce7d00598955",
     "docs/VALIDATION.md": "de6366ed7c89ddc60d877832f1e7e44bfaf72795d07ede13dbef8d537ab65154",
-    "docs/WINDOWS.md": "8e84ced511e151a750867289c747046971d64fac0a76ecd5a1d868c38e40160f",
+    "docs/WINDOWS.md": "78628e4cfec23f10bf6b23c7f96ba78a74c47ff0f2ea3d2174de4423bc4dfc20",
     "docs/ZOOM_AND_CALENDAR.md": "39499b030e0a7104c60cf26df7062dbd2e8c707f5196af7baa3cd5275c841b81",
     "native/bot.cpp": "f51b1feedde969d34bf6db6ecd4daaa1b6c870f8aa8b2d6639a4cc059720a79c",
     "native/linux_bot.cpp": "68cd7b964f3eb6614d373f6adc9d300796216d7dd7fbea896e245d9caeb3ea3e",
@@ -81,8 +81,8 @@
     "web/tokens.css": "2fcc50ba1980b33b18fe9b63dfa20f27029b2e2f254df3525dd7ae6ac34c1095"
   },
   "artifacts": {
-    ".ua/domain-graph.json": "8ba9a845a51d03ca26546cb333cf7b413ae2f9ffd405622eff572e5c7728ede3",
-    ".ua/knowledge-graph.json": "fb866b7ebf5e57ee7d8276d46e7ebe5eb698a6f253839ccaca6de4866489569d",
+    ".ua/domain-graph.json": "27c66effa4213858a20fba1445bae72f1ad5d3ef3a73c4ca82bb9c1fad37406f",
+    ".ua/knowledge-graph.json": "5cdc75cb1f5a26a8f5537626f7fabeab79aa902f9d0c7ce8e1d5aebb9d46c897",
     ".ua/config.json": "fc45c2c2e3bbd9a1f0df975e5b3e8605705401f2709fb67fa1206b8ac196c0e1",
     ".ua/tooling.json": "b4425175a232d702308d6ca43730e0f373aab604a1b2a625414e43789c56205e",
     "docs/WORKFLOW.md": "50ac88905d6bb84e17a57ec38402b38f6283b69c4a18e77a28e53e8af0b3960c"

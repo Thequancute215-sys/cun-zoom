@@ -123,7 +123,7 @@ Nếu không đọc được SDK, job vẫn chạy tests nhưng bỏ qua bước
 
 ### Kho SDK (giữ riêng tư)
 
-Archive SDK Zoom có điều khoản riêng: **không** commit vào repo công khai này và không đăng kèm Release. Workflow đọc archive từ release `sdk-7.2.1` của repo cũ `Thequancute215-sys/AI-Zoom`, được giữ ở chế độ **Private + Archived** chỉ để làm kho SDK (repo archived vẫn cho đọc release).
+Archive SDK Zoom có điều khoản riêng: **không** commit vào repo công khai này và không đăng kèm Release. Workflow đọc archive từ release `sdk-7.2.1` của repo cũ `Thequancute215-sys/AI-Zoom`, được giữ ở chế độ **Private** chỉ để làm kho SDK. Không xóa repo này hay release `sdk-7.2.1`.
 
 Vì kho SDK là private, CI cần một token chỉ đọc:
 
