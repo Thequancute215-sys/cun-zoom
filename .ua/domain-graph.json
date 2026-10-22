@@ -8,16 +8,18 @@
       "JavaScript"
     ],
     "frameworks": [
+      "Anthropic Python SDK",
+      "Docker Compose",
+      "Ollama",
+      "PyInstaller",
       "Python HTTPServer",
       "Zoom Meeting SDK",
-      "Docker Compose",
-      "pywebview/WebView2",
-      "PyInstaller",
-      "faster-whisper"
+      "faster-whisper",
+      "pywebview/WebView2"
     ],
-    "description": "Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn; chạy như ứng dụng Windows (CunZoom.exe) hoặc Docker Linux. Windows tự mở link lớp, Docker chỉ đưa link tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra trong 2.x; RTMS chưa triển khai.",
-    "analyzedAt": "2026-10-22T10:19:51.755833+00:00",
-    "gitCommitHash": "1bbe3d3f8b00f3540de59d130b5507badfb6663c"
+    "description": "Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn; chạy như ứng dụng Windows (CunZoom.exe) hoặc Docker Linux. Windows tự mở link lớp, Docker chỉ đưa link tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra trong 2.x; Trang Ôn tập hệ thống hoá bài giảng và tài liệu bằng Claude (khóa riêng) hoặc Ollama, tạo đề cương và đề thi thử. RTMS chưa triển khai.",
+    "analyzedAt": "2026-10-22T11:56:20.425510+00:00",
+    "gitCommitHash": "11a8e5e085e414026d9a01b7a2f62eff2eff7422"
   },
   "nodes": [
     {
@@ -205,7 +207,7 @@
       "filePath": "compose.yaml",
       "lineRange": [
         4,
-        23
+        26
       ]
     },
     {
@@ -369,7 +371,7 @@
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
         175,
-        203
+        205
       ]
     },
     {
@@ -397,8 +399,8 @@
       "complexity": "moderate",
       "filePath": "docs/OPERATIONS.md",
       "lineRange": [
-        52,
-        56
+        56,
+        59
       ]
     },
     {
@@ -412,8 +414,8 @@
       "complexity": "moderate",
       "filePath": "docs/OPERATIONS.md",
       "lineRange": [
-        56,
-        66
+        61,
+        70
       ]
     },
     {
@@ -427,8 +429,8 @@
       "complexity": "moderate",
       "filePath": "docs/OPERATIONS.md",
       "lineRange": [
-        68,
-        78
+        72,
+        82
       ]
     },
     {
@@ -442,8 +444,8 @@
       "complexity": "moderate",
       "filePath": "docs/OPERATIONS.md",
       "lineRange": [
-        80,
-        96
+        84,
+        100
       ]
     },
     {
@@ -486,8 +488,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        372,
-        390
+        430,
+        450
       ]
     },
     {
@@ -501,8 +503,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        180,
-        197
+        186,
+        203
       ]
     },
     {
@@ -531,8 +533,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        113,
-        137
+        119,
+        143
       ]
     },
     {
@@ -546,8 +548,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        139,
-        154
+        145,
+        160
       ]
     },
     {
@@ -561,8 +563,8 @@
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        35,
-        42
+        44,
+        51
       ]
     },
     {
@@ -739,8 +741,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        175,
-        179
+        181,
+        185
       ]
     },
     {
@@ -768,8 +770,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        198,
-        213
+        204,
+        219
       ]
     },
     {
@@ -783,8 +785,8 @@
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        97,
-        127
+        106,
+        136
       ]
     },
     {
@@ -798,8 +800,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        214,
-        226
+        220,
+        232
       ]
     },
     {
@@ -813,8 +815,8 @@
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        44,
-        95
+        53,
+        104
       ]
     },
     {
@@ -947,8 +949,8 @@
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        106,
-        135
+        115,
+        139
       ]
     },
     {
@@ -962,8 +964,8 @@
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        53,
-        68
+        62,
+        77
       ]
     },
     {
@@ -991,8 +993,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        95,
-        111
+        101,
+        117
       ]
     },
     {
@@ -1006,8 +1008,8 @@
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        128,
-        135
+        140,
+        140
       ]
     },
     {
@@ -1021,8 +1023,8 @@
       "complexity": "moderate",
       "filePath": "src/transcribe.py",
       "lineRange": [
-        23,
-        37
+        42,
+        54
       ]
     },
     {
@@ -1051,8 +1053,8 @@
       "complexity": "moderate",
       "filePath": "src/transcribe.py",
       "lineRange": [
-        38,
-        42
+        55,
+        59
       ]
     },
     {
@@ -1110,8 +1112,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        231,
-        238
+        237,
+        244
       ]
     },
     {
@@ -1126,7 +1128,7 @@
       "filePath": "src/library.py",
       "lineRange": [
         71,
-        83
+        89
       ]
     },
     {
@@ -1140,8 +1142,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        314,
-        337
+        356,
+        379
       ]
     },
     {
@@ -1186,7 +1188,7 @@
       "filePath": "docs/HANDOVER.md",
       "lineRange": [
         1,
-        38
+        39
       ]
     },
     {
@@ -1264,8 +1266,8 @@
       "complexity": "moderate",
       "filePath": "src/main.py",
       "lineRange": [
-        64,
-        65
+        71,
+        72
       ]
     },
     {
@@ -1280,8 +1282,8 @@
       "complexity": "moderate",
       "filePath": "src/main.py",
       "lineRange": [
-        77,
-        88
+        84,
+        95
       ]
     },
     {
@@ -1296,8 +1298,8 @@
       "complexity": "moderate",
       "filePath": "src/main.py",
       "lineRange": [
-        90,
-        147
+        97,
+        154
       ]
     },
     {
@@ -1330,6 +1332,424 @@
       "lineRange": [
         47,
         69
+      ]
+    },
+    {
+      "id": "domain:on-tap",
+      "type": "domain",
+      "name": "Ôn tập và hệ thống hoá kiến thức",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "complex",
+      "summary": "Biến bài giảng và tài liệu tải lên thành ghi chú từng buổi, hệ thống kiến thức của môn (nhóm, độ liên quan, độ khó), đề cương và đề thi thử. AI tắt cho tới khi người dùng chọn Claude (khóa riêng) hoặc Ollama; mọi file kết quả nằm trong thư mục bài giảng.",
+      "domainMeta": {
+        "entities": [
+          "Ghi chú buổi",
+          "Hệ thống kiến thức môn",
+          "Đề cương",
+          "Đề thi thử",
+          "Tài liệu tải lên",
+          "Cấu hình AI"
+        ],
+        "businessRules": [
+          "Chỉ dùng nội dung được cung cấp; bản AI cần đối chiếu giáo trình.",
+          "Đồng bộ theo dấu vân tay nội dung file; chỉ chạy lại phần thay đổi, một việc AI mỗi lúc.",
+          "Việc lỗi không tự thử lại với cùng dữ liệu cho tới khi có file mới hoặc người dùng bấm Đồng bộ lại.",
+          "Chép lời một buổi mỗi lúc và không chạy khi bot đang ghi.",
+          "Đề thi thử chỉ tạo khi người dùng yêu cầu; câu trắc nghiệm không đủ 4 lựa chọn bị loại.",
+          "Khóa Claude được mã hóa, không trả lại giao diện; Haiku 5.5 không dùng fallback máy chủ."
+        ],
+        "crossDomainInteractions": [
+          "Dùng bản chép lời và ảnh slide của miền ghi buổi học và thư viện.",
+          "Dùng vault và xác thực API của miền truy cập."
+        ]
+      }
+    },
+    {
+      "id": "flow:tai-tai-lieu",
+      "type": "flow",
+      "name": "Tải tài liệu lên buổi học",
+      "summary": "Người dùng đưa PDF, Word, PowerPoint, ảnh, chữ hoặc âm thanh/video vào buổi có sẵn hoặc buổi mới; file được ghi nguyên vẹn rồi kích hoạt đồng bộ.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "Bấm Tải tài liệu lên",
+        "entryType": "manual"
+      }
+    },
+    {
+      "id": "step:tai-tai-lieu:chon-file",
+      "type": "step",
+      "name": "Chọn môn, buổi và file",
+      "summary": "Giao diện gửi từng file thành một request riêng kèm token; file đầu tạo buổi mới, các file sau vào cùng buổi.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/study.js",
+      "lineRange": [
+        119,
+        127
+      ]
+    },
+    {
+      "id": "step:tai-tai-lieu:nhan-luong",
+      "type": "step",
+      "name": "Nhận file theo luồng có giới hạn",
+      "summary": "Server kiểm tra token, nguồn, kích thước ≤ 2 GB, ghi từng phần ra file tạm rồi đổi tên; lỗi thì xóa phần dở.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/server.py",
+      "lineRange": [
+        451,
+        484
+      ]
+    },
+    {
+      "id": "step:tai-tai-lieu:ten-an-toan",
+      "type": "step",
+      "name": "Kiểm tra loại và tên file",
+      "summary": "Chỉ nhận đuôi được hỗ trợ, làm sạch tên, không ghi đè file cùng tên.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/study.py",
+      "lineRange": [
+        522,
+        531
+      ]
+    },
+    {
+      "id": "step:tai-tai-lieu:buoi-moi",
+      "type": "step",
+      "name": "Tạo buổi chỉ có tài liệu",
+      "summary": "Tạo thư mục buổi cùng cấu trúc bản ghi, chặn tên môn đặc biệt hoặc thoát khỏi thư mục bài giảng.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/study.py",
+      "lineRange": [
+        507,
+        519
+      ]
+    },
+    {
+      "id": "step:tai-tai-lieu:chep-loi-tai-len",
+      "type": "step",
+      "name": "Chép lời âm thanh/video tải lên",
+      "summary": "Bộ chép lời đọc âm thanh bot ghi và mọi file media tải lên, ghi bản chép lời một lần khi xong.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/transcribe.py",
+      "lineRange": [
+        28,
+        34
+      ]
+    },
+    {
+      "id": "flow:dong-bo",
+      "type": "flow",
+      "name": "Tự đồng bộ ghi chú và hệ thống kiến thức",
+      "summary": "Bộ đồng bộ chạy nền phát hiện dữ liệu mới, chép lời, hệ thống hoá buổi, cập nhật hệ thống kiến thức môn, đề cương và mục lục tổng.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "Có bài giảng/tài liệu mới hoặc bấm Đồng bộ lại",
+        "entryType": "event"
+      }
+    },
+    {
+      "id": "step:dong-bo:quet",
+      "type": "step",
+      "name": "Quét thay đổi và xếp việc",
+      "summary": "Mỗi 30 giây hoặc khi được đánh thức: khởi chạy một lượt chép lời nếu cần, xếp việc cho buổi/môn/đề cương đã cũ.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/study.py",
+      "lineRange": [
+        589,
+        618
+      ]
+    },
+    {
+      "id": "step:dong-bo:van-tay",
+      "type": "step",
+      "name": "So dấu vân tay nội dung",
+      "summary": "Ghi chú hợp lệ khi dấu vân tay bản chép lời, tài liệu và slide trùng lúc tạo; khác thì là cũ.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/study.py",
+      "lineRange": [
+        183,
+        189
+      ]
+    },
+    {
+      "id": "step:dong-bo:doc-tai-lieu",
+      "type": "step",
+      "name": "Chuẩn bị tài liệu cho AI",
+      "summary": "PDF gửi nguyên cho Claude hoặc tách chữ cho Ollama; DOCX/PPTX đọc XML; ảnh giới hạn 5 MB; file lỗi thành cảnh báo.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/documents.py",
+      "lineRange": [
+        60,
+        89
+      ]
+    },
+    {
+      "id": "step:dong-bo:ghi-chu-buoi",
+      "type": "step",
+      "name": "Hệ thống hoá một buổi",
+      "summary": "Gửi bản chép lời, tài liệu và tối đa 20 ảnh slide; bài quá dài được chia phần rồi gộp; kết quả sắp theo độ liên quan và độ khó.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/study.py",
+      "lineRange": [
+        239,
+        295
+      ]
+    },
+    {
+      "id": "step:dong-bo:goi-ai",
+      "type": "step",
+      "name": "Gọi AI với JSON theo schema",
+      "summary": "Claude: SDK, output_config.format, fallback máy chủ, cache, xử lý từ chối/quá dài; Ollama: /api/chat với format schema, bỏ ảnh nếu mô hình chỉ đọc chữ.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/ai_backend.py",
+      "lineRange": [
+        89,
+        96
+      ]
+    },
+    {
+      "id": "step:dong-bo:he-thong-mon",
+      "type": "step",
+      "name": "Tổng hợp kiến thức của môn",
+      "summary": "Gộp ghi chú các buổi, bỏ trùng, đánh giá lại độ liên quan/độ khó, ghi buổi nguồn và liên kết khái niệm.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/study.py",
+      "lineRange": [
+        316,
+        349
+      ]
+    },
+    {
+      "id": "step:dong-bo:de-cuong",
+      "type": "step",
+      "name": "Lập đề cương",
+      "summary": "Chia chương, đánh dấu ý trọng tâm, câu hỏi tự kiểm tra, trọng tâm thi và kế hoạch ôn; đánh dấu cũ khi hệ thống kiến thức đổi.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/study.py",
+      "lineRange": [
+        359,
+        370
+      ]
+    },
+    {
+      "id": "step:dong-bo:muc-luc",
+      "type": "step",
+      "name": "Cập nhật mục lục tổng",
+      "summary": "Ghi 00_Tong_hop/Muc_luc.md khi nội dung đổi, liên kết tới file của từng môn.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/study.py",
+      "lineRange": [
+        487,
+        504
+      ]
+    },
+    {
+      "id": "step:dong-bo:khong-lap-loi",
+      "type": "step",
+      "name": "Không lặp lại việc lỗi",
+      "summary": "Việc lỗi được nhớ theo dữ liệu đầu vào; chỉ chạy lại khi file đổi hoặc người dùng yêu cầu.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/study.py",
+      "lineRange": [
+        620,
+        625
+      ]
+    },
+    {
+      "id": "flow:de-thi",
+      "type": "flow",
+      "name": "Tạo và làm đề thi thử",
+      "summary": "Người dùng chọn số câu và mức độ; AI soạn đề từ hệ thống kiến thức; người dùng làm trắc nghiệm và xem gợi ý chấm tự luận.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "Bấm Tạo đề thi thử",
+        "entryType": "manual"
+      }
+    },
+    {
+      "id": "step:de-thi:chon-de",
+      "type": "step",
+      "name": "Chọn số câu và mức độ",
+      "summary": "Tối đa 60 trắc nghiệm và 10 tự luận, mức cân bằng / cơ bản / nâng cao.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/study.js",
+      "lineRange": [
+        86,
+        98
+      ]
+    },
+    {
+      "id": "step:de-thi:xep-viec",
+      "type": "step",
+      "name": "Xếp việc tạo đề",
+      "summary": "Server kiểm tra mức độ rồi đưa việc vào hàng chờ, không trùng việc đang chạy.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/study.py",
+      "lineRange": [
+        559,
+        568
+      ]
+    },
+    {
+      "id": "step:de-thi:soan-de",
+      "type": "step",
+      "name": "Soạn đề từ hệ thống kiến thức",
+      "summary": "Gửi hệ thống kiến thức trước (dùng lại cache), yêu cầu sau; loại câu trắc nghiệm không đủ 4 lựa chọn; lưu JSON và Markdown có đáp án cuối file.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/study.py",
+      "lineRange": [
+        373,
+        394
+      ]
+    },
+    {
+      "id": "step:de-thi:lam-bai",
+      "type": "step",
+      "name": "Làm bài và chấm trắc nghiệm",
+      "summary": "Chọn đáp án, nộp để xem đúng/sai, giải thích và điểm; tự luận có ô trả lời và gợi ý chấm.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/study.js",
+      "lineRange": [
+        99,
+        111
+      ]
+    },
+    {
+      "id": "flow:cau-hinh-ai",
+      "type": "flow",
+      "name": "Chọn và kiểm tra bộ AI",
+      "summary": "Người dùng bật Claude (khóa riêng, chọn mô hình) hoặc Ollama (địa chỉ, mô hình), lưu mã hóa và kiểm tra bằng một yêu cầu nhỏ.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "Cài đặt → AI",
+        "entryType": "manual"
+      }
+    },
+    {
+      "id": "step:cau-hinh-ai:luu",
+      "type": "step",
+      "name": "Lưu cấu hình mã hóa",
+      "summary": "Kiểm tra bộ AI, khóa sk-ant-, mô hình được phép, địa chỉ Ollama http(s); giữ khóa cũ khi để trống.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/ai_backend.py",
+      "lineRange": [
+        60,
+        82
+      ]
+    },
+    {
+      "id": "step:cau-hinh-ai:claude",
+      "type": "step",
+      "name": "Gửi yêu cầu Claude",
+      "summary": "Streaming với output_config.format, fallbacks default cho Opus/Sonnet 5.5, giới hạn 24 MB, báo lỗi khóa/hạn mức/mạng bằng tiếng Việt.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/ai_backend.py",
+      "lineRange": [
+        107,
+        158
+      ]
+    },
+    {
+      "id": "step:cau-hinh-ai:ollama",
+      "type": "step",
+      "name": "Gửi yêu cầu Ollama",
+      "summary": "POST /api/chat với schema, num_ctx 32768; thử lại không ảnh nếu mô hình không đọc ảnh.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/ai_backend.py",
+      "lineRange": [
+        161,
+        175
+      ]
+    },
+    {
+      "id": "step:cau-hinh-ai:kiem-tra",
+      "type": "step",
+      "name": "Kiểm tra kết nối AI",
+      "summary": "Gửi một yêu cầu JSON nhỏ; chỉ đạt khi trả đúng định dạng.",
+      "tags": [
+        "on-tap"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/ai_backend.py",
+      "lineRange": [
+        99,
+        104
       ]
     }
   ],
@@ -1920,6 +2340,204 @@
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.7
+    },
+    {
+      "source": "domain:tai-lieu-bai-giang",
+      "target": "domain:on-tap",
+      "type": "cross_domain",
+      "direction": "forward",
+      "weight": 0.6,
+      "description": "Bản chép lời, ảnh slide và hồ sơ buổi là đầu vào cho ghi chú AI; tài liệu tải lên được chép lời bằng cùng bộ Whisper."
+    },
+    {
+      "source": "domain:quyen-truy-cap",
+      "target": "domain:on-tap",
+      "type": "cross_domain",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "Cấu hình AI lưu trong vault mã hóa; mọi thao tác ôn tập đi qua API có token và kiểm tra nguồn."
+    },
+    {
+      "source": "domain:on-tap",
+      "target": "flow:tai-tai-lieu",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:tai-tai-lieu",
+      "target": "step:tai-tai-lieu:chon-file",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.1
+    },
+    {
+      "source": "flow:tai-tai-lieu",
+      "target": "step:tai-tai-lieu:nhan-luong",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:tai-tai-lieu",
+      "target": "step:tai-tai-lieu:ten-an-toan",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:tai-tai-lieu",
+      "target": "step:tai-tai-lieu:buoi-moi",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:tai-tai-lieu",
+      "target": "step:tai-tai-lieu:chep-loi-tai-len",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "domain:on-tap",
+      "target": "flow:dong-bo",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:dong-bo",
+      "target": "step:dong-bo:quet",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.1
+    },
+    {
+      "source": "flow:dong-bo",
+      "target": "step:dong-bo:van-tay",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:dong-bo",
+      "target": "step:dong-bo:doc-tai-lieu",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:dong-bo",
+      "target": "step:dong-bo:ghi-chu-buoi",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:dong-bo",
+      "target": "step:dong-bo:goi-ai",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:dong-bo",
+      "target": "step:dong-bo:he-thong-mon",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:dong-bo",
+      "target": "step:dong-bo:de-cuong",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "flow:dong-bo",
+      "target": "step:dong-bo:muc-luc",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "flow:dong-bo",
+      "target": "step:dong-bo:khong-lap-loi",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "domain:on-tap",
+      "target": "flow:de-thi",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:de-thi",
+      "target": "step:de-thi:chon-de",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.1
+    },
+    {
+      "source": "flow:de-thi",
+      "target": "step:de-thi:xep-viec",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:de-thi",
+      "target": "step:de-thi:soan-de",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:de-thi",
+      "target": "step:de-thi:lam-bai",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "domain:on-tap",
+      "target": "flow:cau-hinh-ai",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:cau-hinh-ai",
+      "target": "step:cau-hinh-ai:luu",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.1
+    },
+    {
+      "source": "flow:cau-hinh-ai",
+      "target": "step:cau-hinh-ai:claude",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:cau-hinh-ai",
+      "target": "step:cau-hinh-ai:ollama",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:cau-hinh-ai",
+      "target": "step:cau-hinh-ai:kiem-tra",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
     }
   ],
   "layers": [],

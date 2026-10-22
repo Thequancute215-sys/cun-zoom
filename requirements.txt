@@ -2,3 +2,5 @@ icalendar>=6.1,<8
 recurring-ical-events>=3.3,<4
 tzdata>=2025.1
 cryptography>=44,<51
+anthropic>=2.1,<3
+pypdf>=6,<7

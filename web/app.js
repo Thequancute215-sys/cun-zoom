@@ -1,7 +1,7 @@
 'use strict';
 const $=id=>document.getElementById(id);
 const token=document.querySelector('meta[name="app-token"]').content;
-const names={calendar:'Lịch học',library:'Bài giảng',room:'Phòng Zoom',settings:'Cài đặt'};
+const names={calendar:'Lịch học',library:'Bài giảng',study:'Ôn tập',room:'Phòng Zoom',settings:'Cài đặt'};
 const labels={not_tested:'Chưa kiểm tra Zoom',not_built:'Chưa có bộ chạy',starting:'Đang khởi động',sdk_initialized:'Đang khởi động',sdk_auth_requested:'Đang xác thực',auth_test_passed:'Đã kiểm tra SDK',auth_test_failed:'Cần kiểm tra',sdk_authenticated:'Đã xác thực',join_requested:'Đang vào phòng',meeting_status:'Đang kết nối',waiting_record_permission:'Chờ quyền ghi',host_approved_waiting_audio:'Chờ âm thanh',receiving_audio:'Đang ghi bài',slide_saved:'Đang ghi bài',stopping:'Đang dừng',stopped_with_audio:'Đã lưu buổi ghi',stopped_without_audio:'Chưa có âm thanh',interrupted:'Lần chạy bị gián đoạn',worker_error:'Cần kiểm tra'};
 let eventCursor=null;
 let state=null,hydrated=false,pollBusy=false,view='calendar',selectedEvent='',selectedLesson='',documentKind='summary',documentRequest=0,range='upcoming',selectedDay='',weekOffset=0,lastEvents='',lastLibrary='',toastTimer,commandReturn=null;

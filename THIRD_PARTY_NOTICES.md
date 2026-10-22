@@ -14,6 +14,6 @@ The Linux integration was checked against the API usage documented by the offici
 
 ## Dependencies and design references
 
-Python dependencies retain their own licenses, available in the installed packages. `CunZoom.exe` is built with PyInstaller and bundles pywebview, pystray, Pillow, faster-whisper and their dependencies (exact versions in `requirements-windows-lock.txt`) under their respective licenses. Container OS packages retain their Ubuntu/upstream licenses. Faster Whisper uses the separately downloaded model selected by the installer.
+Python dependencies retain their own licenses, available in the installed packages. `CunZoom.exe` is built with PyInstaller and bundles pywebview, pystray, Pillow, faster-whisper and their dependencies (exact versions in `requirements-windows-lock.txt`) under their respective licenses. The optional study notes use the Anthropic Python SDK (MIT) and pypdf (BSD-3-Clause); Ollama, if a user installs it, is a separate program under its own license. Requests to the Claude API are made only with the user's own API key and are subject to Anthropic's terms. Container OS packages retain their Ubuntu/upstream licenses. Faster Whisper uses the separately downloaded model selected by the installer.
 
 Design references: [Nutlope/hallmark](https://github.com/Nutlope/hallmark) and [nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill). The UI implementation and design decisions are in this repository; design-tool repositories are not shipped in the container.

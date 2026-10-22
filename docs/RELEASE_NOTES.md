@@ -1,3 +1,15 @@
+# Cún Zoom 2.2.0 · Ôn tập bằng AI
+
+- **Trang Ôn tập:** hệ thống hoá từng buổi và cả môn, sắp kiến thức theo nhóm chủ đề, mức độ liên quan (cốt lõi → tham khảo) và độ khó (cơ bản → nâng cao); đề cương có ý trọng tâm; đề thi thử trắc nghiệm + tự luận, làm và chấm trắc nghiệm ngay trong app.
+- **Tải tài liệu lên:** PDF, Word (.docx), PowerPoint (.pptx), ảnh slide/vở, TXT/MD, âm thanh/video (chép lời trên máy). Vào buổi đã có hoặc tạo buổi mới.
+- **Tự đồng bộ:** buổi mới hoặc tài liệu mới → chép lời → ghi chú buổi → hệ thống kiến thức → đề cương. Thư mục tổng `00_Tong_hop` và `00_Tong_hop_mon` trong thư mục bài giảng.
+- **Chọn AI:** Claude API bằng khóa của bạn (Opus 5.5 mặc định, Sonnet 5.5, Haiku 5.5) hoặc Ollama chạy trên máy. AI tắt cho tới khi bạn bật; khóa được mã hóa trên máy.
+- Release kèm hướng dẫn Windows, Docker và ôn tập (`HUONG-DAN-*.md`).
+
+Kiểm tra trước khi học: AI có thể sai, đặc biệt khi bản chép lời nghe nhầm. Xem [hướng dẫn ôn tập](https://github.com/Thequancute215-sys/cun-zoom/blob/main/docs/STUDY.md).
+
+---
+
 # Cún Zoom 2.1.0 · Windows + Docker
 
 Gộp bản Windows (repo `AI-Zoom`, 1.0.0 – 1.1.1) vào repo này. Một mã nguồn, một quy trình kiểm tra, một Release gồm `CunZoom.exe` và image Docker.

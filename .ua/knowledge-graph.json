@@ -9,16 +9,18 @@
       "JavaScript"
     ],
     "frameworks": [
+      "Anthropic Python SDK",
+      "Docker Compose",
+      "Ollama",
+      "PyInstaller",
       "Python HTTPServer",
       "Zoom Meeting SDK",
-      "Docker Compose",
-      "pywebview/WebView2",
-      "PyInstaller",
-      "faster-whisper"
+      "faster-whisper",
+      "pywebview/WebView2"
     ],
-    "description": "Bản đồ cấp file và import Python được trích từ AST; không phải graph toàn bộ hàm. Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn; chạy như ứng dụng Windows (CunZoom.exe) hoặc Docker Linux. Windows tự mở link lớp, Docker chỉ đưa link tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra trong 2.x; RTMS chưa triển khai.",
-    "analyzedAt": "2026-10-22T10:19:51.755833+00:00",
-    "gitCommitHash": "1bbe3d3f8b00f3540de59d130b5507badfb6663c"
+    "description": "Bản đồ cấp file và import Python được trích từ AST; không phải graph toàn bộ hàm. Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn; chạy như ứng dụng Windows (CunZoom.exe) hoặc Docker Linux. Windows tự mở link lớp, Docker chỉ đưa link tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra trong 2.x; Trang Ôn tập hệ thống hoá bài giảng và tài liệu bằng Claude (khóa riêng) hoặc Ollama, tạo đề cương và đề thi thử. RTMS chưa triển khai.",
+    "analyzedAt": "2026-10-22T11:56:20.425510+00:00",
+    "gitCommitHash": "11a8e5e085e414026d9a01b7a2f62eff2eff7422"
   },
   "nodes": [
     {
@@ -48,7 +50,7 @@
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
         1,
-        203
+        205
       ]
     },
     {
@@ -123,7 +125,7 @@
       "filePath": "README.md",
       "lineRange": [
         1,
-        68
+        70
       ]
     },
     {
@@ -153,7 +155,7 @@
       "filePath": "compose.yaml",
       "lineRange": [
         1,
-        25
+        28
       ]
     },
     {
@@ -183,7 +185,7 @@
       "filePath": "docs/DEVELOPMENT.md",
       "lineRange": [
         1,
-        57
+        60
       ]
     },
     {
@@ -198,7 +200,7 @@
       "filePath": "docs/HANDOVER.md",
       "lineRange": [
         1,
-        38
+        39
       ]
     },
     {
@@ -228,7 +230,7 @@
       "filePath": "docs/OPERATIONS.md",
       "lineRange": [
         1,
-        118
+        122
       ]
     },
     {
@@ -243,7 +245,22 @@
       "filePath": "docs/RELEASE_NOTES.md",
       "lineRange": [
         1,
-        33
+        45
+      ]
+    },
+    {
+      "id": "file:docs/STUDY.md",
+      "type": "document",
+      "name": "docs/STUDY.md",
+      "summary": "Hướng dẫn ôn tập bằng AI: chức năng, thư mục tổng hợp, tải tài liệu, chọn Claude/Ollama, chi phí và lỗi.",
+      "tags": [
+        "reference"
+      ],
+      "complexity": "moderate",
+      "filePath": "docs/STUDY.md",
+      "lineRange": [
+        1,
+        97
       ]
     },
     {
@@ -258,7 +275,7 @@
       "filePath": "docs/VALIDATION.md",
       "lineRange": [
         1,
-        38
+        47
       ]
     },
     {
@@ -273,7 +290,7 @@
       "filePath": "docs/WINDOWS.md",
       "lineRange": [
         1,
-        147
+        148
       ]
     },
     {
@@ -318,7 +335,7 @@
       "filePath": "requirements-windows-lock.txt",
       "lineRange": [
         1,
-        47
+        57
       ]
     },
     {
@@ -348,7 +365,7 @@
       "filePath": "requirements.txt",
       "lineRange": [
         1,
-        4
+        6
       ]
     },
     {
@@ -483,7 +500,7 @@
       "filePath": "scripts/workflow_map.py",
       "lineRange": [
         1,
-        356
+        363
       ]
     },
     {
@@ -547,6 +564,21 @@
       ]
     },
     {
+      "id": "file:src/ai_backend.py",
+      "type": "file",
+      "name": "src/ai_backend.py",
+      "summary": "Claude (khóa người dùng, JSON theo schema, PDF/ảnh, fallback) hoặc Ollama local; cấu hình AI mã hóa.",
+      "tags": [
+        "service"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/ai_backend.py",
+      "lineRange": [
+        1,
+        195
+      ]
+    },
+    {
       "id": "file:src/calendar_watch.py",
       "type": "file",
       "name": "src/calendar_watch.py",
@@ -577,6 +609,21 @@
       ]
     },
     {
+      "id": "file:src/documents.py",
+      "type": "file",
+      "name": "src/documents.py",
+      "summary": "Đọc PDF, DOCX, PPTX, ảnh, TXT/MD tải lên thành dữ liệu cho AI; không thực thi nội dung.",
+      "tags": [
+        "service"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/documents.py",
+      "lineRange": [
+        1,
+        137
+      ]
+    },
+    {
       "id": "file:src/library.py",
       "type": "file",
       "name": "src/library.py",
@@ -588,7 +635,7 @@
       "filePath": "src/library.py",
       "lineRange": [
         1,
-        84
+        90
       ]
     },
     {
@@ -603,7 +650,7 @@
       "filePath": "src/main.py",
       "lineRange": [
         1,
-        161
+        168
       ]
     },
     {
@@ -663,7 +710,7 @@
       "filePath": "src/runner.py",
       "lineRange": [
         1,
-        140
+        145
       ]
     },
     {
@@ -693,7 +740,22 @@
       "filePath": "src/server.py",
       "lineRange": [
         1,
-        401
+        498
+      ]
+    },
+    {
+      "id": "file:src/study.py",
+      "type": "file",
+      "name": "src/study.py",
+      "summary": "Ghi chú buổi, hệ thống kiến thức môn, đề cương, đề thi thử, mục lục tổng và bộ đồng bộ nền.",
+      "tags": [
+        "service"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/study.py",
+      "lineRange": [
+        1,
+        703
       ]
     },
     {
@@ -708,7 +770,7 @@
       "filePath": "src/transcribe.py",
       "lineRange": [
         1,
-        44
+        61
       ]
     },
     {
@@ -739,6 +801,21 @@
       "lineRange": [
         1,
         9
+      ]
+    },
+    {
+      "id": "file:tests/test_ai_backend.py",
+      "type": "file",
+      "name": "tests/test_ai_backend.py",
+      "summary": "Kiểm thử ai_backend.",
+      "tags": [
+        "quality"
+      ],
+      "complexity": "moderate",
+      "filePath": "tests/test_ai_backend.py",
+      "lineRange": [
+        1,
+        151
       ]
     },
     {
@@ -829,6 +906,21 @@
       "lineRange": [
         1,
         68
+      ]
+    },
+    {
+      "id": "file:tests/test_study.py",
+      "type": "file",
+      "name": "tests/test_study.py",
+      "summary": "Kiểm thử study.",
+      "tags": [
+        "quality"
+      ],
+      "complexity": "moderate",
+      "filePath": "tests/test_study.py",
+      "lineRange": [
+        1,
+        285
       ]
     },
     {
@@ -963,7 +1055,7 @@
       "filePath": "web/index.html",
       "lineRange": [
         1,
-        48
+        49
       ]
     },
     {
@@ -982,6 +1074,21 @@
       ]
     },
     {
+      "id": "file:web/study.js",
+      "type": "file",
+      "name": "web/study.js",
+      "summary": "Giao diện Ôn tập: môn, hệ thống kiến thức, theo buổi, đề cương, đề thi; tải tài liệu; cài đặt AI.",
+      "tags": [
+        "interface"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/study.js",
+      "lineRange": [
+        1,
+        151
+      ]
+    },
+    {
       "id": "file:web/style.css",
       "type": "file",
       "name": "web/style.css",
@@ -993,7 +1100,7 @@
       "filePath": "web/style.css",
       "lineRange": [
         1,
-        16
+        20
       ]
     },
     {
@@ -1023,6 +1130,22 @@
     },
     {
       "source": "file:src/access_control.py",
+      "target": "file:src/paths.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/ai_backend.py",
+      "target": "file:src/vault.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/ai_backend.py",
       "target": "file:src/paths.py",
       "type": "imports",
       "direction": "forward",
@@ -1150,6 +1273,22 @@
       "weight": 0.8
     },
     {
+      "source": "file:src/main.py",
+      "target": "file:src/study.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/main.py",
+      "target": "file:src/documents.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
       "source": "file:src/runner.py",
       "target": "file:src/vault.py",
       "type": "imports",
@@ -1207,6 +1346,14 @@
     },
     {
       "source": "file:src/server.py",
+      "target": "file:src/ai_backend.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/server.py",
       "target": "file:src/platform_actions.py",
       "type": "imports",
       "direction": "forward",
@@ -1216,6 +1363,14 @@
     {
       "source": "file:src/server.py",
       "target": "file:src/sdk_setup.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/server.py",
+      "target": "file:src/study.py",
       "type": "imports",
       "direction": "forward",
       "description": "Import được đọc từ AST Python.",
@@ -1246,6 +1401,46 @@
       "weight": 0.8
     },
     {
+      "source": "file:src/study.py",
+      "target": "file:src/ai_backend.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/study.py",
+      "target": "file:src/documents.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/study.py",
+      "target": "file:src/runner.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/study.py",
+      "target": "file:src/transcribe.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/study.py",
+      "target": "file:src/paths.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
       "source": "file:src/transcribe.py",
       "target": "file:src/paths.py",
       "type": "imports",
@@ -1256,6 +1451,14 @@
     {
       "source": "file:src/vault.py",
       "target": "file:src/paths.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ai_backend.py",
+      "target": "file:src/ai_backend.py",
       "type": "imports",
       "direction": "forward",
       "description": "Import được đọc từ AST Python.",
@@ -1358,11 +1561,75 @@
       "weight": 0.8
     },
     {
+      "source": "file:tests/test_study.py",
+      "target": "file:src/ai_backend.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_study.py",
+      "target": "file:src/documents.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_study.py",
+      "target": "file:src/paths.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_study.py",
+      "target": "file:src/study.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_study.py",
+      "target": "file:src/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_study.py",
+      "target": "file:src/library.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
       "source": "file:web/index.html",
       "target": "file:web/app.js",
       "type": "depends_on",
       "direction": "forward",
       "description": "Nạp script giao diện.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/index.html",
+      "target": "file:web/study.js",
+      "type": "depends_on",
+      "direction": "forward",
+      "description": "Nạp giao diện Ôn tập sau app.js.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/study.js",
+      "target": "file:src/server.py",
+      "type": "calls",
+      "direction": "forward",
+      "description": "Gọi API ôn tập, AI và tải file lên.",
       "weight": 0.8
     },
     {
@@ -1533,6 +1800,7 @@
         "file:web/fonts/OFL-spacegrotesk.txt",
         "file:web/index.html",
         "file:web/logo.svg",
+        "file:web/study.js",
         "file:web/style.css",
         "file:web/tokens.css"
       ]
@@ -1543,13 +1811,16 @@
       "description": "API, truy cập, lịch, dữ liệu và thiết lập.",
       "nodeIds": [
         "file:src/access_control.py",
+        "file:src/ai_backend.py",
         "file:src/calendar_watch.py",
+        "file:src/documents.py",
         "file:src/library.py",
         "file:src/paths.py",
         "file:src/platform_actions.py",
         "file:src/room_link.py",
         "file:src/sdk_setup.py",
         "file:src/server.py",
+        "file:src/study.py",
         "file:src/vault.py"
       ]
     },
@@ -1599,12 +1870,14 @@
         "file:skills/workflow/agents/openai.yaml",
         "file:skills/workflow/references/cun-zoom.md",
         "file:tests/bootstrap.py",
+        "file:tests/test_ai_backend.py",
         "file:tests/test_calendar_watch.py",
         "file:tests/test_container.py",
         "file:tests/test_desktop_upgrade.py",
         "file:tests/test_room_link.py",
         "file:tests/test_sdk_setup.py",
         "file:tests/test_server.py",
+        "file:tests/test_study.py",
         "file:tests/test_workflow_map.py"
       ]
     },
@@ -1621,6 +1894,7 @@
         "file:docs/INSTALL.md",
         "file:docs/OPERATIONS.md",
         "file:docs/RELEASE_NOTES.md",
+        "file:docs/STUDY.md",
         "file:docs/VALIDATION.md",
         "file:docs/WINDOWS.md",
         "file:docs/ZOOM_AND_CALENDAR.md",
@@ -1643,6 +1917,7 @@
         "file:web/fonts/OFL-spacegrotesk.txt",
         "file:web/index.html",
         "file:web/logo.svg",
+        "file:web/study.js",
         "file:web/style.css",
         "file:web/tokens.css"
       ]
@@ -1653,13 +1928,16 @@
       "description": "API, truy cập, lịch, dữ liệu và thiết lập.",
       "nodeIds": [
         "file:src/access_control.py",
+        "file:src/ai_backend.py",
         "file:src/calendar_watch.py",
+        "file:src/documents.py",
         "file:src/library.py",
         "file:src/paths.py",
         "file:src/platform_actions.py",
         "file:src/room_link.py",
         "file:src/sdk_setup.py",
         "file:src/server.py",
+        "file:src/study.py",
         "file:src/vault.py"
       ]
     },
@@ -1709,12 +1987,14 @@
         "file:skills/workflow/agents/openai.yaml",
         "file:skills/workflow/references/cun-zoom.md",
         "file:tests/bootstrap.py",
+        "file:tests/test_ai_backend.py",
         "file:tests/test_calendar_watch.py",
         "file:tests/test_container.py",
         "file:tests/test_desktop_upgrade.py",
         "file:tests/test_room_link.py",
         "file:tests/test_sdk_setup.py",
         "file:tests/test_server.py",
+        "file:tests/test_study.py",
         "file:tests/test_workflow_map.py"
       ]
     },
@@ -1731,6 +2011,7 @@
         "file:docs/INSTALL.md",
         "file:docs/OPERATIONS.md",
         "file:docs/RELEASE_NOTES.md",
+        "file:docs/STUDY.md",
         "file:docs/VALIDATION.md",
         "file:docs/WINDOWS.md",
         "file:docs/ZOOM_AND_CALENDAR.md",

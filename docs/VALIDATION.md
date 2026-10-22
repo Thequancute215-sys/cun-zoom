@@ -36,3 +36,12 @@ Không dùng bản này cho buổi học quan trọng trước khi kiểm tra m�
 | SDK OAuth / phòng thật | **Chưa kiểm tra** trong 2.1.0 |
 
 CI: [lần chạy kiểm tra](https://github.com/Thequancute215-sys/cun-zoom/actions/runs/39751797754) trên commit `13c8fd445cbd7c6ac195b630f9f30071ec6b0615`.
+
+## Kết quả bản 2.2.0 (Ôn tập bằng AI) — 22/10/2026 (Asia/Bangkok)
+
+| Mức | Kết quả thực tế |
+| --- | --- |
+| Source/unit/integration | Đạt 54 tests trên Linux. Gồm: SDK `anthropic` thật gửi tới server giả lập (kiểm tra `output_config.format`, `fallbacks: "default"` + beta header cho Opus/Sonnet, không fallback cho Haiku, cache, khối PDF/ảnh, báo lỗi từ chối/quá dài/khóa sai); Ollama giả lập (schema, thử lại không ảnh, mất kết nối); đọc DOCX/PPTX/TXT/PDF; pipeline buổi → môn → đề cương → đề thi → mục lục với AI giả lập; bộ đồng bộ chạy đúng thứ tự, không lặp việc lỗi, một lượt chép lời mỗi lúc; tải file lên (tạo buổi, thêm vào buổi, chặn loại file/tên môn/thiếu token) |
+| Giao diện | Chạy thật trong Chromium: trang Ôn tập (hệ thống kiến thức, theo buổi, đề cương, đề thi có chấm trắc nghiệm), form tải lên, Cài đặt → AI, màn hình điện thoại |
+| Docker | Build và smoke HTTP thật đạt khi build cục bộ; container nạp được `anthropic`, `pypdf` và module ôn tập |
+| Gọi AI thật | **Chưa kiểm tra** với khóa Claude hay Ollama thật trong lần phát hành này; chất lượng ghi chú/đề phụ thuộc mô hình và bản chép lời |

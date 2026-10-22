@@ -32,7 +32,7 @@ def main():
     command=[sys.executable,'-m','PyInstaller','--clean','--noconfirm','--windowed','--name','CunZoom','--icon',str(ROOT/'web/icon.ico'),
              '--paths',str(ROOT/'src'),'--add-data',str(ROOT/'web')+';web',
              '--add-binary',str(native)+';vendor','--collect-all','webview','--collect-all','tzdata',
-             '--collect-all','icalendar','--collect-all','recurring_ical_events','--collect-all','ctranslate2',
+             '--collect-all','icalendar','--collect-submodules','anthropic','--collect-all','pypdf','--collect-all','recurring_ical_events','--collect-all','ctranslate2',
              '--collect-all','faster_whisper','--collect-all','tokenizers','--collect-all','av',
              '--hidden-import','pystray._win32','--hidden-import','PIL._tkinter_finder',
              '--exclude-module','torch','--exclude-module','tensorflow','--exclude-module','PyQt5',
