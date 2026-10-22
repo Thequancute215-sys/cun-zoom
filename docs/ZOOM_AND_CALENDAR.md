@@ -21,7 +21,7 @@ Không đăng Client Secret, OAuth token, SDK JWT hoặc iCal riêng tư lên Is
 
 ## B. Lưu cấu hình trong Cún Zoom
 
-1. **Windows:** mở `CunZoom.exe`. **Docker:** mở `http://127.0.0.1:18767`, đăng nhập mật khẩu local.
+1. **Windows:** mở `CunZoom.exe`; nếu chưa cài Zoom SDK, làm [Bước 3–4 trong WINDOWS.md](WINDOWS.md#bước-3-tải-zoom-meeting-sdk-cho-windows) trước. **Docker:** mở `http://127.0.0.1:18767`, đăng nhập mật khẩu local.
 2. Vào **Cài đặt → Kết nối → Ứng dụng Zoom**.
 3. Điền ba trường ID/Secret ở trên. Mật khẩu phòng mặc định là tùy chọn.
 4. Bấm **Lưu có mã hóa**. Lần sửa tiếp theo để trống Client Secret để giữ khóa đã lưu.

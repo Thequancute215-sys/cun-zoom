@@ -29,7 +29,8 @@ Không dùng bản này cho buổi học quan trọng trước khi kiểm tra m�
 | Mức | Kết quả thực tế |
 | --- | --- |
 | Source/unit/integration | Đạt 30 tests trên Linux và cùng bộ tests trên Windows (`requirements-windows-lock.txt`); kiểm tra nguồn, bản đồ workflow và JavaScript đạt |
-| Windows | Biên dịch `CunZoomBot.exe` với Windows Meeting SDK **7.2.1.49056** (SHA-256 archive `67ba466b38bdaa61df95b892398996d2a1c6db328b19a42ad814ec32d91dcb83`), đóng gói `CunZoom.exe`; `--self-test` đạt: `sdk_loadable`, `encryption_roundtrip`, `https_context`, `web_resources`, `native_status_consistent` đều `true` |
+| Windows | Biên dịch `CunZoomBot.exe` với Windows Meeting SDK **7.2.1.49056** (SHA-256 archive `67ba466b38bdaa61df95b892398996d2a1c6db328b19a42ad814ec32d91dcb83`), đóng gói `CunZoom.exe` **không kèm SDK**; `--self-test` với SDK đặt ngoài exe đạt: `sdk_loadable`, `encryption_roundtrip`, `https_context`, `web_resources`, `native_status_consistent` đều `true`, `sdk_bundled` là `false` |
+| Cài SDK trong ứng dụng | Với chính archive 7.2.1.49056 ở trên: chỉ chép `x64\bin` (155 tệp) vào thư mục `zoom-sdk`, trùng từng byte với runtime dùng khi build; cài lại thay bản cũ không để sót tệp. Tests tự động: từ chối gói không phải Windows x64 và đường dẫn ZIP không an toàn mà không đổi bản đã cài |
 | Nâng cấp từ 1.x | Tests tự động: sao chép `.dpapi` sang tên mới, giữ nguyên file nguồn, không ghi đè kho 2.x, giữ thư mục bài giảng 1.x. Chưa thử trên máy Windows thật có dữ liệu 1.x |
 | Docker | Build và smoke HTTP thật đạt trên CI và khi build lại cục bộ (non-root, đăng nhập, CSRF, mã hóa, dữ liệu qua restart) |
 | SDK OAuth / phòng thật | **Chưa kiểm tra** trong 2.1.0 |

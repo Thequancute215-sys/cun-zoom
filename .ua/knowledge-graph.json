@@ -17,8 +17,8 @@
       "faster-whisper"
     ],
     "description": "Bản đồ cấp file và import Python được trích từ AST; không phải graph toàn bộ hàm. Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn; chạy như ứng dụng Windows (CunZoom.exe) hoặc Docker Linux. Windows tự mở link lớp, Docker chỉ đưa link tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra trong 2.x; RTMS chưa triển khai.",
-    "analyzedAt": "2026-10-22T09:34:02.320891+00:00",
-    "gitCommitHash": "83a5f1cd5cc644dd2137efcea579dbac0a755a16"
+    "analyzedAt": "2026-10-22T10:19:51.755833+00:00",
+    "gitCommitHash": "1bbe3d3f8b00f3540de59d130b5507badfb6663c"
   },
   "nodes": [
     {
@@ -48,7 +48,7 @@
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
         1,
-        196
+        203
       ]
     },
     {
@@ -123,7 +123,7 @@
       "filePath": "README.md",
       "lineRange": [
         1,
-        65
+        68
       ]
     },
     {
@@ -183,7 +183,7 @@
       "filePath": "docs/DEVELOPMENT.md",
       "lineRange": [
         1,
-        56
+        57
       ]
     },
     {
@@ -243,7 +243,7 @@
       "filePath": "docs/RELEASE_NOTES.md",
       "lineRange": [
         1,
-        32
+        33
       ]
     },
     {
@@ -258,7 +258,7 @@
       "filePath": "docs/VALIDATION.md",
       "lineRange": [
         1,
-        37
+        38
       ]
     },
     {
@@ -273,7 +273,7 @@
       "filePath": "docs/WINDOWS.md",
       "lineRange": [
         1,
-        88
+        147
       ]
     },
     {
@@ -355,7 +355,7 @@
       "id": "file:scripts/build.py",
       "type": "file",
       "name": "scripts/build.py",
-      "summary": "Đóng gói CunZoom.exe với PyInstaller, ghi SHA-256 và thông tin build.",
+      "summary": "Đóng gói CunZoom.exe với PyInstaller, không kèm Zoom SDK; ghi SHA-256 và thông tin build.",
       "tags": [
         "capture"
       ],
@@ -363,7 +363,7 @@
       "filePath": "scripts/build.py",
       "lineRange": [
         1,
-        57
+        56
       ]
     },
     {
@@ -430,7 +430,7 @@
       "id": "file:scripts/prepare_sdk.py",
       "type": "file",
       "name": "scripts/prepare_sdk.py",
-      "summary": "Giải nén SDK Windows x64 từ archive chính thức vào thư mục build, không thực thi nội dung ZIP.",
+      "summary": "Giải nén SDK Windows x64 vào thư mục build cho CI/nhà phát triển, dùng chung bộ giải nén an toàn.",
       "tags": [
         "capture"
       ],
@@ -438,7 +438,7 @@
       "filePath": "scripts/prepare_sdk.py",
       "lineRange": [
         1,
-        34
+        25
       ]
     },
     {
@@ -483,7 +483,7 @@
       "filePath": "scripts/workflow_map.py",
       "lineRange": [
         1,
-        354
+        356
       ]
     },
     {
@@ -603,7 +603,7 @@
       "filePath": "src/main.py",
       "lineRange": [
         1,
-        157
+        161
       ]
     },
     {
@@ -618,7 +618,7 @@
       "filePath": "src/paths.py",
       "lineRange": [
         1,
-        43
+        49
       ]
     },
     {
@@ -663,7 +663,22 @@
       "filePath": "src/runner.py",
       "lineRange": [
         1,
-        139
+        140
+      ]
+    },
+    {
+      "id": "file:src/sdk_setup.py",
+      "type": "file",
+      "name": "src/sdk_setup.py",
+      "summary": "Cài Zoom SDK Windows của người dùng từ ZIP chính thức: chỉ chép x64/bin, chặn đường dẫn không an toàn.",
+      "tags": [
+        "service"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/sdk_setup.py",
+      "lineRange": [
+        1,
+        69
       ]
     },
     {
@@ -678,7 +693,7 @@
       "filePath": "src/server.py",
       "lineRange": [
         1,
-        384
+        401
       ]
     },
     {
@@ -787,6 +802,21 @@
       ]
     },
     {
+      "id": "file:tests/test_sdk_setup.py",
+      "type": "file",
+      "name": "tests/test_sdk_setup.py",
+      "summary": "Kiểm thử sdk_setup.",
+      "tags": [
+        "quality"
+      ],
+      "complexity": "moderate",
+      "filePath": "tests/test_sdk_setup.py",
+      "lineRange": [
+        1,
+        93
+      ]
+    },
+    {
       "id": "file:tests/test_server.py",
       "type": "file",
       "name": "tests/test_server.py",
@@ -858,7 +888,7 @@
       "filePath": "web/app.js",
       "lineRange": [
         1,
-        95
+        100
       ]
     },
     {
@@ -983,6 +1013,14 @@
     }
   ],
   "edges": [
+    {
+      "source": "file:scripts/prepare_sdk.py",
+      "target": "file:src/sdk_setup.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
     {
       "source": "file:src/access_control.py",
       "target": "file:src/paths.py",
@@ -1177,6 +1215,14 @@
     },
     {
       "source": "file:src/server.py",
+      "target": "file:src/sdk_setup.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/server.py",
       "target": "file:src/paths.py",
       "type": "imports",
       "direction": "forward",
@@ -1280,6 +1326,22 @@
       "weight": 0.8
     },
     {
+      "source": "file:tests/test_sdk_setup.py",
+      "target": "file:src/sdk_setup.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_sdk_setup.py",
+      "target": "file:src/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
       "source": "file:tests/test_server.py",
       "target": "file:src/server.py",
       "type": "imports",
@@ -1365,6 +1427,14 @@
       "type": "depends_on",
       "direction": "forward",
       "description": "Điểm vào được đóng gói thành CunZoom.exe.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/prepare_sdk.py",
+      "target": "file:src/sdk_setup.py",
+      "type": "depends_on",
+      "direction": "forward",
+      "description": "Dùng chung bộ giải nén SDK an toàn.",
       "weight": 0.8
     },
     {
@@ -1478,6 +1548,7 @@
         "file:src/paths.py",
         "file:src/platform_actions.py",
         "file:src/room_link.py",
+        "file:src/sdk_setup.py",
         "file:src/server.py",
         "file:src/vault.py"
       ]
@@ -1532,6 +1603,7 @@
         "file:tests/test_container.py",
         "file:tests/test_desktop_upgrade.py",
         "file:tests/test_room_link.py",
+        "file:tests/test_sdk_setup.py",
         "file:tests/test_server.py",
         "file:tests/test_workflow_map.py"
       ]
@@ -1586,6 +1658,7 @@
         "file:src/paths.py",
         "file:src/platform_actions.py",
         "file:src/room_link.py",
+        "file:src/sdk_setup.py",
         "file:src/server.py",
         "file:src/vault.py"
       ]
@@ -1640,6 +1713,7 @@
         "file:tests/test_container.py",
         "file:tests/test_desktop_upgrade.py",
         "file:tests/test_room_link.py",
+        "file:tests/test_sdk_setup.py",
         "file:tests/test_server.py",
         "file:tests/test_workflow_map.py"
       ]

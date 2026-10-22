@@ -23,7 +23,7 @@ flowchart LR
 
 ### Cài đặt và vận hành
 
-Đưa ứng dụng local vào hoạt động trên Windows (CunZoom.exe) hoặc Docker, kiểm tra trước phát hành và bảo toàn dữ liệu khi cập nhật. Image công khai không chứa SDK Zoom; exe Windows được build trên CI từ SDK ở kho riêng tư.
+Đưa ứng dụng local vào hoạt động trên Windows (CunZoom.exe) hoặc Docker, kiểm tra trước phát hành và bảo toàn dữ liệu khi cập nhật. Không bản phát hành nào chứa Zoom SDK: người dùng tự tải SDK chính thức và cài vào ứng dụng (Windows) hoặc mount (Docker).
 
 <details>
 <summary>Khởi động Docker và kiểm tra bộ ghi</summary>
@@ -88,15 +88,15 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Rà và tái tạo bản đồ trước khi gửi CI | Áp dụng /workflow cùng understand-domain --full để phân tích lại nguồn; gọi refresh với đúng plugin ghim. Công cụ dùng validator gốc, sinh graph/tài liệu và snapshot; đây là bảo trì chủ động, CI không tự phân tích AI. | [scripts/workflow_map.py](../scripts/workflow_map.py#L318) |
+| 1. Rà và tái tạo bản đồ trước khi gửi CI | Áp dụng /workflow cùng understand-domain --full để phân tích lại nguồn; gọi refresh với đúng plugin ghim. Công cụ dùng validator gốc, sinh graph/tài liệu và snapshot; đây là bảo trì chủ động, CI không tự phân tích AI. | [scripts/workflow_map.py](../scripts/workflow_map.py#L320) |
 | 2. Đồng bộ mục lục bàn giao và skill | Dùng docs/HANDOVER.md làm điểm tìm cơ chế, nguồn, cài đặt, vận hành, kiểm chứng và skill /workflow. Bàn giao nguồn, graph và tài liệu trên đúng repo được phép; giữ SDK, khóa và dữ liệu học ngoài GitHub. Chỉ xác nhận đã đưa lên GitHub sau khi kiểm tra kết quả publish. | [docs/HANDOVER.md](../docs/HANDOVER.md#L1) |
 | 3. Kiểm tra nguồn trước CI | CI cài phụ thuộc và chạy check_source để chặn dữ liệu riêng hoặc SDK trước các chốt bản đồ, kiểm thử và build. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L22) |
 | 4. CI chặn bản đồ lệch trước tests | Ngay sau check_source, CI gọi workflow_map.py check để đối chiếu fingerprint nguồn/artifact và kiểm tra graph. Bản đồ thiếu, đường dẫn sai hoặc nội dung lệch phải sửa và refresh trước khi tiếp tục unit/integration/JavaScript. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L32) |
-| 5. Build và tự kiểm tra CunZoom.exe | Tests trên Windows, lấy SDK Windows từ kho riêng và đối chiếu SHA-256, biên dịch worker, đóng gói PyInstaller, chạy --self-test không vào phòng; giữ exe làm artifact. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L38) |
-| 6. Chạy tests, build và kiểm tra HTTP thật | Sau chốt bản đồ, chạy unit/integration, kiểm tra cú pháp JavaScript, build image không SDK rồi smoke HTTP thật; lỗi có diagnostics. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L105) |
-| 7. Chặn sai hoặc trùng phiên bản | Chỉ publish khi dispatch được bật; đối chiếu phiên bản mã với input, từ chối tag đã tồn tại. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L133) |
-| 8. Đẩy image đã kiểm tra | Đăng nhập GHCR bằng token workflow rồi đẩy tag phiên bản và latest từ image đã test. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L151) |
-| 9. Đóng gói và tạo Release | Tải exe Windows đã kiểm tra, đóng gói source và SHA256SUMS, tạo một Release chung cho Windows và Docker. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L168) |
+| 5. Build và tự kiểm tra CunZoom.exe | Tests trên Windows, lấy SDK Windows từ kho riêng và đối chiếu SHA-256, biên dịch worker, đóng gói exe không kèm SDK, chạy --self-test với SDK đặt ngoài và từ chối exe chứa SDK; giữ exe làm artifact. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L38) |
+| 6. Chạy tests, build và kiểm tra HTTP thật | Sau chốt bản đồ, chạy unit/integration, kiểm tra cú pháp JavaScript, build image không SDK rồi smoke HTTP thật; lỗi có diagnostics. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L112) |
+| 7. Chặn sai hoặc trùng phiên bản | Chỉ publish khi dispatch được bật; đối chiếu phiên bản mã với input, từ chối tag đã tồn tại. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L140) |
+| 8. Đẩy image đã kiểm tra | Đăng nhập GHCR bằng token workflow rồi đẩy tag phiên bản và latest từ image đã test. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L158) |
+| 9. Đóng gói và tạo Release | Tải exe Windows đã kiểm tra, đóng gói source và SHA256SUMS, tạo một Release chung cho Windows và Docker. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L175) |
 
 </details>
 
@@ -130,7 +130,7 @@ flowchart LR
 <details>
 <summary>Mở và nâng cấp bản Windows</summary>
 
-Chạy CunZoom.exe một phiên duy nhất, nhận lại dữ liệu của bản 1.x trên cùng máy rồi mở cửa sổ và khay hệ thống.
+Chạy CunZoom.exe một phiên duy nhất, nhận lại dữ liệu của bản 1.x trên cùng máy, mở cửa sổ và khay hệ thống, rồi để người dùng cài Zoom SDK của chính họ.
 
 **Bắt đầu:** Mở CunZoom.exe
 
@@ -147,16 +147,19 @@ flowchart LR
   s4 --> s5
   s6["6 · Mở cửa sổ WebView2 và khay hệ thống"]
   s5 --> s6
+  s7["7 · Cài Zoom SDK của người dùng"]
+  s6 --> s7
 ```
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
 | 1. Chọn thư mục dữ liệu theo nền tảng | Windows dùng tiếp thư mục dữ liệu mặc định mà bản 1.x đã tạo trên máy, nếu không có thì dùng %LOCALAPPDATA%\CunZoom; Docker/Linux dùng thư mục được cấu hình. | [src/paths.py](../src/paths.py#L11) |
-| 2. Giữ thư mục bài giảng cũ | Khi chưa chọn thư mục, bản desktop đọc lại vị trí bài giảng mặc định của 1.x; container luôn khóa vào /data/lessons. | [src/paths.py](../src/paths.py#L24) |
-| 3. Sao chép kho khóa 1.x | Chỉ trên desktop: sao chép quyen_zoom.dpapi/calendar.dpapi sang zoom.vault/calendar.vault khi chưa có; file nguồn giữ nguyên. | [src/paths.py](../src/paths.py#L38) |
+| 2. Giữ thư mục bài giảng cũ | Khi chưa chọn thư mục, bản desktop đọc lại vị trí bài giảng mặc định của 1.x; container luôn khóa vào /data/lessons. | [src/paths.py](../src/paths.py#L30) |
+| 3. Sao chép kho khóa 1.x | Chỉ trên desktop: sao chép quyen_zoom.dpapi/calendar.dpapi sang zoom.vault/calendar.vault khi chưa có; file nguồn giữ nguyên. | [src/paths.py](../src/paths.py#L44) |
 | 4. Chạy nâng cấp trước dịch vụ | Điểm vào gọi bước sao chép trước khi khởi tạo API, trừ khi chạy với --no-migrate (CI self-test). | [src/main.py](../src/main.py#L64) |
 | 5. Giữ một phiên ứng dụng | Mutex Windows chặn mở hai bản; lần mở thứ hai yêu cầu bản đang chạy hiện cửa sổ. | [src/main.py](../src/main.py#L77) |
 | 6. Mở cửa sổ WebView2 và khay hệ thống | Tạo API loopback, cửa sổ WebView2, biểu tượng khay và thông báo lịch; đóng cửa sổ chỉ thu gọn, Thoát mới dừng dịch vụ và bộ ghi. | [src/main.py](../src/main.py#L90) |
+| 7. Cài Zoom SDK của người dùng | Người dùng chọn file ZIP Meeting SDK Windows chính thức; khi bot không chạy và thư mục SDK do ứng dụng quản lý, ứng dụng chỉ chép x64/bin vào zoom-sdk rồi thay bản cũ. | [src/sdk_setup.py](../src/sdk_setup.py#L47) |
 
 </details>
 
@@ -191,11 +194,11 @@ flowchart LR
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
 | 1. Xác thực giao diện bằng mật khẩu riêng | Docker so sánh username cunzoom và mật khẩu local; mật khẩu được tạo ngẫu nhiên, giữ qua restart. | [src/access_control.py](../src/access_control.py#L12) |
-| 2. Kiểm tra phiên và nguồn yêu cầu | Trước action POST phải qua Basic Auth, Host/token/Origin và JSON object dưới 65536 byte. | [src/server.py](../src/server.py#L355) |
-| 3. Lưu ứng dụng và vô hiệu trạng thái cũ | Kiểm tra độ dài thông tin, giữ secret khi ô trống, loại OAuth khi đổi Client ID và đặt lại kết quả SDK khi thông tin SDK thay đổi. | [src/server.py](../src/server.py#L176) |
+| 2. Kiểm tra phiên và nguồn yêu cầu | Trước action POST phải qua Basic Auth, Host/token/Origin và JSON object dưới 65536 byte. | [src/server.py](../src/server.py#L372) |
+| 3. Lưu ứng dụng và vô hiệu trạng thái cũ | Kiểm tra độ dài thông tin, giữ secret khi ô trống, loại OAuth khi đổi Client ID và đặt lại kết quả SDK khi thông tin SDK thay đổi. | [src/server.py](../src/server.py#L180) |
 | 4. Mã hóa, từ chối khóa sai | Windows dùng DPAPI, Linux dùng Fernet; ghi thay thế nguyên tử và báo lỗi khi mất/sai khóa, không ghi bản rõ. | [src/vault.py](../src/vault.py#L11) |
-| 5. Tạo phiên OAuth có hạn | Tạo state cùng PKCE S256; Docker dùng callback của PUBLIC_ORIGIN, phiên hết hạn sau 600 giây. | [src/server.py](../src/server.py#L109) |
-| 6. Đổi code và lưu token | Xác minh state/hạn, xử lý việc chưa cấp quyền, chỉ mã hóa kết quả khi có đủ access và refresh token. | [src/server.py](../src/server.py#L135) |
+| 5. Tạo phiên OAuth có hạn | Tạo state cùng PKCE S256; Docker dùng callback của PUBLIC_ORIGIN, phiên hết hạn sau 600 giây. | [src/server.py](../src/server.py#L113) |
+| 6. Đổi code và lưu token | Xác minh state/hạn, xử lý việc chưa cấp quyền, chỉ mã hóa kết quả khi có đủ access và refresh token. | [src/server.py](../src/server.py#L139) |
 | 7. Làm mới quyền khi cần dùng | Trước khi vào phòng, dùng access token còn hạn hoặc đổi refresh token và lưu lại; thiếu token yêu cầu kết nối lại. | [src/runner.py](../src/runner.py#L35) |
 
 </details>
@@ -259,8 +262,8 @@ flowchart LR
 | 2. Tính mốc và ngăn lặp | Chọn nhắc trong 30 phút, tùy chọn open từ 2 phút trước đến 10 phút sau giờ; lưu đánh dấu trước tác động. | [src/calendar_watch.py](../src/calendar_watch.py#L205) |
 | 3. Gửi nhắc hoặc liên kết | Gửi thông báo; hành động open chuyển link và nhắc người dùng vào Zoom trước khi xác nhận bắt đầu bot. | [src/calendar_watch.py](../src/calendar_watch.py#L229) |
 | 4. Mở link theo nền tảng | Windows mở link lớp bằng ứng dụng mặc định; Docker không chạy lệnh trên host mà đưa link vào hàng sự kiện cho giao diện. | [src/platform_actions.py](../src/platform_actions.py#L11) |
-| 5. Người dùng bấm link trên UI | Giao diện hiển thị liên kết HTTPS và toast từ sự kiện mới; cần UI đang mở để nhận, không replay backlog khi mới tải. | [web/app.js](../web/app.js#L68) |
-| 6. Mở đúng buổi còn trong danh sách | API lấy sự kiện theo khóa hiện tại; Docker trả URL cho giao diện, desktop mở link trực tiếp. | [src/server.py](../src/server.py#L171) |
+| 5. Người dùng bấm link trên UI | Giao diện hiển thị liên kết HTTPS và toast từ sự kiện mới; cần UI đang mở để nhận, không replay backlog khi mới tải. | [web/app.js](../web/app.js#L76) |
+| 6. Mở đúng buổi còn trong danh sách | API lấy sự kiện theo khóa hiện tại; Docker trả URL cho giao diện, desktop mở link trực tiếp. | [src/server.py](../src/server.py#L175) |
 
 </details>
 
@@ -292,9 +295,9 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Kiểm tra SDK riêng, không vào phòng | API gọi worker ở chế độ auth-test; native xác thực SDK và thoát khi chỉ kiểm tra. | [src/server.py](../src/server.py#L194) |
-| 2. Chỉ chấp nhận kiểm tra đạt đủ | Runner chỉ lưu auth_test_passed khi SDK khởi tạo, xác thực đều thành công và tiến trình thoát 0. | [src/runner.py](../src/runner.py#L96) |
-| 3. Xác nhận có phép và đúng phòng | Chặn nếu chưa consent/chưa kiểm tra SDK; chuẩn hóa ID, từ chối ID khác link trước khi làm mới OAuth. | [src/server.py](../src/server.py#L210) |
+| 1. Kiểm tra SDK riêng, không vào phòng | API gọi worker ở chế độ auth-test; native xác thực SDK và thoát khi chỉ kiểm tra. | [src/server.py](../src/server.py#L198) |
+| 2. Chỉ chấp nhận kiểm tra đạt đủ | Runner chỉ lưu auth_test_passed khi SDK khởi tạo, xác thực đều thành công và tiến trình thoát 0. | [src/runner.py](../src/runner.py#L97) |
+| 3. Xác nhận có phép và đúng phòng | Chặn nếu chưa consent/chưa kiểm tra SDK; chuẩn hóa ID, từ chối ID khác link trước khi làm mới OAuth. | [src/server.py](../src/server.py#L214) |
 | 4. Xin OBF và tạo hồ sơ buổi | Chặn worker trùng, kiểm tra tên/ID/mật khẩu; xin OBF cho tài khoản OAuth đang ở phòng, sau đó tạo thư mục môn/buổi. | [src/runner.py](../src/runner.py#L44) |
 | 5. Khởi tạo và xác thực worker | Nhận thông tin qua stdin riêng, bắt buộc OBF ở chế độ join; InitSDK và yêu cầu xác thực SDK. | [native/linux_bot.cpp](../native/linux_bot.cpp#L124) |
 | 6. Vào bằng OBF với camera và micro tắt | Sau xác thực, cấu hình micro ảo im lặng, Join có OBF, tắt video/audio; lỗi join kết thúc quá trình. | [native/linux_bot.cpp](../native/linux_bot.cpp#L116) |
@@ -332,7 +335,7 @@ flowchart LR
 | 3. Lưu ảnh nội dung chia sẻ | Subscribe RAW_DATA_TYPE_SHARE và lưu JPEG giới hạn nhịp 30 giây, chiều rộng tối đa 1600; không chụp camera. | [native/linux_bot.cpp](../native/linux_bot.cpp#L72) |
 | 4. Dừng khi quá hạn hoặc bị yêu cầu | Nhận STOP/tín hiệu; timeout xác thực 60 giây, vào phòng 180 giây, chờ ghi 300 giây và tổng phiên 3 giờ tính từ lúc bắt đầu. | [native/linux_bot.cpp](../native/linux_bot.cpp#L135) |
 | 5. Dừng raw, rời phòng, đóng WAV | Ngừng subscribe và ghi, rời phòng, cập nhật WAV header rồi phát stopped kèm byte thực và dọn SDK. | [native/linux_bot.cpp](../native/linux_bot.cpp#L155) |
-| 6. Ghi trạng thái theo âm thanh thực | Runner lưu lỗi, byte và slide vào hồ sơ; chỉ trạng thái có audio mới khởi chạy chép lời, không coi vào phòng là đã ghi. | [src/runner.py](../src/runner.py#L105) |
+| 6. Ghi trạng thái theo âm thanh thực | Runner lưu lỗi, byte và slide vào hồ sơ; chỉ trạng thái có audio mới khởi chạy chép lời, không coi vào phòng là đã ghi. | [src/runner.py](../src/runner.py#L106) |
 | 7. Chờ worker thoát trước cưỡng bức | STOP được gửi qua stdin; khi dịch vụ dừng, chờ 20 giây rồi terminate và chỉ kill nếu tiếp tục treo. | [src/runner.py](../src/runner.py#L53) |
 
 </details>
@@ -363,8 +366,8 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Tải bộ chép lời khi yêu cầu | Tải faster-whisper-base từ Hugging Face vào cache local; báo trạng thái tải, sẵn sàng hoặc thất bại. | [src/server.py](../src/server.py#L91) |
-| 2. Chỉ xử lý sau khi có âm thanh | Runner khởi tiến trình transcribe cho thư mục buổi khi số byte đã nhận lớn hơn 0, ghi log vào buổi tương ứng. | [src/runner.py](../src/runner.py#L127) |
+| 1. Tải bộ chép lời khi yêu cầu | Tải faster-whisper-base từ Hugging Face vào cache local; báo trạng thái tải, sẵn sàng hoặc thất bại. | [src/server.py](../src/server.py#L95) |
+| 2. Chỉ xử lý sau khi có âm thanh | Runner khởi tiến trình transcribe cho thư mục buổi khi số byte đã nhận lớn hơn 0, ghi log vào buổi tương ứng. | [src/runner.py](../src/runner.py#L128) |
 | 3. Nhận dạng tiếng Việt trên CPU | Đọc WAV/webm trong thư mục buổi; dùng Whisper base int8 local_files_only, ghi từng đoạn kèm thời gian. | [src/transcribe.py](../src/transcribe.py#L23) |
 | 4. Chọn câu nổi bật và dấu hiệu bài tập | Quy tắc chấm điểm từ vựng chọn câu và dò cụm bài tập/hạn; nhãn bản nháp nêu rõ có thể sai, chưa đối chiếu slide. | [src/transcribe.py](../src/transcribe.py#L5) |
 | 5. Lưu tài liệu và trạng thái thật | Lưu transcript, trích ý, hướng dẫn rà soát; completed ghi số đoạn, exception lưu failed rồi trả lỗi. | [src/transcribe.py](../src/transcribe.py#L38) |
@@ -395,9 +398,9 @@ flowchart LR
 | --- | --- | --- |
 | 1. Lập danh sách buổi có metadata | Duyệt dưới recordings_root, bỏ symlink/thư mục ngoài phạm vi; ID băm, sắp mới trước và tối đa 300 buổi. | [src/library.py](../src/library.py#L11) |
 | 2. Đọc bản chép lời hoặc trích ý | Tìm ID đã biết, chỉ nhận loại summary/transcript; xác minh tệp trong thư mục buổi và giới hạn 160000 ký tự. | [src/library.py](../src/library.py#L49) |
-| 3. Trả liên kết tải từ ID hợp lệ | Docker kiểm tra buổi rồi trả URL nội bộ; desktop mở thư mục đã biết thay vì nhận đường dẫn tùy ý. | [src/server.py](../src/server.py#L227) |
+| 3. Trả liên kết tải từ ID hợp lệ | Docker kiểm tra buổi rồi trả URL nội bộ; desktop mở thư mục đã biết thay vì nhận đường dẫn tùy ý. | [src/server.py](../src/server.py#L231) |
 | 4. Đóng gói riêng dữ liệu buổi | Chỉ đưa tệp thường trong buổi đã chọn vào ZIP, bỏ symlink và tệp nằm ngoài thư mục buổi. | [src/library.py](../src/library.py#L71) |
-| 5. Tải sau xác thực, báo sai ID | Handler yêu cầu Host hợp lệ và đăng nhập trước khi stream ZIP; ID không hợp lệ trả lỗi 400. | [src/server.py](../src/server.py#L297) |
+| 5. Tải sau xác thực, báo sai ID | Handler yêu cầu Host hợp lệ và đăng nhập trước khi stream ZIP; ID không hợp lệ trả lỗi 400. | [src/server.py](../src/server.py#L314) |
 
 </details>
 

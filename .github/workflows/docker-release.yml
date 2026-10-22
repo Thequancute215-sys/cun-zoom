@@ -62,10 +62,14 @@ jobs:
         id: sdk
         env:
           GH_TOKEN: ${{ secrets.WINDOWS_SDK_TOKEN || github.token }}
+          SDK_TOKEN_SET: ${{ secrets.WINDOWS_SDK_TOKEN != '' }}
         run: |
           New-Item -ItemType Directory -Path build/vendor -Force | Out-Null
           gh release download $env:SDK_TAG --repo $env:SDK_REPO --pattern $env:SDK_ASSET --dir build/vendor
           if ($LASTEXITCODE -ne 0) {
+            # Say which fix applies without ever printing the token.
+            if ($env:SDK_TOKEN_SET -ne 'true') { Write-Output '::warning::Secret WINDOWS_SDK_TOKEN is not set for this repository (Settings > Secrets and variables > Actions > Repository secrets).' }
+            else { Write-Output "::warning::WINDOWS_SDK_TOKEN is set but cannot read release $env:SDK_TAG of $env:SDK_REPO. The token needs Contents: Read-only on that repository." }
             if ($env:PUBLISH -eq 'true') { throw "Cannot read $env:SDK_ASSET from $env:SDK_REPO. See docs/WINDOWS.md." }
             Write-Output '::warning::Windows SDK unavailable; Windows tests passed but CunZoom.exe was not built.'
             'available=false' >> $env:GITHUB_OUTPUT
@@ -85,11 +89,14 @@ jobs:
       - name: Verify packaged application without joining a meeting
         if: steps.sdk.outputs.available == 'true'
         run: |
+          # The exe ships without the SDK; point the self-test at the CI copy, as a user's installed SDK would be.
+          $env:CUN_ZOOM_SDK_DIR = (Resolve-Path vendor/zoom/bin).Path
           $process = Start-Process -FilePath (Resolve-Path dist/CunZoom.exe) -ArgumentList '--self-test', 'dist/self-test.json', '--data-dir', 'build/smoke-data', '--no-migrate' -Wait -PassThru
           Get-Content dist/self-test.json
           if ($process.ExitCode -ne 0) { throw 'Packaged self-test failed.' }
           $report = Get-Content dist/self-test.json | ConvertFrom-Json
           if (-not $report.sdk_loadable -or -not $report.encryption_roundtrip -or -not $report.https_context) { throw 'Missing runtime, HTTPS context or encryption failed.' }
+          if ($report.sdk_bundled -or (Get-Content dist/build-info.json | ConvertFrom-Json).zoom_sdk_included) { throw 'CunZoom.exe must not contain the Zoom SDK.' }
       - name: Keep tested executable for this run
         if: steps.sdk.outputs.available == 'true'
         uses: actions/upload-artifact@v4

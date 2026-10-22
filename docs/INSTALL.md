@@ -1,6 +1,6 @@
 # Cài đặt Docker từng bước
 
-Chỉ dùng trên Windows và không cần Docker? Tải `CunZoom.exe` và làm theo [hướng dẫn Windows](WINDOWS.md) — nhanh hơn, không cần tự tải SDK.
+Chỉ dùng trên Windows và không cần Docker? Dùng `CunZoom.exe` theo [hướng dẫn Windows](WINDOWS.md) — đơn giản hơn; bạn vẫn tự tải Zoom SDK (bản Windows) và cài bằng một nút trong ứng dụng.
 
 ## 1. Chuẩn bị máy
 

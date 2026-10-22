@@ -9,7 +9,7 @@ Một mã nguồn, hai cách chạy:
 | **Windows — `CunZoom.exe`** | Máy Windows 10/11 x64; cửa sổ riêng, khay hệ thống, tự mở link lớp | Tải exe ở [Releases](https://github.com/Thequancute215-sys/cun-zoom/releases), đọc [hướng dẫn Windows](docs/WINDOWS.md) |
 | **Docker — Linux x86-64** | Máy chủ/Linux hoặc Docker Desktop; giao diện web có đăng nhập | Làm theo [hướng dẫn cài Docker](docs/INSTALL.md) |
 
-Bản Windows trước đây ở repo `AI-Zoom` (1.x) nay được phát hành từ repo này; nâng cấp giữ nguyên cấu hình và bài giảng cũ trên cùng máy ([chi tiết](docs/WINDOWS.md#nâng-cấp-từ-1x--dữ-liệu-được-giữ-nguyên)). Mỗi người dùng cần tài khoản Zoom và ứng dụng Meeting SDK của **chính mình** ([cách cấu hình](docs/ZOOM_AND_CALENDAR.md)); không có khóa dùng chung. Bản Docker không chứa SDK: người cài tự tải Zoom Meeting SDK chính thức.
+Bản Windows trước đây ở repo `AI-Zoom` (1.x) nay được phát hành từ repo này; nâng cấp giữ nguyên cấu hình và bài giảng cũ trên cùng máy ([chi tiết](docs/WINDOWS.md#nâng-cấp-từ-1x--dữ-liệu-được-giữ-nguyên)). Mỗi người dùng cần tài khoản Zoom và ứng dụng Meeting SDK của **chính mình** ([cách cấu hình](docs/ZOOM_AND_CALENDAR.md)); không có khóa dùng chung. **Không bản nào chứa Zoom SDK**: mỗi người tự tải Zoom Meeting SDK chính thức bằng tài khoản Zoom của mình (Windows: chọn file zip trong ứng dụng; Docker: đặt vào `vendor/zoom-linux`).
 
 **Phạm vi hỗ trợ Zoom:** [trang Meeting SDK Linux](https://developers.zoom.us/docs/meeting-sdk/linux/) hiện hướng bot/notetaker mới sang RTMS; [OBF FAQ](https://developers.zoom.us/docs/meeting-sdk/obf-faq/) vẫn mô tả OBF cho ứng dụng legacy. Module SDK của bản này chỉ dành cho trường hợp Zoom cho phép tài khoản/app của bạn sử dụng. Không coi cài Cún Zoom hoặc có OBF là đã được Zoom chấp thuận. RTMS chưa được triển khai trong bản này.
 
@@ -17,9 +17,12 @@ Tất cả hướng dẫn, giải thích cơ chế, nguồn và skill bảo trì
 
 ## Cài bản Windows
 
-1. Tải `CunZoom.exe` ở [Releases](https://github.com/Thequancute215-sys/cun-zoom/releases) và mở. Không cần Python hay Docker; SDK đã kèm trong exe. Windows có thể cảnh báo SmartScreen vì exe chưa ký số — xem [WINDOWS.md](docs/WINDOWS.md#xử-lý-lỗi-thường-gặp).
-2. Làm theo [hướng dẫn cấu hình Zoom và Google Calendar](docs/ZOOM_AND_CALENDAR.md).
-3. Cách dùng, sao lưu, cập nhật và xử lý lỗi: [WINDOWS.md](docs/WINDOWS.md).
+Làm theo **[hướng dẫn cài đặt từng bước cho Windows](docs/WINDOWS.md#cài-đặt-từng-bước)** (khoảng 20–30 phút lần đầu):
+
+1. Tải `CunZoom.exe` ở [Releases](https://github.com/Thequancute215-sys/cun-zoom/releases). Không cần Python hay Docker. Windows có thể cảnh báo SmartScreen vì exe chưa ký số.
+2. Tạo ứng dụng Zoom của bạn và tải **Zoom Meeting SDK cho Windows** (bản 7.2.1.49056) từ Zoom Marketplace.
+3. Trong Cún Zoom: **Cài đặt → Kết nối → Cài Zoom SDK (.zip)**, chọn file vừa tải.
+4. Nhập khóa Zoom, bấm **Kiểm tra Zoom**, kết nối lịch Google và thử ghi trong một phòng thử.
 
 ## Cài bản Docker
 

@@ -52,7 +52,7 @@ def main():
             sdk_loadable=False
         import runner
         native_state=runner.state()
-        report={'version':VERSION,'https_context':https_context,'encryption_roundtrip':encrypted,'web_resources':resources,
+        report={'version':VERSION,'sdk_bundled':(RESOURCES/'vendor/zoom').exists(),'https_context':https_context,'encryption_roundtrip':encrypted,'web_resources':resources,
                 'native_worker':NATIVE.is_file(),'sdk_loadable':sdk_loadable,'server_port':service.port,
                 'native_status_consistent':native_state['built'] and native_state['state']!='not_built',
                 'calendar_configured':service.calendar.status()['configured']}
@@ -107,6 +107,10 @@ def main():
         result=window.create_file_dialog(webview.FOLDER_DIALOG)
         return result[0] if result else None
     service.choose_folder=choose
+    def choose_sdk():
+        result=window.create_file_dialog(webview.OPEN_DIALOG,file_types=('Zoom Meeting SDK (*.zip)',))
+        return result[0] if result else None
+    service.choose_sdk_archive=choose_sdk
     icon=pystray.Icon('CunZoom',Image.open(RESOURCES/'web/icon.png'),'Cún Zoom',menu=pystray.Menu(
         pystray.MenuItem('Mở Cún Zoom',show,default=True),
         pystray.MenuItem('Thoát Cún Zoom',lambda *_:threading.Thread(target=quit_app,daemon=True).start())))
