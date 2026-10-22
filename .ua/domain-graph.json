@@ -15,7 +15,7 @@
     ],
     "description": "Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn. Docker chỉ đưa link lịch tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra; RTMS chưa triển khai.",
     "analyzedAt": "2026-10-22T02:40:50.537327+00:00",
-    "gitCommitHash": "76ee53e11fbe7233c0d08d3b2fa53537d3ca66dd"
+    "gitCommitHash": "3ba7a3f6bc2d89f4fdf6c51cdecb678b29f204f7"
   },
   "nodes": [
     {
