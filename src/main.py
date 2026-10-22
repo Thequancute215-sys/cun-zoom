@@ -43,7 +43,7 @@ def main():
             encrypted=vault.load(path)=={'test':'synthetic'} and b'synthetic' not in path.read_bytes()
         Path(args.self_test).write_text(json.dumps({'stage':'encryption_passed','encryption_roundtrip':encrypted}),encoding='utf-8')
         service=Service(port=0)
-        resources=all((RESOURCES/'web'/name).is_file() for name in ['index.html','style.css','app.js','logo.svg'])
+        resources=all((RESOURCES/'web'/name).is_file() for name in ['index.html','style.css','app.js','study.js','logo.svg'])
         try:
             import subprocess
             probe=subprocess.run([str(NATIVE),str(SDK),'check'],capture_output=True,text=True,timeout=20,creationflags=subprocess.CREATE_NO_WINDOW)
@@ -52,13 +52,20 @@ def main():
             sdk_loadable=False
         import runner
         native_state=runner.state()
+        try:
+            # Study notes need the Claude SDK and PDF reader inside the bundle; building a client sends nothing.
+            import anthropic,pypdf,study,documents
+            anthropic.Anthropic(api_key='sk-ant-self-test')
+            study_ready=documents.kind('a.pptx')=='text'
+        except Exception:
+            study_ready=False
         report={'version':VERSION,'sdk_bundled':(RESOURCES/'vendor/zoom').exists(),'https_context':https_context,'encryption_roundtrip':encrypted,'web_resources':resources,
                 'native_worker':NATIVE.is_file(),'sdk_loadable':sdk_loadable,'server_port':service.port,
                 'native_status_consistent':native_state['built'] and native_state['state']!='not_built',
-                'calendar_configured':service.calendar.status()['configured']}
+                'calendar_configured':service.calendar.status()['configured'],'study_ready':study_ready}
         service.http.server_close()
         Path(args.self_test).write_text(json.dumps(report,indent=2),encoding='utf-8')
-        if not all(report[k] for k in ['https_context','encryption_roundtrip','web_resources','native_worker','sdk_loadable','native_status_consistent']):
+        if not all(report[k] for k in ['https_context','encryption_roundtrip','web_resources','native_worker','sdk_loadable','native_status_consistent','study_ready']):
             raise SystemExit(2)
         return
     if not args.no_migrate:

@@ -27,6 +27,15 @@ def state():
         if value['state']=='not_built' and value['built']:value['state']='not_tested'
         return value
 
+def start_transcription(directory):
+    import sys
+    directory=Path(directory);(directory/'02_Tom_tat').mkdir(parents=True,exist_ok=True)
+    # Mark the lesson busy before the worker starts so a sync pass cannot launch it twice.
+    (directory/'02_Tom_tat/trang_thai.json').write_text(json.dumps({'state':'processing','time':datetime.now().isoformat()}),encoding='utf-8')
+    command=[sys.executable,'--transcribe',str(directory)] if getattr(sys,'frozen',False) else [sys.executable,str(Path(__file__).parent/'transcribe.py'),str(directory)]
+    with (directory/'02_Tom_tat/xu_ly.log').open('a',encoding='utf-8') as log:
+        subprocess.Popen(command,stdout=log,stderr=log,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+
 def name(value):
     value=re.sub(r'[<>:"/\\|?*\x00-\x1f]','_',str(value)).strip(' .')[:100]
     if not value or value.upper() in {'CON','PRN','AUX','NUL',*[f'COM{i}' for i in range(1,10)],*[f'LPT{i}' for i in range(1,10)]}:raise ValueError('Tên môn/buổi học không hợp lệ.')
@@ -128,11 +137,7 @@ def read_events(p,mode,directory):
             if directory:
                 meta=json.loads((directory/'buoi_hoc.json').read_text(encoding='utf-8'));meta.update(ended=datetime.now().isoformat(),state=CURRENT['state'],recording_confirmed=CURRENT['audio_bytes']>0,audio_bytes=CURRENT['audio_bytes'],slides=CURRENT['slides'],last_error=CURRENT['last_error']);(directory/'buoi_hoc.json').write_text(json.dumps(meta,ensure_ascii=False,indent=2),encoding='utf-8')
             received_bytes=CURRENT['audio_bytes']
-        if directory and received_bytes>0:
-            import sys
-            command=[sys.executable,'--transcribe',str(directory)] if getattr(sys,'frozen',False) else [sys.executable,str(Path(__file__).parent/'transcribe.py'),str(directory)]
-            with (directory/'02_Tom_tat/xu_ly.log').open('a',encoding='utf-8') as log:
-                subprocess.Popen(command,stdout=log,stderr=log,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+        if directory and received_bytes>0:start_transcription(directory)
 
     except Exception:
         with MUTEX:CURRENT.update(state='worker_error',running=p.poll() is None,last_error={'state':'worker_error','code':-1});persist()

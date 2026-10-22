@@ -69,7 +69,13 @@ def open_folder(identifier):
 
 
 def archive(identifier):
-    folder = find(identifier)['_folder'].resolve()
+    return archive_folder(find(identifier)['_folder'])
+
+
+def archive_folder(folder):
+    folder = Path(folder).resolve()
+    if not folder.is_dir():
+        raise ValueError('Chưa có dữ liệu để tải.')
     packed = tempfile.TemporaryFile()
     try:
         with zipfile.ZipFile(packed, 'w', zipfile.ZIP_DEFLATED, compresslevel=1) as bundle:

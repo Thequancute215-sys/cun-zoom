@@ -66,6 +66,7 @@ Làm theo [mục C](ZOOM_AND_CALENDAR.md#c-thử-ghi-trong-một-phòng-được
 2. Trong Cún Zoom mở **Phòng Zoom**, chọn buổi từ lịch hoặc dán link, đánh dấu xác nhận đã vào đúng lớp và được phép ghi, rồi bấm **Bắt đầu bot**.
 3. Chủ phòng nhận bot và cho phép ghi. Âm thanh và ảnh slide được lưu theo môn; sau buổi học, ứng dụng chép lời trên máy (cần tải bộ chép lời một lần trong **Cài đặt → Lưu trữ**).
 4. Đóng cửa sổ chỉ thu gọn xuống khay hệ thống. Chọn **Thoát Cún Zoom** để dừng hẳn và dừng theo dõi lịch.
+5. Ôn tập: bật AI trong **Cài đặt → AI**, rồi xem hệ thống kiến thức, đề cương và làm đề thi thử ở trang **Ôn tập**; có thể tải thêm slide, PDF, Word, PowerPoint, ảnh hoặc ghi âm. Xem [hướng dẫn ôn tập](STUDY.md).
 
 Ứng dụng không vượt phòng chờ, quyền host hoặc quy định duyệt ứng dụng của Zoom. Không chạy song song bản Windows và bản Docker cho cùng một phòng.
 

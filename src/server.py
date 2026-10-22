@@ -19,10 +19,15 @@ import library
 import runner
 import vault
 import access_control
+import ai_backend
 import platform_actions
 import sdk_setup
+import study
 from paths import DATA, RESOURCES, WEB, VERSION, REPOSITORY, SDK, MANAGED_SDK, NATIVE, PREFERENCES, preferences, CONTAINER, sdk_present
 from room_link import parse_room_link
+
+
+UPLOAD_LIMIT = 2 * 1024 ** 3
 
 
 def pkce(verifier):
@@ -58,6 +63,7 @@ class Service:
         self.token = secrets.token_urlsafe(32)
         self.vault = DATA / 'zoom.vault'
         self.calendar = calendar_watch.Watcher()
+        self.study = study.Engine()
         self.pending = {}
         self.show_window = lambda: None
         self.choose_folder = lambda: None
@@ -271,6 +277,42 @@ class Service:
             sdk_setup.install(selected, SDK)
             self.message = 'Đã cài Zoom SDK. Bấm Kiểm tra Zoom để thử.'
             return {'ok': True}
+        if route == '/ai/settings':
+            return ai_backend.public_settings()
+        if route == '/ai/save':
+            settings = ai_backend.save(data)
+            self.study.kick()
+            return settings
+        if route == '/ai/test':
+            ai_backend.test()
+            return {'ok': True}
+        if route == '/study/overview':
+            return study.overview(self.study)
+        if route == '/study/subject':
+            return study.subject_detail(data.get('name', ''))
+        if route == '/study/exam':
+            return study.exam(study.subject_dir(data.get('subject', '')), data.get('id', ''))
+        if route == '/study/run':
+            kind = data.get('kind')
+            if kind == 'sync':
+                self.study.request('subject', data.get('subject', ''))
+            elif kind == 'outline':
+                self.study.request('outline', data.get('subject', ''))
+            elif kind == 'exam':
+                mix = data.get('mix', 'can_bang')
+                if mix not in study.MIX:
+                    raise ValueError('Mức độ đề không hợp lệ.')
+                self.study.request('exam', data.get('subject', ''), multiple_choice=int(data.get('multiple_choice', 20)), essays=int(data.get('essays', 3)), mix=mix)
+            else:
+                raise ValueError('Thao tác không được hỗ trợ.')
+            return {'ok': True}
+        if route == '/study/open':
+            folder = study.subject_paths(study.subject_dir(data.get('subject', '')))['folder']
+            folder.mkdir(parents=True, exist_ok=True)
+            if CONTAINER:
+                return {'ok': True, 'download': '/study/download?subject=' + urllib.parse.quote(folder.parent.name)}
+            platform_actions.open_folder(folder)
+            return {'ok': True}
         if route == '/app/quit':
             threading.Thread(target=self.quit_app, daemon=True).start()
             return {'ok': True}
@@ -335,6 +377,22 @@ class Service:
                     except ValueError as error:
                         return self.reply({'error': str(error)}, 400)
                     return
+                if route == '/study/download' and CONTAINER:
+                    try:
+                        subject = study.subject_dir(urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query).get('subject', [''])[0])
+                        with library.archive_folder(study.subject_paths(subject)['folder']) as packed:
+                            self.send_response(200)
+                            self.headers_common()
+                            self.send_header('Content-Type', 'application/zip')
+                            self.send_header('Content-Disposition', 'attachment; filename="cun-zoom-on-tap.zip"')
+                            self.send_header('Content-Length', str(packed.seek(0, 2)))
+                            self.end_headers()
+                            packed.seek(0)
+                            import shutil
+                            shutil.copyfileobj(packed, self.wfile)
+                    except ValueError as error:
+                        return self.reply({'error': str(error)}, 400)
+                    return
                 if route == '/oauth/callback':
                     try:
                         service.oauth_callback(urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query))
@@ -351,7 +409,7 @@ class Service:
                     if getattr(self.server, 'oauth_listener', False):
                         threading.Thread(target=self.server.shutdown, daemon=True).start()
                     return
-                known = {'/': 'index.html', '/app.js': 'app.js', '/style.css': 'style.css', '/logo.svg': 'logo.svg',
+                known = {'/': 'index.html', '/app.js': 'app.js', '/study.js': 'study.js', '/style.css': 'style.css', '/logo.svg': 'logo.svg',
                          '/tokens.css': 'tokens.css', '/fonts.css': 'fonts.css'}
                 for font in ('inter-400.ttf', 'inter-500.ttf', 'inter-600.ttf', 'inter-700.ttf',
                              'space-grotesk-500.ttf', 'space-grotesk-700.ttf', 'jetbrains-mono-400.ttf'):
@@ -376,6 +434,8 @@ class Service:
                     return self.reply({'error': 'Phiên ứng dụng không hợp lệ.'}, 403)
                 if self.headers.get('Origin') not in (None, service.base):
                     return self.reply({'error': 'Nguồn yêu cầu không hợp lệ.'}, 403)
+                if urllib.parse.urlsplit(self.path).path == '/study/upload':
+                    return self.upload()
                 try:
                     size = int(self.headers.get('Content-Length', '0'))
                     if not 0 < size < 65536:
@@ -388,14 +448,51 @@ class Service:
                     self.reply({'error': str(error)}, 400)
                 except Exception:
                     self.reply({'error': 'Chưa thực hiện được. Kiểm tra kết nối và cấu hình; khóa bí mật không được ghi vào nhật ký.'}, 500)
+            def upload(self):
+                """Stream one study file to disk; the body is never held in memory or interpreted here."""
+                target = None
+                try:
+                    query = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query)
+                    value = lambda key: query.get(key, [''])[0]
+                    size = int(self.headers.get('Content-Length', '0'))
+                    if not 0 < size <= UPLOAD_LIMIT:
+                        raise ValueError('File rỗng hoặc lớn hơn 2 GB.')
+                    if value('lesson'):
+                        folder = library.find(value('lesson'))['_folder']
+                    else:
+                        folder = study.new_upload_lesson(value('subject'), value('title'))
+                    target = study.upload_target(folder, value('name'))
+                    temp = target.with_name(target.name + '.part')
+                    with temp.open('wb') as stream:
+                        left = size
+                        while left:
+                            chunk = self.rfile.read(min(left, 1024 * 1024))
+                            if not chunk:
+                                raise ValueError('Tải lên bị ngắt giữa chừng; thử lại.')
+                            stream.write(chunk)
+                            left -= len(chunk)
+                    temp.replace(target)
+                    service.study.kick()
+                    return self.reply({'ok': True, 'lesson': study.lesson_id(folder), 'file': target.name})
+                except ValueError as error:
+                    if target is not None:
+                        target.with_name(target.name + '.part').unlink(missing_ok=True)
+                    return self.reply({'error': str(error)}, 400)
+                except OSError:
+                    if target is not None:
+                        target.with_name(target.name + '.part').unlink(missing_ok=True)
+                    return self.reply({'error': 'Không lưu được file. Kiểm tra dung lượng ổ đĩa.'}, 500)
+
         return Handler
 
     def start(self):
         threading.Thread(target=self.http.serve_forever, daemon=True).start()
         self.calendar.start()
+        self.study.start()
 
     def stop(self):
         self.calendar.stop_event.set()
+        self.study.stop()
         runner.shutdown()
         self.http.shutdown()
         self.http.server_close()

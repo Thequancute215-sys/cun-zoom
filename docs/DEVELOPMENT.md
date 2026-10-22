@@ -8,6 +8,9 @@
 - `src/runner.py`: sở hữu worker, truyền token qua stdin riêng; không đưa bí mật vào argv.
 - `native/linux_bot.cpp`: SDK init/auth/join, raw recording đúng quyền, WAV và JPEG.
 - `native/bot.cpp`, `scripts/prepare_sdk.py`, `scripts/build_native.py`, `scripts/build.py`, `src/main.py`: bản desktop Windows (WebView2, khay hệ thống, `CunZoom.exe`); xem [WINDOWS.md](WINDOWS.md).
+- `src/ai_backend.py`: AI tuỳ chọn — Claude qua SDK `anthropic` (khóa của người dùng, JSON theo schema, PDF/ảnh, fallback khi bị từ chối, cache) hoặc Ollama qua HTTP local; cấu hình mã hóa trong `ai.vault`.
+- `src/documents.py`: đọc file tải lên (PDF qua `pypdf`, DOCX/PPTX bằng XML chuẩn, ảnh, TXT/MD); không thực thi nội dung.
+- `src/study.py`: ghi chú từng buổi, hệ thống kiến thức của môn, đề cương, đề thi thử, mục lục tổng; bộ đồng bộ chạy nền theo dấu vân tay nội dung file, một việc AI mỗi lúc, không tự thử lại lỗi với cùng dữ liệu. `web/study.js` là giao diện Ôn tập và cài đặt AI.
 - `src/sdk_setup.py`: cài SDK Windows của người dùng từ file ZIP chính thức (chỉ chép `x64/bin`, chặn đường dẫn không an toàn, không chạy nội dung ZIP); `prepare_sdk.py` dùng chung phần giải nén.
 - `src/paths.py`: thư mục dữ liệu theo nền tảng; trên Windows tiếp tục dùng vị trí và kho khóa của bản 1.x (chỉ sao chép, không xóa).
 - `scripts/build_linux.py`: tạo adapter từ header đã preprocess của SDK được mount, biên dịch mã ứng dụng.

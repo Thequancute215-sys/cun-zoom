@@ -22,15 +22,19 @@ docker compose start
 
 ```text
 /data/lessons/
+├── 00_Tong_hop/Muc_luc.md
 └── Ten_mon/
+    ├── 00_Tong_hop_mon/          hệ thống kiến thức, đề cương, đề thi thử (xem STUDY.md)
     └── YYYY-MM-DD_HH-MM-SS_Ten_buoi_maduynhat/
         ├── buoi_hoc.json
         ├── 01_Tai_lieu_goc/
         │   ├── am_thanh.wav
-        │   └── slide_0001.jpg ...
+        │   ├── slide_0001.jpg ...
+        │   └── tai_lieu/          file tải lên
         ├── 02_Tom_tat/
         │   ├── ban_chep_loi.txt
         │   ├── tom_tat_nhap.md
+        │   ├── he_thong_buoi.md   ghi chú AI của buổi
         │   └── trang_thai.json
         └── 03_Bai_tap_va_on_tap/
 ```
@@ -53,7 +57,7 @@ Không đoán tên thư mục; xem danh sách bằng `docker compose exec app ls
 
 1. Dừng ghi, đợi chép lời xong nếu có.
 2. Dừng container để có bản sao nhất quán.
-3. Sao lưu **toàn bộ `/data`**, bao gồm `vault.key`, `zoom.vault`, `calendar.vault`, `access-password.txt`, mô hình và lessons.
+3. Sao lưu **toàn bộ `/data`**, bao gồm `vault.key`, `zoom.vault`, `calendar.vault`, `ai.vault`, `access-password.txt`, mô hình và lessons.
 
 Các lệnh sau dùng trong terminal tại thư mục dự án. Tạo thư mục backup trước (PowerShell: `New-Item -ItemType Directory -Force backup`; Linux: `mkdir -p backup`).
 

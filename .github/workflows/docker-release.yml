@@ -12,7 +12,7 @@ on:
       version:
         description: Release version without v
         type: string
-        default: '2.1.0'
+        default: '2.2.0'
 permissions:
   contents: read
 concurrency:
@@ -95,7 +95,7 @@ jobs:
           Get-Content dist/self-test.json
           if ($process.ExitCode -ne 0) { throw 'Packaged self-test failed.' }
           $report = Get-Content dist/self-test.json | ConvertFrom-Json
-          if (-not $report.sdk_loadable -or -not $report.encryption_roundtrip -or -not $report.https_context) { throw 'Missing runtime, HTTPS context or encryption failed.' }
+          if (-not $report.sdk_loadable -or -not $report.encryption_roundtrip -or -not $report.https_context -or -not $report.study_ready) { throw 'Missing runtime, HTTPS context or encryption failed.' }
           if ($report.sdk_bundled -or (Get-Content dist/build-info.json | ConvertFrom-Json).zoom_sdk_included) { throw 'CunZoom.exe must not contain the Zoom SDK.' }
       - name: Keep tested executable for this run
         if: steps.sdk.outputs.available == 'true'
@@ -188,7 +188,9 @@ jobs:
           cp windows-dist/build-info.json dist/CunZoom-build-info.json
           git archive --format=zip --prefix="cun-zoom-$VERSION/" HEAD > "dist/cun-zoom-$VERSION-source.zip"
           cp compose.yaml dist/compose.yaml
-          cp docs/INSTALL.md dist/HUONG-DAN-CAI-DAT.md
+          cp docs/WINDOWS.md dist/HUONG-DAN-WINDOWS.md
+          cp docs/INSTALL.md dist/HUONG-DAN-DOCKER.md
+          cp docs/STUDY.md dist/HUONG-DAN-ON-TAP.md
           cd dist
           sha256sum * > SHA256SUMS
       - name: Create release and attach source

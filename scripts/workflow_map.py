@@ -28,6 +28,11 @@ DESCRIPTIONS = {
     'src/paths.py': 'Đường dẫn đa nền tảng, phiên bản, thiết lập theo bản cài và nhận lại dữ liệu Windows 1.x.',
     'src/platform_actions.py': 'Chuyển thông báo/link vào giao diện Docker hoặc hành động desktop Windows.',
     'src/sdk_setup.py': 'Cài Zoom SDK Windows của người dùng từ ZIP chính thức: chỉ chép x64/bin, chặn đường dẫn không an toàn.',
+    'src/ai_backend.py': 'Claude (khóa người dùng, JSON theo schema, PDF/ảnh, fallback) hoặc Ollama local; cấu hình AI mã hóa.',
+    'src/documents.py': 'Đọc PDF, DOCX, PPTX, ảnh, TXT/MD tải lên thành dữ liệu cho AI; không thực thi nội dung.',
+    'src/study.py': 'Ghi chú buổi, hệ thống kiến thức môn, đề cương, đề thi thử, mục lục tổng và bộ đồng bộ nền.',
+    'web/study.js': 'Giao diện Ôn tập: môn, hệ thống kiến thức, theo buổi, đề cương, đề thi; tải tài liệu; cài đặt AI.',
+    'docs/STUDY.md': 'Hướng dẫn ôn tập bằng AI: chức năng, thư mục tổng hợp, tải tài liệu, chọn Claude/Ollama, chi phí và lỗi.',
     'src/room_link.py': 'Phân tích URL Zoom hoặc ID phòng, kiểm tra dữ liệu đầu vào.',
     'src/runner.py': 'Quản lý worker duy nhất, OBF, pipe riêng, trạng thái, dừng và lỗi.',
     'src/server.py': 'API có xác thực, Host/Origin/token, OAuth PKCE và điều phối chức năng.',
@@ -209,6 +214,8 @@ def overview(project):
 
     for source, target, kind, description in [
         ('web/index.html', 'web/app.js', 'depends_on', 'Nạp script giao diện.'),
+        ('web/index.html', 'web/study.js', 'depends_on', 'Nạp giao diện Ôn tập sau app.js.'),
+        ('web/study.js', 'src/server.py', 'calls', 'Gọi API ôn tập, AI và tải file lên.'),
         ('web/index.html', 'web/style.css', 'depends_on', 'Nạp kiểu dáng màn hình.'),
         ('web/index.html', 'web/tokens.css', 'depends_on', 'Nạp token thiết kế.'),
         ('web/index.html', 'web/fonts.css', 'depends_on', 'Nạp font local.'),

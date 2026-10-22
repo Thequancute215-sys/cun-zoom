@@ -7,6 +7,7 @@ Repo hiện hành: [Thequancute215-sys/cun-zoom](https://github.com/Thequancute2
 | Cần làm gì | Nguồn |
 | --- | --- |
 | Hiểu chức năng và giới hạn | [README](../README.md) |
+| Ôn tập bằng AI, tải tài liệu, cấu trúc thư mục tổng hợp | [STUDY](STUDY.md) |
 | Dùng, nâng cấp từ 1.x hoặc build `CunZoom.exe` | [WINDOWS](WINDOWS.md) |
 | Cài Docker, SDK và mở giao diện | [INSTALL](INSTALL.md) |
 | Cấp quyền Zoom và nối Google Calendar | [ZOOM_AND_CALENDAR](ZOOM_AND_CALENDAR.md) |

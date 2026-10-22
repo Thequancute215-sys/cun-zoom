@@ -54,6 +54,8 @@ Nếu muốn chạy bản Docker trên Windows, dùng Docker Desktop ở chế �
 | Slide | JPEG từ luồng màn hình chia sẻ, tối đa một ảnh mỗi 30 giây |
 | Chép lời | Faster Whisper chạy CPU, mô hình tải một lần; trích ý là bản nháp cần đối chiếu |
 | Thư viện | Đọc bản chép/tóm tắt; Windows mở thư mục trên máy, Docker tải ZIP từng buổi từ volume `/data` |
+| Ôn tập bằng AI | Hệ thống hoá từng buổi và cả môn theo nhóm, mức độ liên quan, độ khó; đề cương; đề thi thử trắc nghiệm + tự luận làm ngay trong app. Dùng Claude API (khóa của bạn) hoặc Ollama trên máy, tự đồng bộ khi có bài mới ([hướng dẫn](docs/STUDY.md)) |
+| Tải tài liệu | PDF, Word, PowerPoint, ảnh slide/vở, TXT/MD, âm thanh/video; âm thanh/video được chép lời trên máy |
 
 **Giới hạn:** bot không thay thế tài khoản học viên để điểm danh, không tự vượt phòng chờ hoặc quyền ghi. Với cơ chế OBF, người cấp quyền cần có mặt trong cuộc họp. Bản Windows tự mở link lớp khi ứng dụng đang chạy; bản Docker không thể mở Zoom trên máy của bạn khi đóng giao diện: link đến giờ học xuất hiện trong giao diện đang mở để bạn bấm. Theo dõi lịch không đồng nghĩa tự bắt đầu ghi.
 
