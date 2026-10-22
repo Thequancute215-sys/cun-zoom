@@ -41,6 +41,7 @@ Trên Windows, dùng Docker Desktop ở chế độ Linux containers. Docker Des
 
 ## Mã nguồn, kiểm tra và giấy phép
 
+- [Bản đồ workflow theo Understand Anything](docs/WORKFLOW.md): luồng người dùng, từng bước thực hiện và file nguồn; quy tắc cập nhật nằm trong [AGENTS.md](AGENTS.md).
 - [Kiến trúc và cách phát triển](docs/DEVELOPMENT.md).
 - [Phạm vi kiểm thử của bản phát hành](docs/VALIDATION.md).
 - MIT cho mã ứng dụng; xem [thành phần bên thứ ba](THIRD_PARTY_NOTICES.md). Zoom SDK chịu điều khoản riêng.

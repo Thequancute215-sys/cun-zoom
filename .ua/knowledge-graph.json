@@ -1,0 +1,1514 @@
+{
+  "version": "1.0.0",
+  "kind": "codebase",
+  "project": {
+    "name": "Cún Zoom",
+    "languages": [
+      "Python",
+      "C++",
+      "JavaScript"
+    ],
+    "frameworks": [
+      "Python HTTPServer",
+      "Zoom Meeting SDK",
+      "Docker Compose",
+      "faster-whisper"
+    ],
+    "description": "Bản đồ cấp file và import Python được trích từ AST; không phải graph toàn bộ hàm. Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn. Docker chỉ đưa link lịch tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra; RTMS chưa triển khai.",
+    "analyzedAt": "2026-10-22T02:28:25.272618+00:00",
+    "gitCommitHash": "e834626b353a9501d42f26b20c03aa19d13871a6"
+  },
+  "nodes": [
+    {
+      "id": "file:.dockerignore",
+      "type": "config",
+      "name": ".dockerignore",
+      "summary": "Giới hạn nội dung gửi vào Docker build context.",
+      "tags": [
+        "delivery"
+      ],
+      "complexity": "moderate",
+      "filePath": ".dockerignore",
+      "lineRange": [
+        1,
+        17
+      ]
+    },
+    {
+      "id": "file:.github/workflows/docker-release.yml",
+      "type": "pipeline",
+      "name": ".github/workflows/docker-release.yml",
+      "summary": "Kiểm tra source/bản đồ/tests, build, smoke test và phát hành theo yêu cầu.",
+      "tags": [
+        "delivery"
+      ],
+      "complexity": "moderate",
+      "filePath": ".github/workflows/docker-release.yml",
+      "lineRange": [
+        1,
+        121
+      ]
+    },
+    {
+      "id": "file:.gitignore",
+      "type": "config",
+      "name": ".gitignore",
+      "summary": "Loại tệp sinh ra, dữ liệu riêng, SDK và dữ liệu tạm Understand Anything.",
+      "tags": [
+        "delivery"
+      ],
+      "complexity": "moderate",
+      "filePath": ".gitignore",
+      "lineRange": [
+        1,
+        37
+      ]
+    },
+    {
+      "id": "file:AGENTS.md",
+      "type": "document",
+      "name": "AGENTS.md",
+      "summary": "Quy tắc bắt buộc dùng Understand Anything khi bảo trì dự án.",
+      "tags": [
+        "quality"
+      ],
+      "complexity": "moderate",
+      "filePath": "AGENTS.md",
+      "lineRange": [
+        1,
+        14
+      ]
+    },
+    {
+      "id": "file:Dockerfile",
+      "type": "config",
+      "name": "Dockerfile",
+      "summary": "Image Linux chạy non-root, chứa mã ứng dụng/compiler, không đóng gói SDK.",
+      "tags": [
+        "delivery"
+      ],
+      "complexity": "moderate",
+      "filePath": "Dockerfile",
+      "lineRange": [
+        1,
+        35
+      ]
+    },
+    {
+      "id": "file:LICENSE",
+      "type": "document",
+      "name": "LICENSE",
+      "summary": "Giấy phép MIT cho mã ứng dụng.",
+      "tags": [
+        "reference"
+      ],
+      "complexity": "moderate",
+      "filePath": "LICENSE",
+      "lineRange": [
+        1,
+        21
+      ]
+    },
+    {
+      "id": "file:README.md",
+      "type": "document",
+      "name": "README.md",
+      "summary": "Cách bắt đầu, chức năng, giới hạn và liên kết tài liệu dự án.",
+      "tags": [
+        "reference"
+      ],
+      "complexity": "moderate",
+      "filePath": "README.md",
+      "lineRange": [
+        1,
+        50
+      ]
+    },
+    {
+      "id": "file:THIRD_PARTY_NOTICES.md",
+      "type": "document",
+      "name": "THIRD_PARTY_NOTICES.md",
+      "summary": "Ghi nhận và phân biệt giấy phép thành phần bên thứ ba.",
+      "tags": [
+        "reference"
+      ],
+      "complexity": "moderate",
+      "filePath": "THIRD_PARTY_NOTICES.md",
+      "lineRange": [
+        1,
+        19
+      ]
+    },
+    {
+      "id": "file:compose.yaml",
+      "type": "config",
+      "name": "compose.yaml",
+      "summary": "Cổng loopback, volume dữ liệu và mount SDK chỉ đọc.",
+      "tags": [
+        "delivery"
+      ],
+      "complexity": "moderate",
+      "filePath": "compose.yaml",
+      "lineRange": [
+        1,
+        25
+      ]
+    },
+    {
+      "id": "file:design.md",
+      "type": "document",
+      "name": "design.md",
+      "summary": "Nguyên tắc giao diện, nội dung và trạng thái cần giữ khi chỉnh thiết kế.",
+      "tags": [
+        "interface"
+      ],
+      "complexity": "moderate",
+      "filePath": "design.md",
+      "lineRange": [
+        1,
+        97
+      ]
+    },
+    {
+      "id": "file:docs/DEVELOPMENT.md",
+      "type": "document",
+      "name": "docs/DEVELOPMENT.md",
+      "summary": "Kiến trúc, phát triển, kiểm tra và quy trình phát hành.",
+      "tags": [
+        "reference"
+      ],
+      "complexity": "moderate",
+      "filePath": "docs/DEVELOPMENT.md",
+      "lineRange": [
+        1,
+        54
+      ]
+    },
+    {
+      "id": "file:docs/INSTALL.md",
+      "type": "document",
+      "name": "docs/INSTALL.md",
+      "summary": "Các bước cài Docker/SDK, cấu hình và khởi động ứng dụng.",
+      "tags": [
+        "reference"
+      ],
+      "complexity": "moderate",
+      "filePath": "docs/INSTALL.md",
+      "lineRange": [
+        1,
+        110
+      ]
+    },
+    {
+      "id": "file:docs/OPERATIONS.md",
+      "type": "document",
+      "name": "docs/OPERATIONS.md",
+      "summary": "Cách dùng, sao lưu thủ công, cập nhật và xử lý lỗi.",
+      "tags": [
+        "reference"
+      ],
+      "complexity": "moderate",
+      "filePath": "docs/OPERATIONS.md",
+      "lineRange": [
+        1,
+        116
+      ]
+    },
+    {
+      "id": "file:docs/RELEASE_NOTES.md",
+      "type": "document",
+      "name": "docs/RELEASE_NOTES.md",
+      "summary": "Phạm vi chức năng và giới hạn của bản phát hành 2.0.0.",
+      "tags": [
+        "reference"
+      ],
+      "complexity": "moderate",
+      "filePath": "docs/RELEASE_NOTES.md",
+      "lineRange": [
+        1,
+        17
+      ]
+    },
+    {
+      "id": "file:docs/VALIDATION.md",
+      "type": "document",
+      "name": "docs/VALIDATION.md",
+      "summary": "Bằng chứng kiểm thử và phần chưa được xác minh trong phòng Zoom thật.",
+      "tags": [
+        "reference"
+      ],
+      "complexity": "moderate",
+      "filePath": "docs/VALIDATION.md",
+      "lineRange": [
+        1,
+        25
+      ]
+    },
+    {
+      "id": "file:docs/ZOOM_AND_CALENDAR.md",
+      "type": "document",
+      "name": "docs/ZOOM_AND_CALENDAR.md",
+      "summary": "Cấu hình OAuth, điều kiện Zoom và nguồn Google Calendar riêng.",
+      "tags": [
+        "reference"
+      ],
+      "complexity": "moderate",
+      "filePath": "docs/ZOOM_AND_CALENDAR.md",
+      "lineRange": [
+        1,
+        51
+      ]
+    },
+    {
+      "id": "file:requirements-transcription.txt",
+      "type": "document",
+      "name": "requirements-transcription.txt",
+      "summary": "Khai báo phụ thuộc hoặc giấy phép: requirements-transcription.txt.",
+      "tags": [
+        "delivery"
+      ],
+      "complexity": "moderate",
+      "filePath": "requirements-transcription.txt",
+      "lineRange": [
+        1,
+        3
+      ]
+    },
+    {
+      "id": "file:requirements-windows.txt",
+      "type": "document",
+      "name": "requirements-windows.txt",
+      "summary": "Khai báo phụ thuộc hoặc giấy phép: requirements-windows.txt.",
+      "tags": [
+        "delivery"
+      ],
+      "complexity": "moderate",
+      "filePath": "requirements-windows.txt",
+      "lineRange": [
+        1,
+        5
+      ]
+    },
+    {
+      "id": "file:requirements.txt",
+      "type": "document",
+      "name": "requirements.txt",
+      "summary": "Khai báo phụ thuộc hoặc giấy phép: requirements.txt.",
+      "tags": [
+        "delivery"
+      ],
+      "complexity": "moderate",
+      "filePath": "requirements.txt",
+      "lineRange": [
+        1,
+        4
+      ]
+    },
+    {
+      "id": "file:scripts/build.py",
+      "type": "file",
+      "name": "scripts/build.py",
+      "summary": "Đóng gói bản desktop Windows với PyInstaller.",
+      "tags": [
+        "capture"
+      ],
+      "complexity": "moderate",
+      "filePath": "scripts/build.py",
+      "lineRange": [
+        1,
+        57
+      ]
+    },
+    {
+      "id": "file:scripts/build_linux.py",
+      "type": "file",
+      "name": "scripts/build_linux.py",
+      "summary": "Tạo adapter phù hợp header SDK và biên dịch worker Linux.",
+      "tags": [
+        "capture"
+      ],
+      "complexity": "moderate",
+      "filePath": "scripts/build_linux.py",
+      "lineRange": [
+        1,
+        54
+      ]
+    },
+    {
+      "id": "file:scripts/build_native.py",
+      "type": "file",
+      "name": "scripts/build_native.py",
+      "summary": "Biên dịch worker Windows bằng công cụ Microsoft.",
+      "tags": [
+        "capture"
+      ],
+      "complexity": "moderate",
+      "filePath": "scripts/build_native.py",
+      "lineRange": [
+        1,
+        44
+      ]
+    },
+    {
+      "id": "file:scripts/check_source.py",
+      "type": "file",
+      "name": "scripts/check_source.py",
+      "summary": "Chặn tệp runtime, khóa, SDK và nguồn lịch riêng tư khi xuất bản.",
+      "tags": [
+        "quality"
+      ],
+      "complexity": "moderate",
+      "filePath": "scripts/check_source.py",
+      "lineRange": [
+        1,
+        34
+      ]
+    },
+    {
+      "id": "file:scripts/container_entry.py",
+      "type": "file",
+      "name": "scripts/container_entry.py",
+      "summary": "Chuẩn bị Xvfb/PulseAudio, build/cache worker từ SDK riêng, chạy API.",
+      "tags": [
+        "delivery"
+      ],
+      "complexity": "moderate",
+      "filePath": "scripts/container_entry.py",
+      "lineRange": [
+        1,
+        74
+      ]
+    },
+    {
+      "id": "file:scripts/prepare_sdk.py",
+      "type": "file",
+      "name": "scripts/prepare_sdk.py",
+      "summary": "Chuẩn bị SDK riêng cho nhà phát triển Windows.",
+      "tags": [
+        "capture"
+      ],
+      "complexity": "moderate",
+      "filePath": "scripts/prepare_sdk.py",
+      "lineRange": [
+        1,
+        34
+      ]
+    },
+    {
+      "id": "file:scripts/smoke_container.py",
+      "type": "file",
+      "name": "scripts/smoke_container.py",
+      "summary": "Kiểm tra HTTP thật, xác thực, CSRF và dữ liệu qua lần khởi động lại.",
+      "tags": [
+        "quality"
+      ],
+      "complexity": "moderate",
+      "filePath": "scripts/smoke_container.py",
+      "lineRange": [
+        1,
+        62
+      ]
+    },
+    {
+      "id": "file:scripts/validate_workflow_graphs.mjs",
+      "type": "file",
+      "name": "scripts/validate_workflow_graphs.mjs",
+      "summary": "Gọi validator thực của Understand Anything, từ chối dữ liệu bị loại hoặc sửa ngầm.",
+      "tags": [
+        "quality"
+      ],
+      "complexity": "moderate",
+      "filePath": "scripts/validate_workflow_graphs.mjs",
+      "lineRange": [
+        1,
+        19
+      ]
+    },
+    {
+      "id": "file:scripts/workflow_map.py",
+      "type": "file",
+      "name": "scripts/workflow_map.py",
+      "summary": "Sinh bản đồ file và Mermaid từ graph đã rà; CI phát hiện lệch nguồn.",
+      "tags": [
+        "quality"
+      ],
+      "complexity": "moderate",
+      "filePath": "scripts/workflow_map.py",
+      "lineRange": [
+        1,
+        344
+      ]
+    },
+    {
+      "id": "file:src/access_control.py",
+      "type": "file",
+      "name": "src/access_control.py",
+      "summary": "Kiểm tra Basic Auth trong Docker; tạo và đọc mật khẩu local.",
+      "tags": [
+        "service"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/access_control.py",
+      "lineRange": [
+        1,
+        30
+      ]
+    },
+    {
+      "id": "file:src/calendar_watch.py",
+      "type": "file",
+      "name": "src/calendar_watch.py",
+      "summary": "Đọc iCal, mở rộng lịch lặp, lọc buổi Zoom và chống nhắc trùng.",
+      "tags": [
+        "service"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/calendar_watch.py",
+      "lineRange": [
+        1,
+        255
+      ]
+    },
+    {
+      "id": "file:src/container_main.py",
+      "type": "file",
+      "name": "src/container_main.py",
+      "summary": "Khởi động API trong container và dừng bộ ghi khi thoát.",
+      "tags": [
+        "delivery"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/container_main.py",
+      "lineRange": [
+        1,
+        25
+      ]
+    },
+    {
+      "id": "file:src/library.py",
+      "type": "file",
+      "name": "src/library.py",
+      "summary": "Liệt kê buổi theo môn, giới hạn đường dẫn và tải tài liệu hoặc ZIP.",
+      "tags": [
+        "service"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/library.py",
+      "lineRange": [
+        1,
+        84
+      ]
+    },
+    {
+      "id": "file:src/main.py",
+      "type": "file",
+      "name": "src/main.py",
+      "summary": "Điểm vào desktop Windows; cửa sổ/tray và chế độ chạy dịch vụ.",
+      "tags": [
+        "delivery"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/main.py",
+      "lineRange": [
+        1,
+        157
+      ]
+    },
+    {
+      "id": "file:src/paths.py",
+      "type": "file",
+      "name": "src/paths.py",
+      "summary": "Đường dẫn đa nền tảng, phiên bản và thiết lập theo từng bản cài.",
+      "tags": [
+        "service"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/paths.py",
+      "lineRange": [
+        1,
+        29
+      ]
+    },
+    {
+      "id": "file:src/platform_actions.py",
+      "type": "file",
+      "name": "src/platform_actions.py",
+      "summary": "Chuyển thông báo/link vào giao diện Docker hoặc hành động desktop Windows.",
+      "tags": [
+        "service"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/platform_actions.py",
+      "lineRange": [
+        1,
+        28
+      ]
+    },
+    {
+      "id": "file:src/room_link.py",
+      "type": "file",
+      "name": "src/room_link.py",
+      "summary": "Phân tích URL Zoom hoặc ID phòng, kiểm tra dữ liệu đầu vào.",
+      "tags": [
+        "service"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/room_link.py",
+      "lineRange": [
+        1,
+        27
+      ]
+    },
+    {
+      "id": "file:src/runner.py",
+      "type": "file",
+      "name": "src/runner.py",
+      "summary": "Quản lý worker duy nhất, OBF, pipe riêng, trạng thái, dừng và lỗi.",
+      "tags": [
+        "capture"
+      ],
+      "complexity": "complex",
+      "filePath": "src/runner.py",
+      "lineRange": [
+        1,
+        139
+      ]
+    },
+    {
+      "id": "file:src/server.py",
+      "type": "file",
+      "name": "src/server.py",
+      "summary": "API có xác thực, Host/Origin/token, OAuth PKCE và điều phối chức năng.",
+      "tags": [
+        "service"
+      ],
+      "complexity": "complex",
+      "filePath": "src/server.py",
+      "lineRange": [
+        1,
+        384
+      ]
+    },
+    {
+      "id": "file:src/transcribe.py",
+      "type": "file",
+      "name": "src/transcribe.py",
+      "summary": "Chép lời WAV bằng Faster Whisper local và trích ý thành bản nháp.",
+      "tags": [
+        "capture"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/transcribe.py",
+      "lineRange": [
+        1,
+        42
+      ]
+    },
+    {
+      "id": "file:src/vault.py",
+      "type": "file",
+      "name": "src/vault.py",
+      "summary": "Lưu bí mật bằng Fernet trên Linux hoặc DPAPI trên Windows.",
+      "tags": [
+        "service"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/vault.py",
+      "lineRange": [
+        1,
+        52
+      ]
+    },
+    {
+      "id": "file:tests/bootstrap.py",
+      "type": "file",
+      "name": "tests/bootstrap.py",
+      "summary": "Kiểm thử bootstrap.",
+      "tags": [
+        "quality"
+      ],
+      "complexity": "moderate",
+      "filePath": "tests/bootstrap.py",
+      "lineRange": [
+        1,
+        9
+      ]
+    },
+    {
+      "id": "file:tests/test_calendar_watch.py",
+      "type": "file",
+      "name": "tests/test_calendar_watch.py",
+      "summary": "Kiểm thử calendar_watch.",
+      "tags": [
+        "quality"
+      ],
+      "complexity": "moderate",
+      "filePath": "tests/test_calendar_watch.py",
+      "lineRange": [
+        1,
+        80
+      ]
+    },
+    {
+      "id": "file:tests/test_container.py",
+      "type": "file",
+      "name": "tests/test_container.py",
+      "summary": "Kiểm thử container.",
+      "tags": [
+        "quality"
+      ],
+      "complexity": "moderate",
+      "filePath": "tests/test_container.py",
+      "lineRange": [
+        1,
+        101
+      ]
+    },
+    {
+      "id": "file:tests/test_room_link.py",
+      "type": "file",
+      "name": "tests/test_room_link.py",
+      "summary": "Kiểm thử room_link.",
+      "tags": [
+        "quality"
+      ],
+      "complexity": "moderate",
+      "filePath": "tests/test_room_link.py",
+      "lineRange": [
+        1,
+        37
+      ]
+    },
+    {
+      "id": "file:tests/test_server.py",
+      "type": "file",
+      "name": "tests/test_server.py",
+      "summary": "Kiểm thử server.",
+      "tags": [
+        "quality"
+      ],
+      "complexity": "moderate",
+      "filePath": "tests/test_server.py",
+      "lineRange": [
+        1,
+        68
+      ]
+    },
+    {
+      "id": "file:tests/test_workflow_map.py",
+      "type": "file",
+      "name": "tests/test_workflow_map.py",
+      "summary": "Kiểm thử workflow_map.",
+      "tags": [
+        "quality"
+      ],
+      "complexity": "moderate",
+      "filePath": "tests/test_workflow_map.py",
+      "lineRange": [
+        1,
+        97
+      ]
+    },
+    {
+      "id": "file:tokens.css",
+      "type": "file",
+      "name": "tokens.css",
+      "summary": "Bản token thiết kế ở gốc dự án; giao diện nạp web/tokens.css.",
+      "tags": [
+        "interface"
+      ],
+      "complexity": "moderate",
+      "filePath": "tokens.css",
+      "lineRange": [
+        1,
+        81
+      ]
+    },
+    {
+      "id": "file:vendor/README.md",
+      "type": "document",
+      "name": "vendor/README.md",
+      "summary": "Nơi người cài tự đặt SDK chính thức; không có SDK trong Git.",
+      "tags": [
+        "reference"
+      ],
+      "complexity": "moderate",
+      "filePath": "vendor/README.md",
+      "lineRange": [
+        1,
+        5
+      ]
+    },
+    {
+      "id": "file:web/app.js",
+      "type": "file",
+      "name": "web/app.js",
+      "summary": "Điều khiển giao diện lịch, phòng Zoom, cấu hình, thư viện và trạng thái.",
+      "tags": [
+        "interface"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/app.js",
+      "lineRange": [
+        1,
+        93
+      ]
+    },
+    {
+      "id": "file:web/fonts.css",
+      "type": "file",
+      "name": "web/fonts.css",
+      "summary": "Khai báo font tải tại máy; không phụ thuộc CDN.",
+      "tags": [
+        "interface"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/fonts.css",
+      "lineRange": [
+        1,
+        49
+      ]
+    },
+    {
+      "id": "file:web/fonts/OFL-inter.txt",
+      "type": "document",
+      "name": "web/fonts/OFL-inter.txt",
+      "summary": "Khai báo phụ thuộc hoặc giấy phép: web/fonts/OFL-inter.txt.",
+      "tags": [
+        "interface"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/fonts/OFL-inter.txt",
+      "lineRange": [
+        1,
+        93
+      ]
+    },
+    {
+      "id": "file:web/fonts/OFL-jetbrainsmono.txt",
+      "type": "document",
+      "name": "web/fonts/OFL-jetbrainsmono.txt",
+      "summary": "Khai báo phụ thuộc hoặc giấy phép: web/fonts/OFL-jetbrainsmono.txt.",
+      "tags": [
+        "interface"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/fonts/OFL-jetbrainsmono.txt",
+      "lineRange": [
+        1,
+        93
+      ]
+    },
+    {
+      "id": "file:web/fonts/OFL-spacegrotesk.txt",
+      "type": "document",
+      "name": "web/fonts/OFL-spacegrotesk.txt",
+      "summary": "Khai báo phụ thuộc hoặc giấy phép: web/fonts/OFL-spacegrotesk.txt.",
+      "tags": [
+        "interface"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/fonts/OFL-spacegrotesk.txt",
+      "lineRange": [
+        1,
+        93
+      ]
+    },
+    {
+      "id": "file:web/index.html",
+      "type": "file",
+      "name": "web/index.html",
+      "summary": "Bố cục màn hình và các biểu mẫu tiếng Việt.",
+      "tags": [
+        "interface"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/index.html",
+      "lineRange": [
+        1,
+        48
+      ]
+    },
+    {
+      "id": "file:web/logo.svg",
+      "type": "file",
+      "name": "web/logo.svg",
+      "summary": "Logo ứng dụng dùng trong giao diện.",
+      "tags": [
+        "interface"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/logo.svg",
+      "lineRange": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "file:web/style.css",
+      "type": "file",
+      "name": "web/style.css",
+      "summary": "Kiểu dáng, bố cục đáp ứng, chế độ sáng/tối và trạng thái tương tác.",
+      "tags": [
+        "interface"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/style.css",
+      "lineRange": [
+        1,
+        16
+      ]
+    },
+    {
+      "id": "file:web/tokens.css",
+      "type": "file",
+      "name": "web/tokens.css",
+      "summary": "Thông số màu, chữ và khoảng cách dùng trong giao diện.",
+      "tags": [
+        "interface"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/tokens.css",
+      "lineRange": [
+        1,
+        81
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:src/access_control.py",
+      "target": "file:src/paths.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/calendar_watch.py",
+      "target": "file:src/paths.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/calendar_watch.py",
+      "target": "file:src/vault.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/calendar_watch.py",
+      "target": "file:src/platform_actions.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/calendar_watch.py",
+      "target": "file:src/room_link.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/container_main.py",
+      "target": "file:src/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/container_main.py",
+      "target": "file:src/calendar_watch.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/container_main.py",
+      "target": "file:src/platform_actions.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/container_main.py",
+      "target": "file:src/access_control.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/library.py",
+      "target": "file:src/paths.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/main.py",
+      "target": "file:src/paths.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/main.py",
+      "target": "file:src/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/main.py",
+      "target": "file:src/calendar_watch.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/main.py",
+      "target": "file:src/transcribe.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/main.py",
+      "target": "file:src/vault.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/main.py",
+      "target": "file:src/runner.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/runner.py",
+      "target": "file:src/vault.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/runner.py",
+      "target": "file:src/paths.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/server.py",
+      "target": "file:src/calendar_watch.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/server.py",
+      "target": "file:src/library.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/server.py",
+      "target": "file:src/runner.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/server.py",
+      "target": "file:src/vault.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/server.py",
+      "target": "file:src/access_control.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/server.py",
+      "target": "file:src/platform_actions.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/server.py",
+      "target": "file:src/paths.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/server.py",
+      "target": "file:src/room_link.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/server.py",
+      "target": "file:src/transcribe.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/transcribe.py",
+      "target": "file:src/paths.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/vault.py",
+      "target": "file:src/paths.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_calendar_watch.py",
+      "target": "file:src/calendar_watch.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_calendar_watch.py",
+      "target": "file:src/vault.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_container.py",
+      "target": "file:src/access_control.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_container.py",
+      "target": "file:src/library.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_container.py",
+      "target": "file:src/vault.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_container.py",
+      "target": "file:src/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_room_link.py",
+      "target": "file:src/room_link.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_server.py",
+      "target": "file:src/server.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_server.py",
+      "target": "file:src/vault.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/index.html",
+      "target": "file:web/app.js",
+      "type": "depends_on",
+      "direction": "forward",
+      "description": "Nạp script giao diện.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/index.html",
+      "target": "file:web/style.css",
+      "type": "depends_on",
+      "direction": "forward",
+      "description": "Nạp kiểu dáng màn hình.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/index.html",
+      "target": "file:web/tokens.css",
+      "type": "depends_on",
+      "direction": "forward",
+      "description": "Nạp token thiết kế.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/index.html",
+      "target": "file:web/fonts.css",
+      "type": "depends_on",
+      "direction": "forward",
+      "description": "Nạp font local.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/app.js",
+      "target": "file:src/server.py",
+      "type": "calls",
+      "direction": "forward",
+      "description": "Gọi API và nhận trạng thái/sự kiện trình duyệt.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/server.py",
+      "target": "file:web/index.html",
+      "type": "serves",
+      "direction": "forward",
+      "description": "Phục vụ frontend có xác thực.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:compose.yaml",
+      "target": "file:Dockerfile",
+      "type": "configures",
+      "direction": "forward",
+      "description": "Build image hoặc chạy bản image được chọn.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:Dockerfile",
+      "target": "file:scripts/container_entry.py",
+      "type": "triggers",
+      "direction": "forward",
+      "description": "ENTRYPOINT chuẩn bị runtime.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/container_entry.py",
+      "target": "file:scripts/build_linux.py",
+      "type": "triggers",
+      "direction": "forward",
+      "description": "Build/cache worker nếu có SDK hợp lệ.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/container_entry.py",
+      "target": "file:src/container_main.py",
+      "type": "triggers",
+      "direction": "forward",
+      "description": "Chạy dịch vụ web container.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:.github/workflows/docker-release.yml",
+      "target": "file:Dockerfile",
+      "type": "deploys",
+      "direction": "forward",
+      "description": "Build rồi smoke test trước khi phát hành theo yêu cầu.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:.github/workflows/docker-release.yml",
+      "target": "file:scripts/workflow_map.py",
+      "type": "validates",
+      "direction": "forward",
+      "description": "Không chấp nhận bản đồ lệch source.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:.github/workflows/docker-release.yml",
+      "target": "file:scripts/check_source.py",
+      "type": "validates",
+      "direction": "forward",
+      "description": "Chặn dữ liệu riêng và SDK khỏi source.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:.github/workflows/docker-release.yml",
+      "target": "file:scripts/smoke_container.py",
+      "type": "triggers",
+      "direction": "forward",
+      "description": "Kiểm tra container bằng HTTP thật.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:AGENTS.md",
+      "target": "file:scripts/workflow_map.py",
+      "type": "documents",
+      "direction": "forward",
+      "description": "Yêu cầu quy trình Understand Anything cho mỗi thay đổi.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/workflow_map.py",
+      "target": "file:scripts/validate_workflow_graphs.mjs",
+      "type": "triggers",
+      "direction": "forward",
+      "description": "Refresh bắt buộc gọi validator upstream.",
+      "weight": 0.8
+    }
+  ],
+  "layers": [
+    {
+      "id": "interface",
+      "name": "Giao diện",
+      "description": "Màn hình, thiết kế và tài nguyên frontend.",
+      "nodeIds": [
+        "file:design.md",
+        "file:tokens.css",
+        "file:web/app.js",
+        "file:web/fonts.css",
+        "file:web/fonts/OFL-inter.txt",
+        "file:web/fonts/OFL-jetbrainsmono.txt",
+        "file:web/fonts/OFL-spacegrotesk.txt",
+        "file:web/index.html",
+        "file:web/logo.svg",
+        "file:web/style.css",
+        "file:web/tokens.css"
+      ]
+    },
+    {
+      "id": "service",
+      "name": "Dịch vụ và cấu hình",
+      "description": "API, truy cập, lịch, dữ liệu và thiết lập.",
+      "nodeIds": [
+        "file:src/access_control.py",
+        "file:src/calendar_watch.py",
+        "file:src/library.py",
+        "file:src/paths.py",
+        "file:src/platform_actions.py",
+        "file:src/room_link.py",
+        "file:src/server.py",
+        "file:src/vault.py"
+      ]
+    },
+    {
+      "id": "capture",
+      "name": "Bộ ghi và SDK",
+      "description": "Quản lý tiến trình, ghi được phép, chép lời và công cụ biên dịch.",
+      "nodeIds": [
+        "file:scripts/build.py",
+        "file:scripts/build_linux.py",
+        "file:scripts/build_native.py",
+        "file:scripts/prepare_sdk.py",
+        "file:src/runner.py",
+        "file:src/transcribe.py"
+      ]
+    },
+    {
+      "id": "delivery",
+      "name": "Cài đặt và phát hành",
+      "description": "Điểm vào, Docker và pipeline xuất bản.",
+      "nodeIds": [
+        "file:.dockerignore",
+        "file:.github/workflows/docker-release.yml",
+        "file:.gitignore",
+        "file:Dockerfile",
+        "file:compose.yaml",
+        "file:requirements-transcription.txt",
+        "file:requirements-windows.txt",
+        "file:requirements.txt",
+        "file:scripts/container_entry.py",
+        "file:src/container_main.py",
+        "file:src/main.py"
+      ]
+    },
+    {
+      "id": "quality",
+      "name": "Kiểm tra và bản đồ",
+      "description": "Kiểm thử, kiểm tra nguồn, graph và quy tắc bảo trì.",
+      "nodeIds": [
+        "file:AGENTS.md",
+        "file:scripts/check_source.py",
+        "file:scripts/smoke_container.py",
+        "file:scripts/validate_workflow_graphs.mjs",
+        "file:scripts/workflow_map.py",
+        "file:tests/bootstrap.py",
+        "file:tests/test_calendar_watch.py",
+        "file:tests/test_container.py",
+        "file:tests/test_room_link.py",
+        "file:tests/test_server.py",
+        "file:tests/test_workflow_map.py"
+      ]
+    },
+    {
+      "id": "reference",
+      "name": "Hướng dẫn",
+      "description": "Tài liệu cài đặt, vận hành, kiểm thử và giấy phép.",
+      "nodeIds": [
+        "file:LICENSE",
+        "file:README.md",
+        "file:THIRD_PARTY_NOTICES.md",
+        "file:docs/DEVELOPMENT.md",
+        "file:docs/INSTALL.md",
+        "file:docs/OPERATIONS.md",
+        "file:docs/RELEASE_NOTES.md",
+        "file:docs/VALIDATION.md",
+        "file:docs/ZOOM_AND_CALENDAR.md",
+        "file:vendor/README.md"
+      ]
+    }
+  ],
+  "tour": [
+    {
+      "order": 1,
+      "title": "Giao diện",
+      "description": "Màn hình, thiết kế và tài nguyên frontend.",
+      "nodeIds": [
+        "file:design.md",
+        "file:tokens.css",
+        "file:web/app.js",
+        "file:web/fonts.css",
+        "file:web/fonts/OFL-inter.txt",
+        "file:web/fonts/OFL-jetbrainsmono.txt",
+        "file:web/fonts/OFL-spacegrotesk.txt",
+        "file:web/index.html",
+        "file:web/logo.svg",
+        "file:web/style.css",
+        "file:web/tokens.css"
+      ]
+    },
+    {
+      "order": 2,
+      "title": "Dịch vụ và cấu hình",
+      "description": "API, truy cập, lịch, dữ liệu và thiết lập.",
+      "nodeIds": [
+        "file:src/access_control.py",
+        "file:src/calendar_watch.py",
+        "file:src/library.py",
+        "file:src/paths.py",
+        "file:src/platform_actions.py",
+        "file:src/room_link.py",
+        "file:src/server.py",
+        "file:src/vault.py"
+      ]
+    },
+    {
+      "order": 3,
+      "title": "Bộ ghi và SDK",
+      "description": "Quản lý tiến trình, ghi được phép, chép lời và công cụ biên dịch.",
+      "nodeIds": [
+        "file:scripts/build.py",
+        "file:scripts/build_linux.py",
+        "file:scripts/build_native.py",
+        "file:scripts/prepare_sdk.py",
+        "file:src/runner.py",
+        "file:src/transcribe.py"
+      ]
+    },
+    {
+      "order": 4,
+      "title": "Cài đặt và phát hành",
+      "description": "Điểm vào, Docker và pipeline xuất bản.",
+      "nodeIds": [
+        "file:.dockerignore",
+        "file:.github/workflows/docker-release.yml",
+        "file:.gitignore",
+        "file:Dockerfile",
+        "file:compose.yaml",
+        "file:requirements-transcription.txt",
+        "file:requirements-windows.txt",
+        "file:requirements.txt",
+        "file:scripts/container_entry.py",
+        "file:src/container_main.py",
+        "file:src/main.py"
+      ]
+    },
+    {
+      "order": 5,
+      "title": "Kiểm tra và bản đồ",
+      "description": "Kiểm thử, kiểm tra nguồn, graph và quy tắc bảo trì.",
+      "nodeIds": [
+        "file:AGENTS.md",
+        "file:scripts/check_source.py",
+        "file:scripts/smoke_container.py",
+        "file:scripts/validate_workflow_graphs.mjs",
+        "file:scripts/workflow_map.py",
+        "file:tests/bootstrap.py",
+        "file:tests/test_calendar_watch.py",
+        "file:tests/test_container.py",
+        "file:tests/test_room_link.py",
+        "file:tests/test_server.py",
+        "file:tests/test_workflow_map.py"
+      ]
+    },
+    {
+      "order": 6,
+      "title": "Hướng dẫn",
+      "description": "Tài liệu cài đặt, vận hành, kiểm thử và giấy phép.",
+      "nodeIds": [
+        "file:LICENSE",
+        "file:README.md",
+        "file:THIRD_PARTY_NOTICES.md",
+        "file:docs/DEVELOPMENT.md",
+        "file:docs/INSTALL.md",
+        "file:docs/OPERATIONS.md",
+        "file:docs/RELEASE_NOTES.md",
+        "file:docs/VALIDATION.md",
+        "file:docs/ZOOM_AND_CALENDAR.md",
+        "file:vendor/README.md"
+      ]
+    }
+  ]
+}

@@ -20,6 +20,7 @@ python -m venv .venv
 # Kích hoạt .venv theo hệ điều hành của bạn
 python -m pip install -r requirements.txt
 python scripts/check_source.py
+python scripts/workflow_map.py check
 python -m unittest discover -s tests -v
 node --check web/app.js
 ```
@@ -43,6 +44,8 @@ docker compose exec app /data/native/CunZoomBot /opt/zoom-sdk check
 Lệnh trên cần môi trường runtime do entrypoint chuẩn bị, gồm `LD_LIBRARY_PATH`; dùng hướng dẫn VALIDATION nếu gọi riêng ngoài container. Kiểm tra init không có nghĩa được cấp OAuth/quyền ghi.
 
 ## Đóng gói và release
+
+Mọi bản cập nhật phải dùng Understand Anything để rà và cập nhật bản đồ dự án trước khi bàn giao. Đọc [WORKFLOW.md](WORKFLOW.md) để xem quy trình, lệnh refresh và cách mở dashboard; [AGENTS.md](../AGENTS.md) ghi quy tắc cho tác nhân. CI so khớp nội dung nguồn và hai graph, không chỉ kiểm tra thời gian tạo file.
 
 Workflow `Docker CI and release` chạy kiểm tra Python, JS, build image và thử HTTP thật. Với workflow_dispatch, bật `publish_release`, điền `version` (ví dụ `2.0.0`). Chỉ sau khi test đạt mới push image lên GHCR, tạo tag/release, gắn gói source và SHA256SUMS.
 

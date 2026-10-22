@@ -1,0 +1,10 @@
+{
+  "repository": "https://github.com/Thequancute215-sys/understand-anything",
+  "commit": "1d7418b8abfa543744ae029e63a482aee03f9022",
+  "version": "2.9.7",
+  "skills": ["understand-domain", "understand-dashboard"],
+  "analysisMode": "fresh lightweight domain scan with source review; file-level structural overview",
+  "language": "vi",
+  "exclusions": ["SDK and vendor binaries", "runtime data and recordings", "credentials and private calendars", "local build output"],
+  "automation": "AGENTS.md procedure plus CI source/artifact fingerprint guard; no unattended AI process"
+}

@@ -27,3 +27,11 @@ session.json
 native_state.json
 .local/
 
+# Understand Anything: publish reviewed graphs, never scratch data or viewer tokens.
+.ua/intermediate/
+.ua/tmp/
+.ua/.trash-*/
+.ua/diff-overlay.json
+.ua/viewer*.json
+.ua/viewer*.txt
+
