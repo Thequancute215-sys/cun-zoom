@@ -15,8 +15,8 @@
       "faster-whisper"
     ],
     "description": "Bản đồ cấp file và import Python được trích từ AST; không phải graph toàn bộ hàm. Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn. Docker chỉ đưa link lịch tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra; RTMS chưa triển khai.",
-    "analyzedAt": "2026-10-22T02:28:25.272618+00:00",
-    "gitCommitHash": "b875e89a37d45837408bf0fdd17841a9a256c183"
+    "analyzedAt": "2026-10-22T02:40:50.537327+00:00",
+    "gitCommitHash": "76ee53e11fbe7233c0d08d3b2fa53537d3ca66dd"
   },
   "nodes": [
     {
@@ -76,7 +76,7 @@
       "filePath": "AGENTS.md",
       "lineRange": [
         1,
-        14
+        15
       ]
     },
     {
@@ -121,7 +121,7 @@
       "filePath": "README.md",
       "lineRange": [
         1,
-        50
+        52
       ]
     },
     {
@@ -182,6 +182,21 @@
       "lineRange": [
         1,
         54
+      ]
+    },
+    {
+      "id": "file:docs/HANDOVER.md",
+      "type": "document",
+      "name": "docs/HANDOVER.md",
+      "summary": "Mục lục bàn giao: cơ chế, nguồn, cài đặt, vận hành, kiểm chứng và skill.",
+      "tags": [
+        "reference"
+      ],
+      "complexity": "moderate",
+      "filePath": "docs/HANDOVER.md",
+      "lineRange": [
+        1,
+        37
       ]
     },
     {
@@ -436,7 +451,52 @@
       "filePath": "scripts/workflow_map.py",
       "lineRange": [
         1,
-        344
+        348
+      ]
+    },
+    {
+      "id": "file:skills/workflow/SKILL.md",
+      "type": "document",
+      "name": "skills/workflow/SKILL.md",
+      "summary": "Skill dùng lại quy tắc Understand Anything khi dựng và bảo trì bản đồ dự án.",
+      "tags": [
+        "quality"
+      ],
+      "complexity": "moderate",
+      "filePath": "skills/workflow/SKILL.md",
+      "lineRange": [
+        1,
+        35
+      ]
+    },
+    {
+      "id": "file:skills/workflow/agents/openai.yaml",
+      "type": "config",
+      "name": "skills/workflow/agents/openai.yaml",
+      "summary": "Tên hiển thị và lời gọi mẫu của skill workflow trong Codex.",
+      "tags": [
+        "quality"
+      ],
+      "complexity": "moderate",
+      "filePath": "skills/workflow/agents/openai.yaml",
+      "lineRange": [
+        1,
+        4
+      ]
+    },
+    {
+      "id": "file:skills/workflow/references/cun-zoom.md",
+      "type": "document",
+      "name": "skills/workflow/references/cun-zoom.md",
+      "summary": "Áp dụng skill workflow vào repo Cún Zoom và cách cài lại skill.",
+      "tags": [
+        "quality"
+      ],
+      "complexity": "moderate",
+      "filePath": "skills/workflow/references/cun-zoom.md",
+      "lineRange": [
+        1,
+        30
       ]
     },
     {
@@ -1384,6 +1444,9 @@
         "file:scripts/smoke_container.py",
         "file:scripts/validate_workflow_graphs.mjs",
         "file:scripts/workflow_map.py",
+        "file:skills/workflow/SKILL.md",
+        "file:skills/workflow/agents/openai.yaml",
+        "file:skills/workflow/references/cun-zoom.md",
         "file:tests/bootstrap.py",
         "file:tests/test_calendar_watch.py",
         "file:tests/test_container.py",
@@ -1401,6 +1464,7 @@
         "file:README.md",
         "file:THIRD_PARTY_NOTICES.md",
         "file:docs/DEVELOPMENT.md",
+        "file:docs/HANDOVER.md",
         "file:docs/INSTALL.md",
         "file:docs/OPERATIONS.md",
         "file:docs/RELEASE_NOTES.md",
@@ -1485,6 +1549,9 @@
         "file:scripts/smoke_container.py",
         "file:scripts/validate_workflow_graphs.mjs",
         "file:scripts/workflow_map.py",
+        "file:skills/workflow/SKILL.md",
+        "file:skills/workflow/agents/openai.yaml",
+        "file:skills/workflow/references/cun-zoom.md",
         "file:tests/bootstrap.py",
         "file:tests/test_calendar_watch.py",
         "file:tests/test_container.py",
@@ -1502,6 +1569,7 @@
         "file:README.md",
         "file:THIRD_PARTY_NOTICES.md",
         "file:docs/DEVELOPMENT.md",
+        "file:docs/HANDOVER.md",
         "file:docs/INSTALL.md",
         "file:docs/OPERATIONS.md",
         "file:docs/RELEASE_NOTES.md",

@@ -67,6 +67,10 @@ DESCRIPTIONS = {
     'docs/ZOOM_AND_CALENDAR.md': 'Cấu hình OAuth, điều kiện Zoom và nguồn Google Calendar riêng.',
     'docs/RELEASE_NOTES.md': 'Phạm vi chức năng và giới hạn của bản phát hành 2.0.0.',
     'vendor/README.md': 'Nơi người cài tự đặt SDK chính thức; không có SDK trong Git.',
+    'docs/HANDOVER.md': 'Mục lục bàn giao: cơ chế, nguồn, cài đặt, vận hành, kiểm chứng và skill.',
+    'skills/workflow/SKILL.md': 'Skill dùng lại quy tắc Understand Anything khi dựng và bảo trì bản đồ dự án.',
+    'skills/workflow/references/cun-zoom.md': 'Áp dụng skill workflow vào repo Cún Zoom và cách cài lại skill.',
+    'skills/workflow/agents/openai.yaml': 'Tên hiển thị và lời gọi mẫu của skill workflow trong Codex.',
 }
 LAYERS = {
     'interface': ('Giao diện', 'Màn hình, thiết kế và tài nguyên frontend.'),
@@ -157,7 +161,7 @@ def layer_for(name):
         return 'interface'
     if name.startswith(('native/', 'scripts/build', 'scripts/prepare_sdk')) or name in {'src/runner.py', 'src/transcribe.py'}:
         return 'capture'
-    if name.startswith('tests/') or name == 'AGENTS.md' or name.startswith(('scripts/check', 'scripts/smoke', 'scripts/workflow', 'scripts/validate')):
+    if name.startswith(('tests/', 'skills/workflow/')) or name == 'AGENTS.md' or name.startswith(('scripts/check', 'scripts/smoke', 'scripts/workflow', 'scripts/validate')):
         return 'quality'
     if name.startswith('src/') and name not in {'src/main.py', 'src/container_main.py'}:
         return 'service'

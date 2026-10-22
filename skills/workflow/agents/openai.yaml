@@ -1,0 +1,4 @@
+interface:
+  display_name: "Workflow"
+  short_description: "Duy trì bản đồ dự án bằng Understand Anything"
+  default_prompt: "Dùng $workflow để rà và cập nhật bản đồ cùng tài liệu bàn giao của dự án."

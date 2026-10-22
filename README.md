@@ -8,6 +8,8 @@ Trợ lý lưu bài học Zoom trên máy của bạn: theo dõi lịch Google, 
 
 ## Cài và dùng
 
+Tất cả hướng dẫn, giải thích cơ chế, nguồn và skill bảo trì được gom tại [mục lục bàn giao](docs/HANDOVER.md).
+
 1. Đọc [hướng dẫn cài đặt từng bước](docs/INSTALL.md): Docker, tải SDK, đặt đúng thư mục, chạy ứng dụng và lấy mật khẩu local.
 2. Làm theo [hướng dẫn cấu hình Zoom và Google Calendar](docs/ZOOM_AND_CALENDAR.md).
 3. Xem [cách dùng, cập nhật, sao lưu và xử lý lỗi](docs/OPERATIONS.md).

@@ -61,36 +61,39 @@ flowchart LR
 <details>
 <summary>Rà bản đồ, kiểm tra và phát hành phiên bản</summary>
 
-Người bảo trì dùng Understand Anything rà lại workflow và validator gốc trước CI. CI từ chối bản đồ lệch nguồn trước tests/build; chỉ phát hành image đã kiểm tra khi dispatch có phiên bản mới hợp lệ.
+Skill /workflow hướng dẫn rà nguồn, dùng Understand Anything và giữ graph, cơ chế cùng mục lục bàn giao GitHub nhất quán. CI chặn bản đồ lệch nguồn trước tests/build; phát hành phần mềm chỉ khi có dispatch với phiên bản mới hợp lệ.
 
-**Bắt đầu:** Bảo trì theo AGENTS.md → GitHub Actions: push, pull_request hoặc workflow_dispatch
+**Bắt đầu:** /workflow và AGENTS.md → GitHub Actions: push, pull_request hoặc workflow_dispatch
 
 ```mermaid
 flowchart LR
   s1["1 · Rà và tái tạo bản đồ trước khi gửi CI"]
-  s2["2 · Kiểm tra nguồn trước CI"]
+  s2["2 · Đồng bộ mục lục bàn giao và skill"]
   s1 --> s2
-  s3["3 · CI chặn bản đồ lệch trước tests"]
+  s3["3 · Kiểm tra nguồn trước CI"]
   s2 --> s3
-  s4["4 · Chạy tests, build và kiểm tra HTTP thật"]
+  s4["4 · CI chặn bản đồ lệch trước tests"]
   s3 --> s4
-  s5["5 · Chặn sai hoặc trùng phiên bản"]
+  s5["5 · Chạy tests, build và kiểm tra HTTP thật"]
   s4 --> s5
-  s6["6 · Đẩy image đã kiểm tra"]
+  s6["6 · Chặn sai hoặc trùng phiên bản"]
   s5 --> s6
-  s7["7 · Đóng gói và tạo Release"]
+  s7["7 · Đẩy image đã kiểm tra"]
   s6 --> s7
+  s8["8 · Đóng gói và tạo Release"]
+  s7 --> s8
 ```
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Rà và tái tạo bản đồ trước khi gửi CI | Sau phân tích nguồn bằng skill understand-domain, người bảo trì gọi refresh với đúng plugin được ghim; công cụ gọi validator gốc Understand Anything, sinh graph/tài liệu và ghi snapshot. Đây là bước bảo trì chủ động, CI không tự chạy phân tích AI. | [scripts/workflow_map.py](../scripts/workflow_map.py#L314) |
-| 2. Kiểm tra nguồn trước CI | CI cài phụ thuộc và chạy check_source để chặn dữ liệu riêng hoặc SDK trước các chốt bản đồ, kiểm thử và build. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L22) |
-| 3. CI chặn bản đồ lệch trước tests | Ngay sau check_source, CI gọi workflow_map.py check để đối chiếu fingerprint nguồn/artifact và kiểm tra graph. Bản đồ thiếu, đường dẫn sai hoặc nội dung lệch phải sửa và refresh trước khi tiếp tục unit/integration/JavaScript. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L32) |
-| 4. Chạy tests, build và kiểm tra HTTP thật | Sau chốt bản đồ, chạy unit/integration, kiểm tra cú pháp JavaScript, build image không SDK rồi smoke HTTP thật; lỗi có diagnostics. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L36) |
-| 5. Chặn sai hoặc trùng phiên bản | Chỉ publish khi dispatch được bật; đối chiếu phiên bản mã với input, từ chối tag đã tồn tại. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L66) |
-| 6. Đẩy image đã kiểm tra | Đăng nhập GHCR bằng token workflow rồi đẩy tag phiên bản và latest từ image đã test. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L84) |
-| 7. Đóng gói và tạo Release | Đóng gói nguồn sạch, Compose, hướng dẫn và checksum; tạo GitHub Release đúng commit rồi dọn smoke container. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L101) |
+| 1. Rà và tái tạo bản đồ trước khi gửi CI | Áp dụng /workflow cùng understand-domain --full để phân tích lại nguồn; gọi refresh với đúng plugin ghim. Công cụ dùng validator gốc, sinh graph/tài liệu và snapshot; đây là bảo trì chủ động, CI không tự phân tích AI. | [scripts/workflow_map.py](../scripts/workflow_map.py#L318) |
+| 2. Đồng bộ mục lục bàn giao và skill | Dùng docs/HANDOVER.md làm điểm tìm cơ chế, nguồn, cài đặt, vận hành, kiểm chứng và skill /workflow. Bàn giao nguồn, graph và tài liệu trên đúng repo được phép; giữ SDK, khóa và dữ liệu học ngoài GitHub. Chỉ xác nhận đã đưa lên GitHub sau khi kiểm tra kết quả publish. | [docs/HANDOVER.md](../docs/HANDOVER.md#L1) |
+| 3. Kiểm tra nguồn trước CI | CI cài phụ thuộc và chạy check_source để chặn dữ liệu riêng hoặc SDK trước các chốt bản đồ, kiểm thử và build. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L22) |
+| 4. CI chặn bản đồ lệch trước tests | Ngay sau check_source, CI gọi workflow_map.py check để đối chiếu fingerprint nguồn/artifact và kiểm tra graph. Bản đồ thiếu, đường dẫn sai hoặc nội dung lệch phải sửa và refresh trước khi tiếp tục unit/integration/JavaScript. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L32) |
+| 5. Chạy tests, build và kiểm tra HTTP thật | Sau chốt bản đồ, chạy unit/integration, kiểm tra cú pháp JavaScript, build image không SDK rồi smoke HTTP thật; lỗi có diagnostics. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L36) |
+| 6. Chặn sai hoặc trùng phiên bản | Chỉ publish khi dispatch được bật; đối chiếu phiên bản mã với input, từ chối tag đã tồn tại. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L66) |
+| 7. Đẩy image đã kiểm tra | Đăng nhập GHCR bằng token workflow rồi đẩy tag phiên bản và latest từ image đã test. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L84) |
+| 8. Đóng gói và tạo Release | Đóng gói nguồn sạch, Compose, hướng dẫn và checksum; tạo GitHub Release đúng commit rồi dọn smoke container. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L101) |
 
 </details>
 

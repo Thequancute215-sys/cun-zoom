@@ -14,8 +14,8 @@
       "faster-whisper"
     ],
     "description": "Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn. Docker chỉ đưa link lịch tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra; RTMS chưa triển khai.",
-    "analyzedAt": "2026-10-22T02:28:25.272618+00:00",
-    "gitCommitHash": "b875e89a37d45837408bf0fdd17841a9a256c183"
+    "analyzedAt": "2026-10-22T02:40:50.537327+00:00",
+    "gitCommitHash": "76ee53e11fbe7233c0d08d3b2fa53537d3ca66dd"
   },
   "nodes": [
     {
@@ -41,7 +41,8 @@
           "SDK Linux 7.1.5.4432 đã được biên dịch và InitSDK thành công; OAuth/OBF và ghi phòng thật trong Docker chưa được kiểm tra.",
           "RTMS chưa được triển khai; trường hợp Meeting SDK/OBF phải được Zoom cho phép.",
           "Sao lưu là thao tác thủ công, chứa cả khóa và dữ liệu cá nhân; không có lịch sao lưu tự động.",
-          "Mỗi thay đổi phải được rà bằng Understand Anything và refresh với validator gốc; CI chặn bản đồ lệch nguồn trước tests/build."
+          "Mỗi thay đổi phải được rà bằng Understand Anything và refresh với validator gốc; CI chặn bản đồ lệch nguồn trước tests/build.",
+          "Skill /workflow đóng gói quy trình Understand Anything; docs/HANDOVER.md là mục lục cơ chế, nguồn và hướng dẫn. Skill không tự tạo AI nền hoặc tự cho phép công khai/phát hành."
         ],
         "crossDomainInteractions": [
           "Khởi động dịch vụ truy cập, lịch và bộ ghi.",
@@ -278,13 +279,13 @@
       "id": "flow:kiem-tra-phat-hanh",
       "type": "flow",
       "name": "Rà bản đồ, kiểm tra và phát hành phiên bản",
-      "summary": "Người bảo trì dùng Understand Anything rà lại workflow và validator gốc trước CI. CI từ chối bản đồ lệch nguồn trước tests/build; chỉ phát hành image đã kiểm tra khi dispatch có phiên bản mới hợp lệ.",
+      "summary": "Skill /workflow hướng dẫn rà nguồn, dùng Understand Anything và giữ graph, cơ chế cùng mục lục bàn giao GitHub nhất quán. CI chặn bản đồ lệch nguồn trước tests/build; phát hành phần mềm chỉ khi có dispatch với phiên bản mới hợp lệ.",
       "tags": [
         "van-hanh"
       ],
       "complexity": "complex",
       "domainMeta": {
-        "entryPoint": "Bảo trì theo AGENTS.md → GitHub Actions: push, pull_request hoặc workflow_dispatch",
+        "entryPoint": "/workflow và AGENTS.md → GitHub Actions: push, pull_request hoặc workflow_dispatch",
         "entryType": "event"
       }
     },
@@ -1139,15 +1140,15 @@
       "id": "step:kiem-tra-phat-hanh:ra-lai-ban-do",
       "type": "step",
       "name": "Rà và tái tạo bản đồ trước khi gửi CI",
-      "summary": "Sau phân tích nguồn bằng skill understand-domain, người bảo trì gọi refresh với đúng plugin được ghim; công cụ gọi validator gốc Understand Anything, sinh graph/tài liệu và ghi snapshot. Đây là bước bảo trì chủ động, CI không tự chạy phân tích AI.",
+      "summary": "Áp dụng /workflow cùng understand-domain --full để phân tích lại nguồn; gọi refresh với đúng plugin ghim. Công cụ dùng validator gốc, sinh graph/tài liệu và snapshot; đây là bảo trì chủ động, CI không tự phân tích AI.",
       "tags": [
         "van-hanh"
       ],
       "complexity": "complex",
       "filePath": "scripts/workflow_map.py",
       "lineRange": [
-        314,
-        337
+        318,
+        341
       ]
     },
     {
@@ -1162,6 +1163,21 @@
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
         32,
+        37
+      ]
+    },
+    {
+      "id": "step:kiem-tra-phat-hanh:ban-giao-github",
+      "type": "step",
+      "name": "Đồng bộ mục lục bàn giao và skill",
+      "summary": "Dùng docs/HANDOVER.md làm điểm tìm cơ chế, nguồn, cài đặt, vận hành, kiểm chứng và skill /workflow. Bàn giao nguồn, graph và tài liệu trên đúng repo được phép; giữ SDK, khóa và dữ liệu học ngoài GitHub. Chỉ xác nhận đã đưa lên GitHub sau khi kiểm tra kết quả publish.",
+      "tags": [
+        "van-hanh"
+      ],
+      "complexity": "moderate",
+      "filePath": "docs/HANDOVER.md",
+      "lineRange": [
+        1,
         37
       ]
     }
@@ -1644,45 +1660,52 @@
     },
     {
       "source": "flow:kiem-tra-phat-hanh",
-      "target": "step:kiem-tra-phat-hanh:kiem-tra-nguon",
+      "target": "step:kiem-tra-phat-hanh:ban-giao-github",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.2
     },
     {
       "source": "flow:kiem-tra-phat-hanh",
-      "target": "step:kiem-tra-phat-hanh:chan-ban-do-lech",
+      "target": "step:kiem-tra-phat-hanh:kiem-tra-nguon",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.3
     },
     {
       "source": "flow:kiem-tra-phat-hanh",
-      "target": "step:kiem-tra-phat-hanh:build-smoke",
+      "target": "step:kiem-tra-phat-hanh:chan-ban-do-lech",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.4
     },
     {
       "source": "flow:kiem-tra-phat-hanh",
-      "target": "step:kiem-tra-phat-hanh:kiem-tra-version",
+      "target": "step:kiem-tra-phat-hanh:build-smoke",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.5
     },
     {
       "source": "flow:kiem-tra-phat-hanh",
-      "target": "step:kiem-tra-phat-hanh:day-image",
+      "target": "step:kiem-tra-phat-hanh:kiem-tra-version",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.6
     },
     {
       "source": "flow:kiem-tra-phat-hanh",
-      "target": "step:kiem-tra-phat-hanh:dong-goi-release",
+      "target": "step:kiem-tra-phat-hanh:day-image",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.7
+    },
+    {
+      "source": "flow:kiem-tra-phat-hanh",
+      "target": "step:kiem-tra-phat-hanh:dong-goi-release",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.8
     }
   ],
   "layers": [],
