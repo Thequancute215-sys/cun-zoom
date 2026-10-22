@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "reviewedAt": "2026-10-22T11:52:33.488480+00:00",
-  "sourceBaseCommit": "19d6f912c5dff07eff2561a866a80728bb7ca955",
-  "reviewNote": "Them mien On tap; chep loi buoi cu chi khi bat tu dong bo, file tai len luon duoc chep loi; so dong lay tu AST.",
+  "reviewedAt": "2026-10-22T11:56:20.425510+00:00",
+  "sourceBaseCommit": "11a8e5e085e414026d9a01b7a2f62eff2eff7422",
+  "reviewNote": "Reviewed 2.2.0 CI fix: tests/test_study.py resolves its temp root (Windows 8.3 paths); no workflow step changed.",
   "sourceFiles": {
     ".dockerignore": "adc297c63c84ec0349097ec584416f959ac1daf8a1b07806051fda28a1f260dc",
     ".github/workflows/docker-release.yml": "03d744af2c682be75ff8f926cab01be7be1de1c15ef7920a6cb343f1f5009fc6",
@@ -65,7 +65,7 @@
     "tests/test_room_link.py": "59ea0248a9478aa17d2072320b726a171ba65923b1efade0fc4d5fdc5b54f108",
     "tests/test_sdk_setup.py": "34e24faf83ec2f56c14d7b33d8d60cb2ad26afcffb6e3ac27e3a734e25d681e9",
     "tests/test_server.py": "98fa32b07fddec33ae01a2c7297e155cc12bdebf85bb2ab7ba577d70323ca559",
-    "tests/test_study.py": "fb0df8f2a26998471424f203f61a58f806b146e08decf3d6db3da9c6fa00b825",
+    "tests/test_study.py": "195d5cc2efc051d8f8b93f8ab18610ee36b6723df36c7403d7e0ab1619dd4d93",
     "tests/test_workflow_map.py": "c86e42bbeb74c65a19de49de5ca4fab4b980364bc28d998ec4be56a8976d752a",
     "tokens.css": "2fcc50ba1980b33b18fe9b63dfa20f27029b2e2f254df3525dd7ae6ac34c1095",
     "vendor/README.md": "424038efe9778ddc86ea1b3c303993d52d46615e0b60d40a49f842ec8ed813cc",
@@ -88,8 +88,8 @@
     "web/tokens.css": "2fcc50ba1980b33b18fe9b63dfa20f27029b2e2f254df3525dd7ae6ac34c1095"
   },
   "artifacts": {
-    ".ua/domain-graph.json": "c678ff7323a0159039c16072048e729b15c4807fe65844c5de2e6f490a53120b",
-    ".ua/knowledge-graph.json": "0f1c77b789394537589876bebdb890d479c55f3f40590d1158144e4450d0add4",
+    ".ua/domain-graph.json": "10c19461e7b82e5867113c156a7646f1052c03734fd223ba9cef51fab40d2e6b",
+    ".ua/knowledge-graph.json": "859d2facbc6af2d0b2d4def12b0d940eeeebcd6e4affe131aa49205edac342af",
     ".ua/config.json": "fc45c2c2e3bbd9a1f0df975e5b3e8605705401f2709fb67fa1206b8ac196c0e1",
     ".ua/tooling.json": "b4425175a232d702308d6ca43730e0f373aab604a1b2a625414e43789c56205e",
     "docs/WORKFLOW.md": "813194eb0ad61c7d5bb975c7d8498fd5431ea658ab6251f91628478a20d584b2"

@@ -110,9 +110,10 @@ class DocumentTests(unittest.TestCase):
 class StudyPipelineTests(unittest.TestCase):
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
-        self.root = Path(self.directory.name)
+        # Resolved like the app's own root, so Windows 8.3 temp paths (RUNNER~1) compare equal.
+        self.root = Path(self.directory.name).resolve()
         self.calls = []
-        self.patches = [patch.object(study, 'root', lambda: self.root.resolve()),
+        self.patches = [patch.object(study, 'root', lambda: self.root),
                         patch.object(study.ai, 'generate', fake_generate(self.calls)),
                         patch.object(study.ai, 'settings', lambda: dict(CONFIG)),
                         patch.object(study.ai, 'enabled', lambda config=None: True),
