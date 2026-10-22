@@ -16,10 +16,16 @@ V1_DATA = V1_ROOT/'Du_lieu_ung_dung'
 DEFAULT_DATA = V1_DATA if DESKTOP and V1_DATA.is_dir() else Path(os.environ.get('LOCALAPPDATA', Path.home()/'.local/share'))/'CunZoom'
 DATA = Path(os.environ.get('CUN_ZOOM_DATA_DIR', DEFAULT_DATA)).resolve()
 DATA.mkdir(parents=True, exist_ok=True)
-SDK = Path(os.environ.get('CUN_ZOOM_SDK_DIR', RESOURCES/'vendor/zoom/bin')).resolve()
+# The Windows exe ships without Zoom's SDK: each user installs their own copy into MANAGED_SDK from the app.
+MANAGED_SDK = DATA/'zoom-sdk'
+BUNDLED_SDK = RESOURCES/'vendor/zoom/bin'
+SDK = Path(os.environ.get('CUN_ZOOM_SDK_DIR') or (MANAGED_SDK if DESKTOP and not (BUNDLED_SDK/'sdk.dll').is_file() else BUNDLED_SDK)).resolve()
 NATIVE = Path(os.environ.get('CUN_ZOOM_WORKER', RESOURCES/'vendor'/('CunZoomBot.exe' if os.name=='nt' else 'CunZoomBot'))).resolve()
 WEB = RESOURCES/'web'
 PREFERENCES = DATA/'preferences.json'
+
+def sdk_present():
+    return any((SDK/name).is_file() for name in ('sdk.dll','libmeetingsdk.so'))
 
 def default_recordings():
     if os.environ.get('CUN_ZOOM_RECORDINGS_DIR'):return Path(os.environ['CUN_ZOOM_RECORDINGS_DIR'])

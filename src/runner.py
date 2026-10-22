@@ -4,7 +4,7 @@ from datetime import datetime
 from pathlib import Path
 import vault
 
-from paths import DATA, NATIVE, SDK, preferences
+from paths import DATA, NATIVE, SDK, preferences, sdk_present
 ROOT=DATA
 EXE=NATIVE
 STATE_FILE=DATA/'native_state.json'
@@ -23,7 +23,7 @@ def persist():
 
 def state():
     with MUTEX:
-        value={**CURRENT,'built':EXE.exists()}
+        value={**CURRENT,'built':EXE.exists() and sdk_present()}
         if value['state']=='not_built' and value['built']:value['state']='not_tested'
         return value
 
@@ -72,6 +72,7 @@ def launch(config,jwt,mode='auth-test',meeting='',password='',subject='',title='
     global PROCESS
     with MUTEX:
         if not EXE.exists():raise ValueError('Chưa biên dịch xong bộ chạy bot.')
+        if not sdk_present():raise ValueError('Chưa có Zoom SDK. Windows: Cài đặt → Kết nối → Cài Zoom SDK (.zip). Docker: đặt SDK vào vendor/zoom-linux.')
         if PROCESS is not None and PROCESS.poll() is None:raise ValueError('Bot đang chạy; hãy dừng trước khi thử lần khác.')
         directory=None;obf=''
         if mode!='auth-test':

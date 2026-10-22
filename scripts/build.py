@@ -1,4 +1,4 @@
-"""Build a Windows executable from explicit resources; user data is never collected."""
+"""Build a Windows executable from explicit resources; user data and the Zoom SDK are never bundled."""
 import argparse
 import hashlib
 import json
@@ -19,10 +19,9 @@ def main():
     # Preserve that policy file; do not modify ssl.py or disable TLS checks.
     import ssl
     ssl_policy=Path(ssl.__file__).with_name('codex-rejected-cas.pem')
-    sdk=ROOT/'vendor/zoom/bin'
     native=ROOT/'vendor/CunZoomBot.exe'
-    if not (sdk/'sdk.dll').is_file() or not native.is_file():
-        raise SystemExit('Missing Zoom runtime. Run prepare_sdk.py and build_native.py first.')
+    if not native.is_file():
+        raise SystemExit('Missing native worker. Run prepare_sdk.py and build_native.py first.')
     from PIL import Image,ImageDraw
     image=Image.new('RGBA',(256,256),(0,0,0,0));draw=ImageDraw.Draw(image)
     draw.rounded_rectangle((2,2,254,254),radius=56,fill='#1749b9')
@@ -31,7 +30,7 @@ def main():
     draw.ellipse((176,116,200,140),fill='white')
     image.save(ROOT/'web/icon.png');image.save(ROOT/'web/icon.ico',sizes=[(16,16),(32,32),(48,48),(64,64),(128,128),(256,256)])
     command=[sys.executable,'-m','PyInstaller','--clean','--noconfirm','--windowed','--name','CunZoom','--icon',str(ROOT/'web/icon.ico'),
-             '--paths',str(ROOT/'src'),'--add-data',str(ROOT/'web')+';web','--add-data',str(sdk)+';vendor/zoom/bin',
+             '--paths',str(ROOT/'src'),'--add-data',str(ROOT/'web')+';web',
              '--add-binary',str(native)+';vendor','--collect-all','webview','--collect-all','tzdata',
              '--collect-all','icalendar','--collect-all','recurring_ical_events','--collect-all','ctranslate2',
              '--collect-all','faster_whisper','--collect-all','tokenizers','--collect-all','av',
@@ -50,7 +49,7 @@ def main():
     if not args.onedir:
         (ROOT/'dist/SHA256SUMS.txt').write_text(digest+'  CunZoom.exe\n',encoding='ascii')
         version=__import__('re').search(r"VERSION = '([^']+)'",(ROOT/'src/paths.py').read_text()).group(1)
-        (ROOT/'dist/build-info.json').write_text(json.dumps({'version':version,'sha256':digest,'bytes':exe.stat().st_size,'user_data_included':False},indent=2),encoding='utf-8')
+        (ROOT/'dist/build-info.json').write_text(json.dumps({'version':version,'sha256':digest,'bytes':exe.stat().st_size,'user_data_included':False,'zoom_sdk_included':False},indent=2),encoding='utf-8')
     print(json.dumps({'built':str(exe),'bytes':exe.stat().st_size,'sha256':digest}))
 
 

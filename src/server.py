@@ -20,7 +20,8 @@ import runner
 import vault
 import access_control
 import platform_actions
-from paths import DATA, RESOURCES, WEB, VERSION, REPOSITORY, SDK, NATIVE, PREFERENCES, preferences, CONTAINER
+import sdk_setup
+from paths import DATA, RESOURCES, WEB, VERSION, REPOSITORY, SDK, MANAGED_SDK, NATIVE, PREFERENCES, preferences, CONTAINER, sdk_present
 from room_link import parse_room_link
 
 
@@ -60,6 +61,7 @@ class Service:
         self.pending = {}
         self.show_window = lambda: None
         self.choose_folder = lambda: None
+        self.choose_sdk_archive = lambda: None
         self.quit_app = lambda: None
         self.message = ''
         self.model_state = 'idle'
@@ -81,7 +83,9 @@ class Service:
                 'zoom': {'configured': bool(config.get('client_secret')), 'authorized': bool(config.get('oauth', {}).get('refresh_token')),
                          'client_id': config.get('client_id', ''), 'public_client_id': config.get('public_client_id', ''),
                          'default_passcode': config.get('default_meeting_passcode', ''),
-                         'sdk_available': NATIVE.is_file() and any((SDK/n).is_file() for n in ('sdk.dll', 'libmeetingsdk.so')), 'external_review_verified': False},
+                         'sdk_available': NATIVE.is_file() and sdk_present(), 'sdk_installed': sdk_present(),
+                         'sdk_installable': not CONTAINER and SDK == MANAGED_SDK.resolve(), 'sdk_version': sdk_setup.TESTED_VERSION,
+                         'external_review_verified': False},
                 'library': recordings, 'preferences': preferences(), 'message': self.message,
                 'model': {'state': self.model_state, 'available': self.model_available()},
                 'data_directory': str(DATA), 'container': CONTAINER,
@@ -253,6 +257,19 @@ class Service:
                 config = preferences()
                 config['recordings_root'] = str(folder)
                 PREFERENCES.write_text(json.dumps(config, ensure_ascii=False, indent=2), encoding='utf-8')
+            return {'ok': True}
+        if route == '/sdk/install':
+            if CONTAINER:
+                raise ValueError('Docker dùng SDK Linux đặt trong vendor/zoom-linux; xem docs/INSTALL.md.')
+            if SDK != MANAGED_SDK.resolve():
+                raise ValueError('SDK đang được chỉ định tại ' + str(SDK) + '; ứng dụng không cài đè thư mục này.')
+            if runner.state().get('running'):
+                raise ValueError('Dừng bot trước khi cài lại Zoom SDK.')
+            selected = self.choose_sdk_archive()
+            if not selected:
+                return {'ok': False}
+            sdk_setup.install(selected, SDK)
+            self.message = 'Đã cài Zoom SDK. Bấm Kiểm tra Zoom để thử.'
             return {'ok': True}
         if route == '/app/quit':
             threading.Thread(target=self.quit_app, daemon=True).start()

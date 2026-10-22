@@ -16,15 +16,15 @@
       "faster-whisper"
     ],
     "description": "Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn; chạy như ứng dụng Windows (CunZoom.exe) hoặc Docker Linux. Windows tự mở link lớp, Docker chỉ đưa link tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra trong 2.x; RTMS chưa triển khai.",
-    "analyzedAt": "2026-10-22T09:34:02.320891+00:00",
-    "gitCommitHash": "83a5f1cd5cc644dd2137efcea579dbac0a755a16"
+    "analyzedAt": "2026-10-22T10:01:24.813660+00:00",
+    "gitCommitHash": "32cf59da668dafcb2716fac30228c0965395d9fc"
   },
   "nodes": [
     {
       "id": "domain:van-hanh",
       "type": "domain",
       "name": "Cài đặt và vận hành",
-      "summary": "Đưa ứng dụng local vào hoạt động trên Windows (CunZoom.exe) hoặc Docker, kiểm tra trước phát hành và bảo toàn dữ liệu khi cập nhật. Image công khai không chứa SDK Zoom; exe Windows được build trên CI từ SDK ở kho riêng tư.",
+      "summary": "Đưa ứng dụng local vào hoạt động trên Windows (CunZoom.exe) hoặc Docker, kiểm tra trước phát hành và bảo toàn dữ liệu khi cập nhật. Không bản phát hành nào chứa Zoom SDK: người dùng tự tải SDK chính thức và cài vào ứng dụng (Windows) hoặc mount (Docker).",
       "tags": [
         "van-hanh"
       ],
@@ -49,7 +49,8 @@
           "Mỗi thay đổi phải được rà bằng Understand Anything và refresh với validator gốc; CI chặn bản đồ lệch nguồn trước tests/build.",
           "Skill /workflow đóng gói quy trình Understand Anything; docs/HANDOVER.md là mục lục cơ chế, nguồn và hướng dẫn. Skill không tự tạo AI nền hoặc tự cho phép công khai/phát hành.",
           "Nâng cấp từ Windows 1.x chỉ sao chép kho khóa .dpapi sang tên mới, không xóa/ghi đè; dùng tiếp thư mục dữ liệu và bài giảng cũ trên cùng máy.",
-          "CunZoom.exe chỉ được phát hành sau khi tests Windows và self-test gói (SDK nạp được, mã hóa, HTTPS) đạt; SDK Windows đối chiếu SHA-256 và không được commit."
+          "CunZoom.exe chỉ được phát hành sau khi tests Windows và self-test gói (SDK đặt ngoài exe nạp được, mã hóa, HTTPS) đạt; CI dừng nếu exe chứa SDK.",
+          "Người dùng Windows tự cài SDK từ ZIP chính thức: chỉ chép x64/bin vào thư mục zoom-sdk do ứng dụng quản lý, từ chối gói sai hoặc đường dẫn không an toàn mà không đổi bản đã cài."
         ],
         "crossDomainInteractions": [
           "Khởi động dịch vụ truy cập, lịch và bộ ghi.",
@@ -322,8 +323,8 @@
       "complexity": "moderate",
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
-        105,
-        132
+        108,
+        135
       ]
     },
     {
@@ -337,8 +338,8 @@
       "complexity": "moderate",
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
-        133,
-        150
+        136,
+        153
       ]
     },
     {
@@ -352,8 +353,8 @@
       "complexity": "moderate",
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
-        151,
-        167
+        154,
+        170
       ]
     },
     {
@@ -367,8 +368,8 @@
       "complexity": "moderate",
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
-        168,
-        196
+        171,
+        199
       ]
     },
     {
@@ -485,8 +486,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        355,
-        373
+        372,
+        390
       ]
     },
     {
@@ -500,8 +501,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        176,
-        193
+        180,
+        197
       ]
     },
     {
@@ -530,8 +531,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        109,
-        133
+        113,
+        137
       ]
     },
     {
@@ -545,8 +546,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        135,
-        150
+        139,
+        154
       ]
     },
     {
@@ -723,8 +724,8 @@
       "complexity": "moderate",
       "filePath": "web/app.js",
       "lineRange": [
-        68,
-        94
+        76,
+        100
       ]
     },
     {
@@ -738,8 +739,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        171,
-        175
+        175,
+        179
       ]
     },
     {
@@ -767,8 +768,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        194,
-        209
+        198,
+        213
       ]
     },
     {
@@ -782,8 +783,8 @@
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        96,
-        126
+        97,
+        127
       ]
     },
     {
@@ -797,8 +798,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        210,
-        222
+        214,
+        226
       ]
     },
     {
@@ -813,7 +814,7 @@
       "filePath": "src/runner.py",
       "lineRange": [
         44,
-        94
+        95
       ]
     },
     {
@@ -946,8 +947,8 @@
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        105,
-        134
+        106,
+        135
       ]
     },
     {
@@ -990,8 +991,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        91,
-        107
+        95,
+        111
       ]
     },
     {
@@ -1005,8 +1006,8 @@
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        127,
-        134
+        128,
+        135
       ]
     },
     {
@@ -1109,8 +1110,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        227,
-        234
+        231,
+        238
       ]
     },
     {
@@ -1139,8 +1140,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        297,
-        320
+        314,
+        337
       ]
     },
     {
@@ -1154,8 +1155,8 @@
       "complexity": "complex",
       "filePath": "scripts/workflow_map.py",
       "lineRange": [
-        318,
-        341
+        320,
+        343
       ]
     },
     {
@@ -1192,7 +1193,7 @@
       "id": "flow:chay-ban-windows",
       "type": "flow",
       "name": "Mở và nâng cấp bản Windows",
-      "summary": "Chạy CunZoom.exe một phiên duy nhất, nhận lại dữ liệu của bản 1.x trên cùng máy rồi mở cửa sổ và khay hệ thống.",
+      "summary": "Chạy CunZoom.exe một phiên duy nhất, nhận lại dữ liệu của bản 1.x trên cùng máy, mở cửa sổ và khay hệ thống, rồi để người dùng cài Zoom SDK của chính họ.",
       "tags": [
         "van-hanh",
         "windows"
@@ -1231,8 +1232,8 @@
       "complexity": "moderate",
       "filePath": "src/paths.py",
       "lineRange": [
-        24,
-        36
+        30,
+        42
       ]
     },
     {
@@ -1247,8 +1248,8 @@
       "complexity": "moderate",
       "filePath": "src/paths.py",
       "lineRange": [
-        38,
-        43
+        44,
+        49
       ]
     },
     {
@@ -1296,14 +1297,14 @@
       "filePath": "src/main.py",
       "lineRange": [
         90,
-        143
+        147
       ]
     },
     {
       "id": "step:kiem-tra-phat-hanh:build-exe",
       "type": "step",
       "name": "Build và tự kiểm tra CunZoom.exe",
-      "summary": "Tests trên Windows, lấy SDK Windows từ kho riêng và đối chiếu SHA-256, biên dịch worker, đóng gói PyInstaller, chạy --self-test không vào phòng; giữ exe làm artifact.",
+      "summary": "Tests trên Windows, lấy SDK Windows từ kho riêng và đối chiếu SHA-256, biên dịch worker, đóng gói exe không kèm SDK, chạy --self-test với SDK đặt ngoài và từ chối exe chứa SDK; giữ exe làm artifact.",
       "tags": [
         "van-hanh",
         "windows"
@@ -1312,7 +1313,23 @@
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
         38,
-        104
+        107
+      ]
+    },
+    {
+      "id": "step:chay-ban-windows:cai-sdk",
+      "type": "step",
+      "name": "Cài Zoom SDK của người dùng",
+      "summary": "Người dùng chọn file ZIP Meeting SDK Windows chính thức; khi bot không chạy và thư mục SDK do ứng dụng quản lý, ứng dụng chỉ chép x64/bin vào zoom-sdk rồi thay bản cũ.",
+      "tags": [
+        "van-hanh",
+        "windows"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/sdk_setup.py",
+      "lineRange": [
+        47,
+        69
       ]
     }
   ],
@@ -1793,48 +1810,6 @@
       "weight": 1.0
     },
     {
-      "source": "flow:chay-ban-windows",
-      "target": "step:chay-ban-windows:thu-muc-du-lieu",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.1
-    },
-    {
-      "source": "flow:chay-ban-windows",
-      "target": "step:chay-ban-windows:thu-muc-bai-giang",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.2
-    },
-    {
-      "source": "flow:chay-ban-windows",
-      "target": "step:chay-ban-windows:sao-chep-kho-khoa",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.3
-    },
-    {
-      "source": "flow:chay-ban-windows",
-      "target": "step:chay-ban-windows:goi-nang-cap",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.4
-    },
-    {
-      "source": "flow:chay-ban-windows",
-      "target": "step:chay-ban-windows:mot-phien",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "flow:chay-ban-windows",
-      "target": "step:chay-ban-windows:cua-so-khay",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
       "source": "flow:kiem-tra-phat-hanh",
       "target": "step:kiem-tra-phat-hanh:ra-lai-ban-do",
       "type": "flow_step",
@@ -1896,6 +1871,55 @@
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.9
+    },
+    {
+      "source": "flow:chay-ban-windows",
+      "target": "step:chay-ban-windows:thu-muc-du-lieu",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.1
+    },
+    {
+      "source": "flow:chay-ban-windows",
+      "target": "step:chay-ban-windows:thu-muc-bai-giang",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:chay-ban-windows",
+      "target": "step:chay-ban-windows:sao-chep-kho-khoa",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:chay-ban-windows",
+      "target": "step:chay-ban-windows:goi-nang-cap",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:chay-ban-windows",
+      "target": "step:chay-ban-windows:mot-phien",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:chay-ban-windows",
+      "target": "step:chay-ban-windows:cua-so-khay",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:chay-ban-windows",
+      "target": "step:chay-ban-windows:cai-sdk",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.7
     }
   ],
   "layers": [],
