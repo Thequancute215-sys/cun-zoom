@@ -22,7 +22,7 @@ python scripts/workflow_map.py check
 - Docker Calendar đọc iCal, nhắc và chuyển link tới giao diện đang mở; không tự vào phòng hay tự bắt đầu ghi.
 - Ghi cần xác nhận của người dùng, kiểm tra SDK và quyền Zoom/OBF/host tương ứng. Đọc giới hạn hiện hành trong `docs/ZOOM_AND_CALENDAR.md` và `docs/VALIDATION.md`; không coi InitSDK thành công là đã ghi được phòng thật.
 - Bản đồ hiện tại là phân tích domain cùng overview cấp file, không phải call graph của mọi hàm. RTMS chưa được triển khai ở mốc tạo skill; kiểm tra mã hiện tại trước khi nhắc lại giới hạn này ở các lần sau.
-- Repo Windows cũ `Thequancute215-sys/AI-Zoom` là riêng tư, tách với repo Docker công khai. Không nhập lịch sử/cấu hình/SDK của nó sang repo công khai, không dừng ứng dụng đang chạy để mở dashboard.
+- Bản Windows đã gộp vào repo này từ 2.1.0 (`docs/WINDOWS.md`). Repo cũ `Thequancute215-sys/AI-Zoom` chỉ là kho lưu trữ và kho SDK riêng tư: không nhập lịch sử/cấu hình/SDK của nó sang repo công khai, không dừng ứng dụng đang chạy để mở dashboard.
 - Khi thêm file nguồn hoặc tài liệu có vai trò mới, cập nhật mô tả/lớp kiến trúc trong `scripts/workflow_map.py` nếu cần; đừng để mô tả mặc định sai loại file. Nội dung graph không chứa dữ liệu buổi học, khóa hoặc đường dẫn cá nhân.
 
 ## Cài lại skill

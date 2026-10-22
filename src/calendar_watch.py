@@ -14,7 +14,7 @@ from urllib.parse import urlsplit
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from paths import DATA
+from paths import DATA, DESKTOP
 ROOT = DATA
 from icalendar import Calendar
 import recurring_ical_events
@@ -233,7 +233,7 @@ class Watcher:
                     else:
                         try:
                             self.open_event(event['key'])
-                            self.messages.append('Đã gửi link lớp tới giao diện: ' + event['title'] + '. Vào Zoom trước rồi xác nhận bắt đầu bot.')
+                            self.messages.append(('Đã mở link lớp: ' if DESKTOP else 'Đã gửi link lớp tới giao diện: ') + event['title'] + '. Vào Zoom trước rồi xác nhận bắt đầu bot.')
                         except Exception:
                             self.messages.append('Không mở được link lớp: ' + event['title'] + '. Dùng nút Mở lớp trong danh sách.')
 

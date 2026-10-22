@@ -1,12 +1,13 @@
 # Bàn giao Cún Zoom
 
-Repo hiện hành: [Thequancute215-sys/cun-zoom](https://github.com/Thequancute215-sys/cun-zoom). Tài liệu và mã ứng dụng của bản Docker nằm trong repo này; người khác có thể clone, đọc cơ chế và tự cài theo hướng dẫn. Không cần các tệp bàn giao trong lịch sử chat để đọc hoặc cài bản công khai.
+Repo hiện hành: [Thequancute215-sys/cun-zoom](https://github.com/Thequancute215-sys/cun-zoom). Tài liệu và mã ứng dụng của cả bản Windows (`CunZoom.exe`) và bản Docker nằm trong repo này; người khác có thể clone, đọc cơ chế và tự cài theo hướng dẫn. Không cần các tệp bàn giao trong lịch sử chat để đọc hoặc cài bản công khai.
 
 ## Tìm đúng tài liệu
 
 | Cần làm gì | Nguồn |
 | --- | --- |
 | Hiểu chức năng và giới hạn | [README](../README.md) |
+| Dùng, nâng cấp từ 1.x hoặc build `CunZoom.exe` | [WINDOWS](WINDOWS.md) |
 | Cài Docker, SDK và mở giao diện | [INSTALL](INSTALL.md) |
 | Cấp quyền Zoom và nối Google Calendar | [ZOOM_AND_CALENDAR](ZOOM_AND_CALENDAR.md) |
 | Đọc luồng hoạt động từng bước | [WORKFLOW](WORKFLOW.md), [graph nghiệp vụ](../.ua/domain-graph.json) |
@@ -32,6 +33,6 @@ Luồng chính: trình duyệt → API có xác thực → cấu hình mã hóa/
 
 ## Những thứ được giữ ngoài repo công khai
 
-SDK/thư viện Zoom có điều khoản riêng, thông tin đăng nhập, nguồn iCal riêng tư, khóa mã hóa, dữ liệu volume, file âm thanh và slide của buổi học không được đưa lên GitHub. Người cài tự lấy SDK chính thức và cấu hình tài khoản của mình. Repo Windows cũ `AI-Zoom` vẫn riêng tư; mã/lịch sử vận hành riêng của nó không phải toàn bộ nội dung của bản Docker công khai.
+SDK/thư viện Zoom có điều khoản riêng, thông tin đăng nhập, nguồn iCal riêng tư, khóa mã hóa, dữ liệu volume, file âm thanh và slide của buổi học không được đưa lên GitHub. Người cài tự lấy SDK chính thức và cấu hình tài khoản của mình. Repo Windows cũ `AI-Zoom` được giữ làm kho lưu trữ (lịch sử 1.x) và kho SDK cho CI; cần đặt ở chế độ riêng tư. Mã Windows hiện hành nằm ở repo này; lịch sử và cấu hình riêng của `AI-Zoom` không được chép sang.
 
 Graph mô tả cơ chế đã thấy trong nguồn, không phải bằng chứng ghi thành công. Bản Docker đã kiểm tra source/HTTP/container và khởi tạo SDK; OAuth/OBF và ghi phòng thật còn cần thử trong phòng được phép. Kết quả và phiên bản SDK cụ thể nằm trong VALIDATION.

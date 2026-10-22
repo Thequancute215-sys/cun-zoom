@@ -17,13 +17,13 @@ flowchart LR
   ci --> release["Phát hành khi có yêu cầu"]
 ```
 
-**Điểm cần nhớ:** lịch trong Docker không tự vào phòng hoặc tự ghi. Ghi cần OAuth/OBF, người cấp quyền có mặt và host cho phép. Bản Linux đã kiểm tra build/SDK init; OAuth và ghi phòng thật chưa được xác minh. RTMS chưa có.
+**Điểm cần nhớ:** bản Windows tự mở link lớp, bản Docker chỉ đưa link tới giao diện; cả hai đều không tự vào phòng hoặc tự ghi. Ghi cần OAuth/OBF, người cấp quyền có mặt và host cho phép. Bản Linux đã kiểm tra build/SDK init; OAuth và ghi phòng thật chưa được xác minh. RTMS chưa có.
 
 ## Các luồng và bước thực hiện
 
 ### Cài đặt và vận hành
 
-Đưa ứng dụng local vào hoạt động, kiểm tra trước phát hành và bảo toàn dữ liệu khi cập nhật. Image công khai không chứa SDK Zoom; người cài tự cung cấp SDK hợp lệ.
+Đưa ứng dụng local vào hoạt động trên Windows (CunZoom.exe) hoặc Docker, kiểm tra trước phát hành và bảo toàn dữ liệu khi cập nhật. Image công khai không chứa SDK Zoom; exe Windows được build trên CI từ SDK ở kho riêng tư.
 
 <details>
 <summary>Khởi động Docker và kiểm tra bộ ghi</summary>
@@ -61,7 +61,7 @@ flowchart LR
 <details>
 <summary>Rà bản đồ, kiểm tra và phát hành phiên bản</summary>
 
-Skill /workflow hướng dẫn rà nguồn, dùng Understand Anything và giữ graph, cơ chế cùng mục lục bàn giao GitHub nhất quán. CI chặn bản đồ lệch nguồn trước tests/build; phát hành phần mềm chỉ khi có dispatch với phiên bản mới hợp lệ.
+Rà bản đồ, chạy tests trên Linux và Windows, build và tự kiểm tra CunZoom.exe, build/smoke Docker rồi chỉ phát hành khi được yêu cầu và mọi bước đạt.
 
 **Bắt đầu:** /workflow và AGENTS.md → GitHub Actions: push, pull_request hoặc workflow_dispatch
 
@@ -74,14 +74,16 @@ flowchart LR
   s2 --> s3
   s4["4 · CI chặn bản đồ lệch trước tests"]
   s3 --> s4
-  s5["5 · Chạy tests, build và kiểm tra HTTP thật"]
+  s5["5 · Build và tự kiểm tra CunZoom.exe"]
   s4 --> s5
-  s6["6 · Chặn sai hoặc trùng phiên bản"]
+  s6["6 · Chạy tests, build và kiểm tra HTTP thật"]
   s5 --> s6
-  s7["7 · Đẩy image đã kiểm tra"]
+  s7["7 · Chặn sai hoặc trùng phiên bản"]
   s6 --> s7
-  s8["8 · Đóng gói và tạo Release"]
+  s8["8 · Đẩy image đã kiểm tra"]
   s7 --> s8
+  s9["9 · Đóng gói và tạo Release"]
+  s8 --> s9
 ```
 
 | Bước | Thực hiện | Mã nguồn |
@@ -90,10 +92,11 @@ flowchart LR
 | 2. Đồng bộ mục lục bàn giao và skill | Dùng docs/HANDOVER.md làm điểm tìm cơ chế, nguồn, cài đặt, vận hành, kiểm chứng và skill /workflow. Bàn giao nguồn, graph và tài liệu trên đúng repo được phép; giữ SDK, khóa và dữ liệu học ngoài GitHub. Chỉ xác nhận đã đưa lên GitHub sau khi kiểm tra kết quả publish. | [docs/HANDOVER.md](../docs/HANDOVER.md#L1) |
 | 3. Kiểm tra nguồn trước CI | CI cài phụ thuộc và chạy check_source để chặn dữ liệu riêng hoặc SDK trước các chốt bản đồ, kiểm thử và build. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L22) |
 | 4. CI chặn bản đồ lệch trước tests | Ngay sau check_source, CI gọi workflow_map.py check để đối chiếu fingerprint nguồn/artifact và kiểm tra graph. Bản đồ thiếu, đường dẫn sai hoặc nội dung lệch phải sửa và refresh trước khi tiếp tục unit/integration/JavaScript. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L32) |
-| 5. Chạy tests, build và kiểm tra HTTP thật | Sau chốt bản đồ, chạy unit/integration, kiểm tra cú pháp JavaScript, build image không SDK rồi smoke HTTP thật; lỗi có diagnostics. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L36) |
-| 6. Chặn sai hoặc trùng phiên bản | Chỉ publish khi dispatch được bật; đối chiếu phiên bản mã với input, từ chối tag đã tồn tại. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L66) |
-| 7. Đẩy image đã kiểm tra | Đăng nhập GHCR bằng token workflow rồi đẩy tag phiên bản và latest từ image đã test. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L84) |
-| 8. Đóng gói và tạo Release | Đóng gói nguồn sạch, Compose, hướng dẫn và checksum; tạo GitHub Release đúng commit rồi dọn smoke container. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L101) |
+| 5. Build và tự kiểm tra CunZoom.exe | Tests trên Windows, lấy SDK Windows từ kho riêng và đối chiếu SHA-256, biên dịch worker, đóng gói PyInstaller, chạy --self-test không vào phòng; giữ exe làm artifact. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L38) |
+| 6. Chạy tests, build và kiểm tra HTTP thật | Sau chốt bản đồ, chạy unit/integration, kiểm tra cú pháp JavaScript, build image không SDK rồi smoke HTTP thật; lỗi có diagnostics. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L105) |
+| 7. Chặn sai hoặc trùng phiên bản | Chỉ publish khi dispatch được bật; đối chiếu phiên bản mã với input, từ chối tag đã tồn tại. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L133) |
+| 8. Đẩy image đã kiểm tra | Đăng nhập GHCR bằng token workflow rồi đẩy tag phiên bản và latest từ image đã test. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L151) |
+| 9. Đóng gói và tạo Release | Tải exe Windows đã kiểm tra, đóng gói source và SHA256SUMS, tạo một Release chung cho Windows và Docker. | [.github/workflows/docker-release.yml](../.github/workflows/docker-release.yml#L168) |
 
 </details>
 
@@ -121,6 +124,39 @@ flowchart LR
 | 2. Sao lưu toàn bộ dữ liệu cùng khóa | Đóng gói /data gồm cấu hình, khóa, mô hình và lessons; bản sao phải giữ riêng vì có thông tin truy cập. | [docs/OPERATIONS.md](../docs/OPERATIONS.md#L54) |
 | 3. Khôi phục có bảo toàn dữ liệu đích | Sao lưu volume đích trước thao tác có thể ghi đè; dùng đúng khóa, không chuyển thẳng DPAPI sang Linux. | [docs/OPERATIONS.md](../docs/OPERATIONS.md#L66) |
 | 4. Đổi mã/image, giữ volume | Đọc release và sao lưu trước; cập nhật source hoặc tag image rồi tạo lại container, không xóa volume. | [docs/OPERATIONS.md](../docs/OPERATIONS.md#L78) |
+
+</details>
+
+<details>
+<summary>Mở và nâng cấp bản Windows</summary>
+
+Chạy CunZoom.exe một phiên duy nhất, nhận lại dữ liệu của bản 1.x trên cùng máy rồi mở cửa sổ và khay hệ thống.
+
+**Bắt đầu:** Mở CunZoom.exe
+
+```mermaid
+flowchart LR
+  s1["1 · Chọn thư mục dữ liệu theo nền tảng"]
+  s2["2 · Giữ thư mục bài giảng cũ"]
+  s1 --> s2
+  s3["3 · Sao chép kho khóa 1.x"]
+  s2 --> s3
+  s4["4 · Chạy nâng cấp trước dịch vụ"]
+  s3 --> s4
+  s5["5 · Giữ một phiên ứng dụng"]
+  s4 --> s5
+  s6["6 · Mở cửa sổ WebView2 và khay hệ thống"]
+  s5 --> s6
+```
+
+| Bước | Thực hiện | Mã nguồn |
+| --- | --- | --- |
+| 1. Chọn thư mục dữ liệu theo nền tảng | Windows dùng tiếp thư mục dữ liệu mặc định mà bản 1.x đã tạo trên máy, nếu không có thì dùng %LOCALAPPDATA%\CunZoom; Docker/Linux dùng thư mục được cấu hình. | [src/paths.py](../src/paths.py#L11) |
+| 2. Giữ thư mục bài giảng cũ | Khi chưa chọn thư mục, bản desktop đọc lại vị trí bài giảng mặc định của 1.x; container luôn khóa vào /data/lessons. | [src/paths.py](../src/paths.py#L24) |
+| 3. Sao chép kho khóa 1.x | Chỉ trên desktop: sao chép quyen_zoom.dpapi/calendar.dpapi sang zoom.vault/calendar.vault khi chưa có; file nguồn giữ nguyên. | [src/paths.py](../src/paths.py#L38) |
+| 4. Chạy nâng cấp trước dịch vụ | Điểm vào gọi bước sao chép trước khi khởi tạo API, trừ khi chạy với --no-migrate (CI self-test). | [src/main.py](../src/main.py#L64) |
+| 5. Giữ một phiên ứng dụng | Mutex Windows chặn mở hai bản; lần mở thứ hai yêu cầu bản đang chạy hiện cửa sổ. | [src/main.py](../src/main.py#L77) |
+| 6. Mở cửa sổ WebView2 và khay hệ thống | Tạo API loopback, cửa sổ WebView2, biểu tượng khay và thông báo lịch; đóng cửa sổ chỉ thu gọn, Thoát mới dừng dịch vụ và bộ ghi. | [src/main.py](../src/main.py#L90) |
 
 </details>
 
@@ -209,7 +245,7 @@ flowchart LR
   s1 --> s2
   s3["3 · Gửi nhắc hoặc liên kết"]
   s2 --> s3
-  s4["4 · Docker giữ hành động ở giao diện"]
+  s4["4 · Mở link theo nền tảng"]
   s3 --> s4
   s5["5 · Người dùng bấm link trên UI"]
   s4 --> s5
@@ -222,7 +258,7 @@ flowchart LR
 | 1. Theo dõi khi được bật | Chỉ hoạt động khi bật và có feed, đồng bộ khoảng 5 phút rồi tick; lỗi tạm dừng được báo để người dùng đồng bộ lại. | [src/calendar_watch.py](../src/calendar_watch.py#L240) |
 | 2. Tính mốc và ngăn lặp | Chọn nhắc trong 30 phút, tùy chọn open từ 2 phút trước đến 10 phút sau giờ; lưu đánh dấu trước tác động. | [src/calendar_watch.py](../src/calendar_watch.py#L205) |
 | 3. Gửi nhắc hoặc liên kết | Gửi thông báo; hành động open chuyển link và nhắc người dùng vào Zoom trước khi xác nhận bắt đầu bot. | [src/calendar_watch.py](../src/calendar_watch.py#L229) |
-| 4. Docker giữ hành động ở giao diện | Linux phát open_url/notice vào hàng đợi thay vì mở ứng dụng host; không gọi runner từ luồng lịch. | [src/platform_actions.py](../src/platform_actions.py#L11) |
+| 4. Mở link theo nền tảng | Windows mở link lớp bằng ứng dụng mặc định; Docker không chạy lệnh trên host mà đưa link vào hàng sự kiện cho giao diện. | [src/platform_actions.py](../src/platform_actions.py#L11) |
 | 5. Người dùng bấm link trên UI | Giao diện hiển thị liên kết HTTPS và toast từ sự kiện mới; cần UI đang mở để nhận, không replay backlog khi mới tải. | [web/app.js](../web/app.js#L68) |
 | 6. Mở đúng buổi còn trong danh sách | API lấy sự kiện theo khóa hiện tại; Docker trả URL cho giao diện, desktop mở link trực tiếp. | [src/server.py](../src/server.py#L171) |
 
@@ -329,9 +365,9 @@ flowchart LR
 | --- | --- | --- |
 | 1. Tải bộ chép lời khi yêu cầu | Tải faster-whisper-base từ Hugging Face vào cache local; báo trạng thái tải, sẵn sàng hoặc thất bại. | [src/server.py](../src/server.py#L91) |
 | 2. Chỉ xử lý sau khi có âm thanh | Runner khởi tiến trình transcribe cho thư mục buổi khi số byte đã nhận lớn hơn 0, ghi log vào buổi tương ứng. | [src/runner.py](../src/runner.py#L127) |
-| 3. Nhận dạng tiếng Việt trên CPU | Đọc WAV/webm trong thư mục buổi; dùng Whisper base int8 local_files_only, ghi từng đoạn kèm thời gian. | [src/transcribe.py](../src/transcribe.py#L21) |
+| 3. Nhận dạng tiếng Việt trên CPU | Đọc WAV/webm trong thư mục buổi; dùng Whisper base int8 local_files_only, ghi từng đoạn kèm thời gian. | [src/transcribe.py](../src/transcribe.py#L23) |
 | 4. Chọn câu nổi bật và dấu hiệu bài tập | Quy tắc chấm điểm từ vựng chọn câu và dò cụm bài tập/hạn; nhãn bản nháp nêu rõ có thể sai, chưa đối chiếu slide. | [src/transcribe.py](../src/transcribe.py#L5) |
-| 5. Lưu tài liệu và trạng thái thật | Lưu transcript, trích ý, hướng dẫn rà soát; completed ghi số đoạn, exception lưu failed rồi trả lỗi. | [src/transcribe.py](../src/transcribe.py#L36) |
+| 5. Lưu tài liệu và trạng thái thật | Lưu transcript, trích ý, hướng dẫn rà soát; completed ghi số đoạn, exception lưu failed rồi trả lỗi. | [src/transcribe.py](../src/transcribe.py#L38) |
 
 </details>
 

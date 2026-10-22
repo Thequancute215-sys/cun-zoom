@@ -10,6 +10,6 @@
 5. Chạy `python scripts/workflow_map.py check` cùng các kiểm tra phù hợp thay đổi. Commit/publish graph và nguồn trong cùng lần bàn giao. CI từ chối bản đồ thiếu hoặc lệch nội dung nguồn; không tắt kiểm tra này để bỏ qua lỗi.
 6. Dùng dashboard để kiểm tra luồng chính và mở phần chi tiết ít nhất một bước. `docs/WORKFLOW.md` là bản đọc nhanh trên GitHub; hai graph JSON là dữ liệu dùng chung cho dashboard và bản đọc nhanh.
 7. Không đưa SDK, mật khẩu, iCal riêng tư, token, log, nội dung buổi học hoặc đường dẫn cá nhân vào graph, ảnh chụp công khai hay Git. `.ua/intermediate/` chỉ là dữ liệu tạm, không commit.
-8. Sơ đồ phải phân biệt đúng trạng thái: Calendar chỉ nhắc/mở link qua giao diện; ghi cần thao tác và quyền Zoom/host. SDK Init thành công không chứng minh vào phòng/ghi thành công. RTMS chưa có. Bản Windows cũ nằm ở repository riêng; không nhập dữ liệu riêng của nó vào repo công khai này.
+8. Sơ đồ phải phân biệt đúng trạng thái: Calendar chỉ nhắc/mở link qua giao diện; ghi cần thao tác và quyền Zoom/host. SDK Init thành công không chứng minh vào phòng/ghi thành công. RTMS chưa có. Bản Windows (trước ở repo `AI-Zoom`) đã được gộp vào repo này từ 2.1.0; `AI-Zoom` chỉ còn là kho lưu trữ và kho SDK riêng tư. Không nhập lịch sử, cấu hình, SDK hay header SDK của nó vào repo công khai này.
 
 Đây là quy trình cho tác nhân và người bảo trì, kèm chốt kiểm tra CI. `autoUpdate: true` không tự tạo một tiến trình AI chạy nền trong Codex.

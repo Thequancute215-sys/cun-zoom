@@ -11,29 +11,34 @@
       "Python HTTPServer",
       "Zoom Meeting SDK",
       "Docker Compose",
+      "pywebview/WebView2",
+      "PyInstaller",
       "faster-whisper"
     ],
-    "description": "Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn. Docker chỉ đưa link lịch tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra; RTMS chưa triển khai.",
-    "analyzedAt": "2026-10-22T02:40:50.537327+00:00",
-    "gitCommitHash": "3ba7a3f6bc2d89f4fdf6c51cdecb678b29f204f7"
+    "description": "Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn; chạy như ứng dụng Windows (CunZoom.exe) hoặc Docker Linux. Windows tự mở link lớp, Docker chỉ đưa link tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra trong 2.x; RTMS chưa triển khai.",
+    "analyzedAt": "2026-10-22T08:57:43.032455+00:00",
+    "gitCommitHash": "ec95aa3c9d2a94da02df79370b7eac68209c790d"
   },
   "nodes": [
     {
       "id": "domain:van-hanh",
       "type": "domain",
       "name": "Cài đặt và vận hành",
-      "summary": "Đưa ứng dụng local vào hoạt động, kiểm tra trước phát hành và bảo toàn dữ liệu khi cập nhật. Image công khai không chứa SDK Zoom; người cài tự cung cấp SDK hợp lệ.",
+      "summary": "Đưa ứng dụng local vào hoạt động trên Windows (CunZoom.exe) hoặc Docker, kiểm tra trước phát hành và bảo toàn dữ liệu khi cập nhật. Image công khai không chứa SDK Zoom; exe Windows được build trên CI từ SDK ở kho riêng tư.",
       "tags": [
         "van-hanh"
       ],
       "complexity": "complex",
       "domainMeta": {
         "entities": [
+          "Bản phát hành",
+          "Bản sao lưu",
+          "CunZoom.exe",
           "Image Docker",
           "SDK Linux",
-          "Volume /data",
-          "Bản phát hành",
-          "Bản sao lưu"
+          "SDK Windows",
+          "Thư mục dữ liệu 1.x",
+          "Volume /data"
         ],
         "businessRules": [
           "Chạy UID 10001, cổng host mặc định chỉ trên 127.0.0.1; SDK mount chỉ đọc.",
@@ -42,7 +47,9 @@
           "RTMS chưa được triển khai; trường hợp Meeting SDK/OBF phải được Zoom cho phép.",
           "Sao lưu là thao tác thủ công, chứa cả khóa và dữ liệu cá nhân; không có lịch sao lưu tự động.",
           "Mỗi thay đổi phải được rà bằng Understand Anything và refresh với validator gốc; CI chặn bản đồ lệch nguồn trước tests/build.",
-          "Skill /workflow đóng gói quy trình Understand Anything; docs/HANDOVER.md là mục lục cơ chế, nguồn và hướng dẫn. Skill không tự tạo AI nền hoặc tự cho phép công khai/phát hành."
+          "Skill /workflow đóng gói quy trình Understand Anything; docs/HANDOVER.md là mục lục cơ chế, nguồn và hướng dẫn. Skill không tự tạo AI nền hoặc tự cho phép công khai/phát hành.",
+          "Nâng cấp từ Windows 1.x chỉ sao chép kho khóa .dpapi sang tên mới, không xóa/ghi đè; dùng tiếp thư mục dữ liệu và bài giảng cũ trên cùng máy.",
+          "CunZoom.exe chỉ được phát hành sau khi tests Windows và self-test gói (SDK nạp được, mã hóa, HTTPS) đạt; SDK Windows đối chiếu SHA-256 và không được commit."
         ],
         "crossDomainInteractions": [
           "Khởi động dịch vụ truy cập, lịch và bộ ghi.",
@@ -279,7 +286,7 @@
       "id": "flow:kiem-tra-phat-hanh",
       "type": "flow",
       "name": "Rà bản đồ, kiểm tra và phát hành phiên bản",
-      "summary": "Skill /workflow hướng dẫn rà nguồn, dùng Understand Anything và giữ graph, cơ chế cùng mục lục bàn giao GitHub nhất quán. CI chặn bản đồ lệch nguồn trước tests/build; phát hành phần mềm chỉ khi có dispatch với phiên bản mới hợp lệ.",
+      "summary": "Rà bản đồ, chạy tests trên Linux và Windows, build và tự kiểm tra CunZoom.exe, build/smoke Docker rồi chỉ phát hành khi được yêu cầu và mọi bước đạt.",
       "tags": [
         "van-hanh"
       ],
@@ -315,8 +322,8 @@
       "complexity": "moderate",
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
-        36,
-        65
+        105,
+        132
       ]
     },
     {
@@ -330,8 +337,8 @@
       "complexity": "moderate",
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
-        66,
-        83
+        133,
+        150
       ]
     },
     {
@@ -345,23 +352,23 @@
       "complexity": "moderate",
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
-        84,
-        100
+        151,
+        167
       ]
     },
     {
       "id": "step:kiem-tra-phat-hanh:dong-goi-release",
       "type": "step",
       "name": "Đóng gói và tạo Release",
-      "summary": "Đóng gói nguồn sạch, Compose, hướng dẫn và checksum; tạo GitHub Release đúng commit rồi dọn smoke container.",
+      "summary": "Tải exe Windows đã kiểm tra, đóng gói source và SHA256SUMS, tạo một Release chung cho Windows và Docker.",
       "tags": [
         "van-hanh"
       ],
       "complexity": "moderate",
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
-        101,
-        121
+        168,
+        196
       ]
     },
     {
@@ -693,8 +700,8 @@
     {
       "id": "step:nhac-va-chuyen-link:khong-tu-vao",
       "type": "step",
-      "name": "Docker giữ hành động ở giao diện",
-      "summary": "Linux phát open_url/notice vào hàng đợi thay vì mở ứng dụng host; không gọi runner từ luồng lịch.",
+      "name": "Mở link theo nền tảng",
+      "summary": "Windows mở link lớp bằng ứng dụng mặc định; Docker không chạy lệnh trên host mà đưa link vào hàng sự kiện cho giao diện.",
       "tags": [
         "lich-hoc"
       ],
@@ -717,7 +724,7 @@
       "filePath": "web/app.js",
       "lineRange": [
         68,
-        92
+        94
       ]
     },
     {
@@ -1013,8 +1020,8 @@
       "complexity": "moderate",
       "filePath": "src/transcribe.py",
       "lineRange": [
-        21,
-        35
+        23,
+        37
       ]
     },
     {
@@ -1043,8 +1050,8 @@
       "complexity": "moderate",
       "filePath": "src/transcribe.py",
       "lineRange": [
-        36,
-        40
+        38,
+        42
       ]
     },
     {
@@ -1178,7 +1185,134 @@
       "filePath": "docs/HANDOVER.md",
       "lineRange": [
         1,
-        37
+        38
+      ]
+    },
+    {
+      "id": "flow:chay-ban-windows",
+      "type": "flow",
+      "name": "Mở và nâng cấp bản Windows",
+      "summary": "Chạy CunZoom.exe một phiên duy nhất, nhận lại dữ liệu của bản 1.x trên cùng máy rồi mở cửa sổ và khay hệ thống.",
+      "tags": [
+        "van-hanh",
+        "windows"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "Mở CunZoom.exe",
+        "entryType": "manual"
+      }
+    },
+    {
+      "id": "step:chay-ban-windows:thu-muc-du-lieu",
+      "type": "step",
+      "name": "Chọn thư mục dữ liệu theo nền tảng",
+      "summary": "Windows dùng tiếp thư mục dữ liệu mặc định mà bản 1.x đã tạo trên máy, nếu không có thì dùng %LOCALAPPDATA%\\CunZoom; Docker/Linux dùng thư mục được cấu hình.",
+      "tags": [
+        "van-hanh",
+        "windows"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/paths.py",
+      "lineRange": [
+        11,
+        18
+      ]
+    },
+    {
+      "id": "step:chay-ban-windows:thu-muc-bai-giang",
+      "type": "step",
+      "name": "Giữ thư mục bài giảng cũ",
+      "summary": "Khi chưa chọn thư mục, bản desktop đọc lại vị trí bài giảng mặc định của 1.x; container luôn khóa vào /data/lessons.",
+      "tags": [
+        "van-hanh",
+        "windows"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/paths.py",
+      "lineRange": [
+        24,
+        36
+      ]
+    },
+    {
+      "id": "step:chay-ban-windows:sao-chep-kho-khoa",
+      "type": "step",
+      "name": "Sao chép kho khóa 1.x",
+      "summary": "Chỉ trên desktop: sao chép quyen_zoom.dpapi/calendar.dpapi sang zoom.vault/calendar.vault khi chưa có; file nguồn giữ nguyên.",
+      "tags": [
+        "van-hanh",
+        "windows"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/paths.py",
+      "lineRange": [
+        38,
+        43
+      ]
+    },
+    {
+      "id": "step:chay-ban-windows:goi-nang-cap",
+      "type": "step",
+      "name": "Chạy nâng cấp trước dịch vụ",
+      "summary": "Điểm vào gọi bước sao chép trước khi khởi tạo API, trừ khi chạy với --no-migrate (CI self-test).",
+      "tags": [
+        "van-hanh",
+        "windows"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/main.py",
+      "lineRange": [
+        64,
+        65
+      ]
+    },
+    {
+      "id": "step:chay-ban-windows:mot-phien",
+      "type": "step",
+      "name": "Giữ một phiên ứng dụng",
+      "summary": "Mutex Windows chặn mở hai bản; lần mở thứ hai yêu cầu bản đang chạy hiện cửa sổ.",
+      "tags": [
+        "van-hanh",
+        "windows"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/main.py",
+      "lineRange": [
+        77,
+        88
+      ]
+    },
+    {
+      "id": "step:chay-ban-windows:cua-so-khay",
+      "type": "step",
+      "name": "Mở cửa sổ WebView2 và khay hệ thống",
+      "summary": "Tạo API loopback, cửa sổ WebView2, biểu tượng khay và thông báo lịch; đóng cửa sổ chỉ thu gọn, Thoát mới dừng dịch vụ và bộ ghi.",
+      "tags": [
+        "van-hanh",
+        "windows"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/main.py",
+      "lineRange": [
+        90,
+        143
+      ]
+    },
+    {
+      "id": "step:kiem-tra-phat-hanh:build-exe",
+      "type": "step",
+      "name": "Build và tự kiểm tra CunZoom.exe",
+      "summary": "Tests trên Windows, lấy SDK Windows từ kho riêng và đối chiếu SHA-256, biên dịch worker, đóng gói PyInstaller, chạy --self-test không vào phòng; giữ exe làm artifact.",
+      "tags": [
+        "van-hanh",
+        "windows"
+      ],
+      "complexity": "complex",
+      "filePath": ".github/workflows/docker-release.yml",
+      "lineRange": [
+        38,
+        104
       ]
     }
   ],
@@ -1652,6 +1786,55 @@
       "description": "Sao lưu toàn bộ volume bảo toàn bài giảng và mô hình; cập nhật image giữ volume."
     },
     {
+      "source": "domain:van-hanh",
+      "target": "flow:chay-ban-windows",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:chay-ban-windows",
+      "target": "step:chay-ban-windows:thu-muc-du-lieu",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.1
+    },
+    {
+      "source": "flow:chay-ban-windows",
+      "target": "step:chay-ban-windows:thu-muc-bai-giang",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:chay-ban-windows",
+      "target": "step:chay-ban-windows:sao-chep-kho-khoa",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:chay-ban-windows",
+      "target": "step:chay-ban-windows:goi-nang-cap",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:chay-ban-windows",
+      "target": "step:chay-ban-windows:mot-phien",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:chay-ban-windows",
+      "target": "step:chay-ban-windows:cua-so-khay",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
       "source": "flow:kiem-tra-phat-hanh",
       "target": "step:kiem-tra-phat-hanh:ra-lai-ban-do",
       "type": "flow_step",
@@ -1681,31 +1864,38 @@
     },
     {
       "source": "flow:kiem-tra-phat-hanh",
-      "target": "step:kiem-tra-phat-hanh:build-smoke",
+      "target": "step:kiem-tra-phat-hanh:build-exe",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.5
     },
     {
       "source": "flow:kiem-tra-phat-hanh",
-      "target": "step:kiem-tra-phat-hanh:kiem-tra-version",
+      "target": "step:kiem-tra-phat-hanh:build-smoke",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.6
     },
     {
       "source": "flow:kiem-tra-phat-hanh",
-      "target": "step:kiem-tra-phat-hanh:day-image",
+      "target": "step:kiem-tra-phat-hanh:kiem-tra-version",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.7
     },
     {
       "source": "flow:kiem-tra-phat-hanh",
-      "target": "step:kiem-tra-phat-hanh:dong-goi-release",
+      "target": "step:kiem-tra-phat-hanh:day-image",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.8
+    },
+    {
+      "source": "flow:kiem-tra-phat-hanh",
+      "target": "step:kiem-tra-phat-hanh:dong-goi-release",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.9
     }
   ],
   "layers": [],
