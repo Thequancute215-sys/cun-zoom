@@ -12,4 +12,6 @@ Module Meeting SDK cần quyền/phê duyệt phù hợp của Zoom. Tài liệu
 
 Image: `ghcr.io/thequancute215-sys/cun-zoom:2.0.0`. Có thể tự build bằng `docker compose up -d --build` từ source công khai.
 
+Đã đạt 20 tests, Docker HTTP smoke/restart và biên dịch + khởi tạo SDK Linux 7.1.5.4432 (`sdk_loaded`, code `0`). Chưa kiểm tra OAuth/ghi trong phòng Zoom thật của bản Docker; cần thử phòng được phép trước khi dùng cho lớp chính thức.
+
 Xem [phạm vi kiểm thử](https://github.com/Thequancute215-sys/cun-zoom/blob/main/docs/VALIDATION.md). Kiểm tra SDK không thay thế thử nghiệm ghi trong phòng thật được phép. Bot cần OBF và quyền host; đóng tab Docker không tự mở Zoom trên host, link nhắc học xuất hiện khi giao diện đang mở.
