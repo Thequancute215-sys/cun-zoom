@@ -42,9 +42,11 @@ def fake_generate(calls):
                     'trong_tam_thi': ['Cân bằng'], 'ke_hoach_on': [{'buoc': 'Ngày 1', 'noi_dung': 'Đọc'}]}
         if schema is study.EXAM_SCHEMA:
             return {'tieu_de': 'Đề', 'thoi_gian_phut': 45,
-                    'trac_nghiem': [{'cau': 'Cung là?', 'lua_chon': ['a', 'b', 'c', 'd'], 'dap_an': 'B', 'giai_thich': 'Vì', 'do_kho': 'co_ban', 'chu_de': 'Cung cầu'},
-                                    {'cau': 'Thiếu lựa chọn', 'lua_chon': ['a', 'b'], 'dap_an': 'A', 'giai_thich': '', 'do_kho': 'co_ban', 'chu_de': 'x'}],
-                    'tu_luan': [{'cau': 'Phân tích', 'diem': 3, 'do_kho': 'nang_cao', 'chu_de': 'Cung cầu', 'goi_y_cham': ['Ý 1']}]}
+                    'trac_nghiem': [{'noi_dung_cau_hoi': 'Cung là?', 'lua_chon': ['a', 'b', 'c', 'd'], 'dap_an': 'B', 'giai_thich': 'Vì', 'do_kho': 'co_ban', 'chu_de': 'Cung cầu'},
+                                    {'noi_dung_cau_hoi': 'Thiếu lựa chọn', 'lua_chon': ['a', 'b'], 'dap_an': 'A', 'giai_thich': '', 'do_kho': 'co_ban', 'chu_de': 'x'},
+                                    {'noi_dung_cau_hoi': '3', 'lua_chon': ['a', 'b', 'c', 'd'], 'dap_an': 'A', 'giai_thich': '', 'do_kho': 'co_ban', 'chu_de': 'x'}],
+                    'tu_luan': [{'noi_dung_cau_hoi': 'Phân tích', 'diem': 3, 'do_kho': 'nang_cao', 'chu_de': 'Cung cầu', 'goi_y_cham': ['Ý 1']},
+                                {'noi_dung_cau_hoi': '2.', 'diem': 2, 'do_kho': 'co_ban', 'chu_de': 'x', 'goi_y_cham': []}]}
         raise AssertionError('unexpected schema')
     return generate
 
@@ -148,7 +150,8 @@ class StudyPipelineTests(unittest.TestCase):
         self.assertTrue((subject / '00_Tong_hop_mon/he_thong_kien_thuc.md').is_file())
         study.make_outline(subject)
         exam = study.make_exam(subject, multiple_choice=2, essays=1)
-        self.assertEqual(len(exam['trac_nghiem']), 1)
+        # Questions that are only a number, or lack four options, are dropped; stored questions keep the 'cau' field.
+        self.assertEqual([q['cau'] for q in exam['trac_nghiem'] + exam['tu_luan']], ['Cung là?', 'Phân tích'])
         self.assertEqual(study.exam(subject, exam['_meta']['id'])['tieu_de'], 'Đề')
         markdown = (subject / '00_Tong_hop_mon/de_thi_thu' / (exam['_meta']['id'] + '.md')).read_text(encoding='utf-8')
         self.assertIn('Đáp án', markdown)
@@ -207,10 +210,19 @@ class StudyPipelineTests(unittest.TestCase):
             engine.run_jobs()
         overview = study.overview(engine)['subjects'][0]
         self.assertEqual((overview['ready'], overview['stale']), (1, 1))
+        self.assertIn('File hỏng', overview['error'])
         self.assertTrue(overview['map_current'] and overview['outline_current'])
         self.assertEqual(study.knowledge_map(good.parent)['_meta']['sessions'], [study.sessions(good.parent)[0]['label']])
         # The failing lesson stays visible after the subject updates, and is not retried on every scan.
         self.assertIn('hong.docx', overview['error'])
+        # Making an exam does not retry the broken lesson.
+        calls = len(self.calls)
+        engine.request('exam', 'Kinh tế vi mô', multiple_choice=2, essays=1, mix='can_bang')
+        engine.scan()
+        self.assertEqual(engine.jobs[0][0], 'exam')
+        self.assertEqual(len(engine.jobs), 1)
+        engine.run_jobs()
+        self.assertEqual([c['schema'] for c in self.calls[calls:]], [study.EXAM_SCHEMA])
         # A manual sync retries it once, still builds the subject map from the good lesson, and keeps the error.
         engine.request('subject', 'Kinh tế vi mô')
         engine.run_jobs()

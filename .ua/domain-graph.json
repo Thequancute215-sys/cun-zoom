@@ -18,8 +18,8 @@
       "pywebview/WebView2"
     ],
     "description": "Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn; chạy như ứng dụng Windows (CunZoom.exe) hoặc Docker Linux. Windows tự mở link lớp, Docker chỉ đưa link tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra trong 2.x; Trang Ôn tập hệ thống hoá bài giảng và tài liệu bằng Claude (khóa riêng) hoặc Ollama, tạo đề cương và đề thi thử. RTMS chưa triển khai.",
-    "analyzedAt": "2026-10-22T15:47:42.272665+00:00",
-    "gitCommitHash": "b1451d57b4603e9790874111851d5ed68eec49cb"
+    "analyzedAt": "2026-10-22T19:15:23.311988+00:00",
+    "gitCommitHash": "b4b2311b67985275bab0385b8cd900dc1ec64672"
   },
   "nodes": [
     {
@@ -1421,8 +1421,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        533,
-        542
+        541,
+        550
       ]
     },
     {
@@ -1436,8 +1436,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        518,
-        530
+        526,
+        538
       ]
     },
     {
@@ -1480,8 +1480,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        601,
-        631
+        611,
+        641
       ]
     },
     {
@@ -1495,8 +1495,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        184,
-        190
+        185,
+        191
       ]
     },
     {
@@ -1525,8 +1525,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        240,
-        301
+        241,
+        302
       ]
     },
     {
@@ -1555,8 +1555,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        322,
-        355
+        323,
+        356
       ]
     },
     {
@@ -1570,8 +1570,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        365,
-        376
+        366,
+        377
       ]
     },
     {
@@ -1585,8 +1585,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        498,
-        515
+        506,
+        523
       ]
     },
     {
@@ -1600,8 +1600,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        633,
-        640
+        643,
+        650
       ]
     },
     {
@@ -1637,30 +1637,30 @@
       "id": "step:de-thi:xep-viec",
       "type": "step",
       "name": "Xếp việc tạo đề",
-      "summary": "Server kiểm tra mức độ rồi đưa việc vào hàng chờ, không trùng việc đang chạy.",
+      "summary": "Server kiểm tra mức độ rồi đưa việc vào hàng chờ, không trùng việc đang chạy; tạo đề không thử lại buổi đang lỗi, Đồng bộ lại thì có.",
       "tags": [
         "on-tap"
       ],
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        571,
-        580
+        579,
+        590
       ]
     },
     {
       "id": "step:de-thi:soan-de",
       "type": "step",
       "name": "Soạn đề từ hệ thống kiến thức",
-      "summary": "Gửi hệ thống kiến thức trước (dùng lại cache), yêu cầu sau; loại câu trắc nghiệm không đủ 4 lựa chọn; lưu JSON và Markdown có đáp án cuối file.",
+      "summary": "Gửi hệ thống kiến thức trước (dùng lại cache), yêu cầu sau; loại câu không có đề bài (chỉ ghi số) hoặc trắc nghiệm không đủ 4 lựa chọn; lưu JSON và Markdown có đáp án cuối file.",
       "tags": [
         "on-tap"
       ],
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        379,
-        400
+        380,
+        408
       ]
     },
     {

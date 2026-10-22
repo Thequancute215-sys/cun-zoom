@@ -72,9 +72,10 @@ OUTLINE_SCHEMA = _object({
     'ke_hoach_on': {'type': 'array', 'items': _object({'buoc': _string(), 'noi_dung': _string()})}})
 EXAM_SCHEMA = _object({
     'tieu_de': _string(), 'thoi_gian_phut': {'type': 'integer'},
-    'trac_nghiem': {'type': 'array', 'items': _object({'cau': _string(), 'lua_chon': _strings(), 'dap_an': _enum('ABCD'),
+    # 'noi_dung_cau_hoi', not 'cau': local models read 'cau' as the question number and leave the question out.
+    'trac_nghiem': {'type': 'array', 'items': _object({'noi_dung_cau_hoi': _string(), 'lua_chon': _strings(), 'dap_an': _enum('ABCD'),
                                                         'giai_thich': _string(), 'do_kho': _enum(DIFFICULTY), 'chu_de': _string()})},
-    'tu_luan': {'type': 'array', 'items': _object({'cau': _string(), 'diem': {'type': 'number'}, 'do_kho': _enum(DIFFICULTY),
+    'tu_luan': {'type': 'array', 'items': _object({'noi_dung_cau_hoi': _string(), 'diem': {'type': 'number'}, 'do_kho': _enum(DIFFICULTY),
                                                     'chu_de': _string(), 'goi_y_cham': _strings()})}})
 MIX = {'can_bang': 'khoảng 40% cơ bản, 40% trung bình, 20% nâng cao',
        'co_ban': 'khoảng 60% cơ bản, 30% trung bình, 10% nâng cao',
@@ -389,7 +390,14 @@ def make_exam(subject, multiple_choice=20, essays=3, mix='can_bang', config=None
             'nhóm, không hỏi ngoài tài liệu. Ghi chủ đề (tên nhóm) và độ khó cho từng câu, ước lượng thời gian làm bài.')
     # Knowledge first, task last: the knowledge block stays cached between the outline and repeated exams.
     result = ai.generate(SYSTEM, [{'kind': 'text', 'text': knowledge}, {'kind': 'text', 'text': task}], EXAM_SCHEMA, 'high', config)
-    result['trac_nghiem'] = [q for q in result.get('trac_nghiem', []) if len(q.get('lua_chon', [])) == 4]
+    for question in result.get('trac_nghiem', []) + result.get('tu_luan', []):
+        question['cau'] = str(question.pop('noi_dung_cau_hoi', '')).strip()
+    # Drop questions without real text (only a number) or without exactly four options.
+    asked = lambda q: len(q['cau']) > 3 and not q['cau'].rstrip('.').isdigit()
+    result['trac_nghiem'] = [q for q in result.get('trac_nghiem', []) if asked(q) and len(q.get('lua_chon', [])) == 4]
+    result['tu_luan'] = [q for q in result.get('tu_luan', []) if asked(q)]
+    if not result['trac_nghiem'] and not result['tu_luan']:
+        raise ai.AIError('AI không soạn được câu hỏi hợp lệ. Thử lại hoặc dùng mô hình lớn hơn.')
     stamp = datetime.now().strftime('%Y%m%d-%H%M%S')
     result['_meta'] = {'id': stamp, 'base': data.get('_meta', {}).get('fingerprint'), 'created': datetime.now().isoformat(timespec='seconds'),
                        'ai': _ai_label(config), 'mix': mix}
@@ -574,7 +582,9 @@ class Engine:
         folder = subject_dir(subject)
         job = (kind, folder, tuple(sorted(params.items())))
         with self.lock:
-            self.failed = {k: v for k, v in self.failed.items() if folder not in (k[1], k[1].parent)}
+            # A manual sync retries the subject's failed work; making an exam does not.
+            if kind != 'exam':
+                self.failed = {k: v for k, v in self.failed.items() if folder not in (k[1], k[1].parent)}
             if job not in self.jobs and self.current != job:
                 self.jobs.appendleft(job)
         self.kick()
@@ -691,10 +701,11 @@ class Engine:
                     self.message = 'Đã cập nhật ' + _job_label(self.current)
             except (ai.AIError, ValueError, OSError) as error:
                 with self.lock:
-                    self.errors[subject.name] = str(error)
                     version = fingerprint(folder)[0] if kind == 'session' else subject_fingerprint(subject)
                     self.failed[self.current] = version
                     self.reasons[self.current] = str(error)
+                    # A lesson's error names the lesson, together with any other lesson still failing.
+                    self.errors[subject.name] = ' · '.join(self._lesson_problems(subject)) if kind == 'session' else str(error)
             finally:
                 with self.lock:
                     self.current = None
