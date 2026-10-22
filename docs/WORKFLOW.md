@@ -432,8 +432,8 @@ flowchart LR
 | --- | --- | --- |
 | 1. Chọn môn, buổi và file | Giao diện gửi từng file thành một request riêng kèm token; file đầu tạo buổi mới, các file sau vào cùng buổi. | [web/study.js](../web/study.js#L119) |
 | 2. Nhận file theo luồng có giới hạn | Server kiểm tra token, nguồn, kích thước ≤ 2 GB, ghi từng phần ra file tạm rồi đổi tên; lỗi thì xóa phần dở. | [src/server.py](../src/server.py#L451) |
-| 3. Kiểm tra loại và tên file | Chỉ nhận đuôi được hỗ trợ, làm sạch tên, không ghi đè file cùng tên. | [src/study.py](../src/study.py#L522) |
-| 4. Tạo buổi chỉ có tài liệu | Tạo thư mục buổi cùng cấu trúc bản ghi, chặn tên môn đặc biệt hoặc thoát khỏi thư mục bài giảng. | [src/study.py](../src/study.py#L507) |
+| 3. Kiểm tra loại và tên file | Chỉ nhận đuôi được hỗ trợ, làm sạch tên, không ghi đè file cùng tên. | [src/study.py](../src/study.py#L533) |
+| 4. Tạo buổi chỉ có tài liệu | Tạo thư mục buổi cùng cấu trúc bản ghi, chặn tên môn đặc biệt hoặc thoát khỏi thư mục bài giảng. | [src/study.py](../src/study.py#L518) |
 | 5. Chép lời âm thanh/video tải lên | Bộ chép lời đọc âm thanh bot ghi và mọi file media tải lên, ghi bản chép lời một lần khi xong. | [src/transcribe.py](../src/transcribe.py#L28) |
 
 </details>
@@ -468,15 +468,15 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Quét thay đổi và xếp việc | Mỗi 30 giây hoặc khi được đánh thức: khởi chạy một lượt chép lời nếu cần, xếp việc cho buổi/môn/đề cương đã cũ. | [src/study.py](../src/study.py#L589) |
-| 2. So dấu vân tay nội dung | Ghi chú hợp lệ khi dấu vân tay bản chép lời, tài liệu và slide trùng lúc tạo; khác thì là cũ. | [src/study.py](../src/study.py#L183) |
+| 1. Quét thay đổi và xếp việc | Mỗi 30 giây hoặc khi được đánh thức: khởi chạy một lượt chép lời nếu cần, xếp việc cho buổi/môn/đề cương đã cũ. | [src/study.py](../src/study.py#L600) |
+| 2. So dấu vân tay nội dung | Ghi chú hợp lệ khi dấu vân tay bản chép lời, tài liệu và slide trùng lúc tạo; khác thì là cũ. | [src/study.py](../src/study.py#L184) |
 | 3. Chuẩn bị tài liệu cho AI | PDF gửi nguyên cho Claude hoặc tách chữ cho Ollama; DOCX/PPTX đọc XML; ảnh giới hạn 5 MB; file lỗi thành cảnh báo. | [src/documents.py](../src/documents.py#L60) |
-| 4. Hệ thống hoá một buổi | Gửi bản chép lời, tài liệu và tối đa 20 ảnh slide; bài quá dài được chia phần rồi gộp; kết quả sắp theo độ liên quan và độ khó. | [src/study.py](../src/study.py#L239) |
-| 5. Gọi AI với JSON theo schema | Claude: SDK, output_config.format, fallback máy chủ, cache, xử lý từ chối/quá dài; Ollama: /api/chat với format schema, bỏ ảnh nếu mô hình chỉ đọc chữ. | [src/ai_backend.py](../src/ai_backend.py#L89) |
-| 6. Tổng hợp kiến thức của môn | Gộp ghi chú các buổi, bỏ trùng, đánh giá lại độ liên quan/độ khó, ghi buổi nguồn và liên kết khái niệm. | [src/study.py](../src/study.py#L316) |
-| 7. Lập đề cương | Chia chương, đánh dấu ý trọng tâm, câu hỏi tự kiểm tra, trọng tâm thi và kế hoạch ôn; đánh dấu cũ khi hệ thống kiến thức đổi. | [src/study.py](../src/study.py#L359) |
-| 8. Cập nhật mục lục tổng | Ghi 00_Tong_hop/Muc_luc.md khi nội dung đổi, liên kết tới file của từng môn. | [src/study.py](../src/study.py#L487) |
-| 9. Không lặp lại việc lỗi | Việc lỗi được nhớ theo dữ liệu đầu vào; chỉ chạy lại khi file đổi hoặc người dùng yêu cầu. | [src/study.py](../src/study.py#L620) |
+| 4. Hệ thống hoá một buổi | Gửi bản chép lời, tài liệu và tối đa 20 ảnh slide; bài quá dài được chia phần rồi gộp; kết quả sắp theo độ liên quan và độ khó; không có nội dung đọc được (chỉ có file hỏng) thì báo lỗi, không gọi AI. | [src/study.py](../src/study.py#L240) |
+| 5. Gọi AI với JSON theo schema | Claude: SDK, output_config.format, fallback máy chủ, cache, xử lý từ chối/quá dài; Ollama: /api/chat với format schema, bỏ ảnh nếu mô hình chỉ đọc chữ, trừ khi buổi chỉ có ảnh thì báo lỗi thay vì đoán. | [src/ai_backend.py](../src/ai_backend.py#L89) |
+| 6. Tổng hợp kiến thức của môn | Gộp ghi chú các buổi, bỏ trùng, đánh giá lại độ liên quan/độ khó, ghi buổi nguồn và liên kết khái niệm. | [src/study.py](../src/study.py#L322) |
+| 7. Lập đề cương | Chia chương, đánh dấu ý trọng tâm, câu hỏi tự kiểm tra, trọng tâm thi và kế hoạch ôn; đánh dấu cũ khi hệ thống kiến thức đổi. | [src/study.py](../src/study.py#L365) |
+| 8. Cập nhật mục lục tổng | Ghi 00_Tong_hop/Muc_luc.md khi nội dung đổi, liên kết tới file của từng môn. | [src/study.py](../src/study.py#L498) |
+| 9. Không lặp lại việc lỗi | Việc lỗi được nhớ theo dữ liệu đầu vào; chỉ chạy lại khi file đổi hoặc người dùng yêu cầu. | [src/study.py](../src/study.py#L631) |
 
 </details>
 
@@ -501,8 +501,8 @@ flowchart LR
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
 | 1. Chọn số câu và mức độ | Tối đa 60 trắc nghiệm và 10 tự luận, mức cân bằng / cơ bản / nâng cao. | [web/study.js](../web/study.js#L86) |
-| 2. Xếp việc tạo đề | Server kiểm tra mức độ rồi đưa việc vào hàng chờ, không trùng việc đang chạy. | [src/study.py](../src/study.py#L559) |
-| 3. Soạn đề từ hệ thống kiến thức | Gửi hệ thống kiến thức trước (dùng lại cache), yêu cầu sau; loại câu trắc nghiệm không đủ 4 lựa chọn; lưu JSON và Markdown có đáp án cuối file. | [src/study.py](../src/study.py#L373) |
+| 2. Xếp việc tạo đề | Server kiểm tra mức độ rồi đưa việc vào hàng chờ, không trùng việc đang chạy. | [src/study.py](../src/study.py#L570) |
+| 3. Soạn đề từ hệ thống kiến thức | Gửi hệ thống kiến thức trước (dùng lại cache), yêu cầu sau; loại câu trắc nghiệm không đủ 4 lựa chọn; lưu JSON và Markdown có đáp án cuối file. | [src/study.py](../src/study.py#L379) |
 | 4. Làm bài và chấm trắc nghiệm | Chọn đáp án, nộp để xem đúng/sai, giải thích và điểm; tự luận có ô trả lời và gợi ý chấm. | [web/study.js](../web/study.js#L99) |
 
 </details>
@@ -528,9 +528,9 @@ flowchart LR
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
 | 1. Lưu cấu hình mã hóa | Kiểm tra bộ AI, khóa sk-ant-, mô hình được phép, địa chỉ Ollama http(s); giữ khóa cũ khi để trống. | [src/ai_backend.py](../src/ai_backend.py#L60) |
-| 2. Gửi yêu cầu Claude | Streaming với output_config.format, fallbacks default cho Opus/Sonnet 5.5, giới hạn 24 MB, báo lỗi khóa/hạn mức/mạng bằng tiếng Việt. | [src/ai_backend.py](../src/ai_backend.py#L107) |
-| 3. Gửi yêu cầu Ollama | POST /api/chat với schema, num_ctx 32768; thử lại không ảnh nếu mô hình không đọc ảnh. | [src/ai_backend.py](../src/ai_backend.py#L161) |
-| 4. Kiểm tra kết nối AI | Gửi một yêu cầu JSON nhỏ; chỉ đạt khi trả đúng định dạng. | [src/ai_backend.py](../src/ai_backend.py#L99) |
+| 2. Gửi yêu cầu Claude | Streaming với output_config.format, fallbacks default cho Opus/Sonnet 5.5, giới hạn 24 MB, báo lỗi khóa/hạn mức/mạng bằng tiếng Việt. | [src/ai_backend.py](../src/ai_backend.py#L108) |
+| 3. Gửi yêu cầu Ollama | POST /api/chat với schema, num_ctx 32768; thử lại không ảnh nếu mô hình không đọc ảnh. | [src/ai_backend.py](../src/ai_backend.py#L163) |
+| 4. Kiểm tra kết nối AI | Gửi một yêu cầu JSON nhỏ; chỉ đạt khi trả đúng định dạng. | [src/ai_backend.py](../src/ai_backend.py#L100) |
 
 </details>
 

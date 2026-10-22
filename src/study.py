@@ -13,6 +13,7 @@ from pathlib import Path
 import re
 import threading
 import time
+import urllib.parse
 import uuid
 
 import ai_backend as ai
@@ -243,7 +244,7 @@ def analyze_session(subject, folder, config=None):
         raise ai.AIError('Buổi học chưa có bản chép lời, slide hay tài liệu để hệ thống hoá.')
     meta = _read_json(folder / 'buoi_hoc.json') or {}
     header = 'Môn: ' + subject.name + '\nBuổi: ' + str(meta.get('title') or folder.name) + '\nNgày: ' + str(meta.get('requested', ''))[:10]
-    warnings, files, extra = [], [], []
+    warnings, files, extra, documents_read = [], [], [], False
     transcription = transcription_state(folder)
     if transcription == 'failed':
         warnings.append('Chưa chép lời được âm thanh của buổi này; ghi chú chỉ dựa trên slide và tài liệu.')
@@ -256,6 +257,7 @@ def analyze_session(subject, folder, config=None):
         if parts:
             files.append(path.name)
             extra.extend(parts)
+            documents_read = documents_read or documents.kind(path) != 'image'
     slides = _slides(folder)
     if slides and config['provider'] == 'claude':
         step = max(1, len(slides) // SLIDE_IMAGES)
@@ -266,6 +268,10 @@ def analyze_session(subject, folder, config=None):
         warnings.append(str(len(slides)) + ' ảnh slide chưa được đọc vì mô hình Ollama dùng chữ; dùng Claude để đọc slide.')
     transcript = _transcript(folder)
     text = transcript.read_text(encoding='utf-8', errors='replace') if transcript else ''
+    # Never let the AI write notes from the lesson title alone: it would invent the whole lesson.
+    if not text.strip() and not extra:
+        raise ai.AIError('Không có nội dung đọc được để hệ thống hoá buổi này. ' + ' '.join(warnings))
+    images_only = not text.strip() and not documents_read
     task = ('Hệ thống hoá buổi học: tóm tắt, chia kiến thức thành các nhóm theo chủ đề, mỗi mục ghi loại, độ liên quan, '
             'độ khó và nguồn (chép lời, slide hoặc tên tài liệu). Liệt kê thuật ngữ, bài tập/hạn nộp được nhắc, câu hỏi ôn tập '
             'và chỗ cần kiểm tra lại.')
@@ -274,7 +280,7 @@ def analyze_session(subject, folder, config=None):
         parts = [{'kind': 'text', 'text': header + '\n\n' + task}] + extra
         if text:
             parts.append({'kind': 'text', 'text': 'Bản chép lời bài giảng:\n' + text})
-        result = ai.generate(SYSTEM, parts, SESSION_SCHEMA, 'medium', config)
+        result = ai.generate(SYSTEM, parts, SESSION_SCHEMA, 'medium', config, images_required=images_only)
     else:
         # Too long for one request (mostly local models): note each part, then merge the notes.
         pieces = list(_chunks(text, limit // 2)) + [p['text'] for p in extra if p['kind'] == 'text']
@@ -424,6 +430,11 @@ def _badge(item):
     return '[' + RELEVANCE.get(item.get('do_lien_quan'), '?') + ' · ' + DIFFICULTY.get(item.get('do_kho'), '?') + ' · ' + TYPES.get(item.get('loai'), '?') + ']'
 
 
+def _link(relative):
+    # Folder names hold spaces and Vietnamese; encode the target so Markdown viewers keep it a working link.
+    return '[' + relative + '](../' + urllib.parse.quote(relative) + ')'
+
+
 def session_markdown(subject, data):
     lines = ['# ' + (data.get('tieu_de') or 'Hệ thống hoá buổi học'), '', 'Môn: ' + subject + ' · Tạo bởi ' + data['_meta']['ai'] + ' · ' + data['_meta']['created'], '',
              '## Tóm tắt', '', data.get('tom_tat', ''), '']
@@ -451,7 +462,7 @@ def subject_markdown(subject, data):
     lines += ['## Ghi chú từng buổi', '']
     for item in sessions(subject):
         notes = item['folder'] / (SESSION_NOTES + '.md')
-        lines.append('- ' + item['label'] + (': [' + notes.relative_to(subject).as_posix() + '](../' + notes.relative_to(subject).as_posix() + ')' if notes.is_file() else ': chưa hệ thống hoá'))
+        lines.append('- ' + item['label'] + (': ' + _link(notes.relative_to(subject).as_posix()) if notes.is_file() else ': chưa hệ thống hoá'))
     return '\n'.join(lines) + '\n'
 
 
@@ -494,7 +505,7 @@ def write_root_index():
         for label, name in (('Hệ thống kiến thức', 'he_thong_kien_thuc.md'), ('Đề cương', 'de_cuong.md')):
             path = subject / SUBJECT_DIR / name
             if path.is_file():
-                lines.append('- ' + label + ': [' + path.relative_to(base).as_posix() + '](../' + path.relative_to(base).as_posix() + ')')
+                lines.append('- ' + label + ': ' + _link(path.relative_to(base).as_posix()))
         count = len(exams(subject))
         if count:
             lines.append('- Đề thi thử: ' + str(count) + ' đề trong ' + subject.name + '/' + SUBJECT_DIR + '/de_thi_thu')

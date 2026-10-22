@@ -27,8 +27,8 @@ def item(name, relevance='cot_loi', difficulty='co_ban'):
 
 def fake_generate(calls):
     """Deterministic stand-in for the AI that answers each schema with valid synthetic data."""
-    def generate(system, parts, schema, effort='medium', config=None):
-        calls.append({'schema': schema, 'parts': parts, 'effort': effort})
+    def generate(system, parts, schema, effort='medium', config=None, images_required=False):
+        calls.append({'schema': schema, 'parts': parts, 'effort': effort, 'images_required': images_required})
         if schema is study.SESSION_SCHEMA:
             return {'tieu_de': 'Buổi', 'tom_tat': 'Tóm tắt', 'thuat_ngu': [{'thuat_ngu': 'Cung', 'giai_thich': 'Lượng bán'}],
                     'nhom': [{'ten': 'Cung cầu', 'mo_ta': '', 'muc': [item('Phụ', 'tham_khao', 'nang_cao'), item('Cầu', 'cot_loi', 'trung_binh'), item('Cung', 'cot_loi', 'co_ban')]}],
@@ -155,6 +155,8 @@ class StudyPipelineTests(unittest.TestCase):
         index = (self.root / '00_Tong_hop/Muc_luc.md').read_text(encoding='utf-8')
         self.assertIn('Kinh tế vi mô', index)
         self.assertIn('đã hệ thống hoá 1', index)
+        # Links survive the spaces and Vietnamese in folder names.
+        self.assertIn('](../Kinh%20t%E1%BA%BF%20vi%20m%C3%B4/00_Tong_hop_mon/he_thong_kien_thuc.md)', index)
         # New material makes the lesson, then the subject map and outline, out of date.
         (folder / study.MATERIALS).mkdir(parents=True)
         (folder / study.MATERIALS / 'them.txt').write_text('Độ co giãn', encoding='utf-8')
@@ -203,6 +205,21 @@ class StudyPipelineTests(unittest.TestCase):
         self.assertGreater(len(session_calls), 2)
         with_images = [i for i, c in enumerate(session_calls) if any(p['kind'] == 'image' for p in c['parts'])]
         self.assertEqual(with_images, [0])
+
+    def test_unreadable_or_image_only_inputs_never_let_the_ai_guess(self):
+        folder = self.lesson(transcript='')
+        (folder / study.MATERIALS).mkdir(parents=True)
+        (folder / study.MATERIALS / 'hong.docx').write_bytes(b'not a zip')
+        with self.assertRaises(study.ai.AIError) as result:
+            study.analyze_session(folder.parent, folder)
+        self.assertIn('hong.docx', str(result.exception))
+        self.assertEqual(self.calls, [])
+        (folder / study.MATERIALS / 'vo_ghi.png').write_bytes(b'png')
+        study.analyze_session(folder.parent, folder)
+        self.assertTrue(self.calls[-1]['images_required'])
+        (folder / study.MATERIALS / 'de_cuong.txt').write_text('Cung và cầu', encoding='utf-8')
+        study.analyze_session(folder.parent, folder)
+        self.assertFalse(self.calls[-1]['images_required'])
 
     def test_audio_waits_for_transcription_only_when_the_model_exists(self):
         folder = self.lesson(transcript='')

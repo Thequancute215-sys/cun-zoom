@@ -81,7 +81,7 @@ Khóa được mã hóa trên máy, không bao giờ hiển thị lại. Nội d
 
 Với bản Docker, đặt địa chỉ `http://host.docker.internal:11434` (mặc định sẵn) và cho Ollama nhận kết nối từ container: đặt biến môi trường `OLLAMA_HOST=0.0.0.0` cho Ollama rồi khởi động lại nó. Chỉ làm vậy trên máy không mở cổng 11434 ra Internet.
 
-Mô hình chạy trên máy cho kết quả kém hơn Claude, không đọc được ảnh slide nếu không phải mô hình thị giác, và bài dài được chia nhỏ rồi gộp lại nên chậm hơn.
+Mô hình nhỏ dưới 7B (ví dụ `qwen2.5:3b`) chạy được nhưng hay gộp ý, ghi sai nguồn và hỏi lại chung chung; chỉ nên dùng để thử. Mô hình chạy trên máy cho kết quả kém hơn Claude, không đọc được ảnh slide nếu không phải mô hình thị giác, và bài dài được chia nhỏ rồi gộp lại nên chậm hơn.
 
 ## Xử lý lỗi
 

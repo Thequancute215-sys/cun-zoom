@@ -86,14 +86,15 @@ def input_chars(config=None):
     return INPUT_CHARS.get((config or settings())['provider'], INPUT_CHARS['ollama'])
 
 
-def generate(system, parts, schema, effort='medium', config=None):
-    """Return JSON matching schema. parts: {'kind': 'text'|'image'|'pdf', ...}; PDFs also carry extracted 'text'."""
+def generate(system, parts, schema, effort='medium', config=None, images_required=False):
+    """Return JSON matching schema. parts: {'kind': 'text'|'image'|'pdf', ...}; PDFs also carry extracted 'text'.
+    images_required: the images are the only source, so a model that cannot read them must fail rather than guess."""
     config = config or settings()
     if not enabled(config):
         raise AIError('Chưa bật AI. Vào Cài đặt → AI để chọn Claude hoặc Ollama.')
     if config['provider'] == 'claude':
         return _claude(config, system, parts, schema, effort)
-    return _ollama(config, system, parts, schema)
+    return _ollama(config, system, parts, schema, images_required)
 
 
 def test(config=None):
@@ -158,7 +159,7 @@ def _claude(config, system, parts, schema, effort):
         raise AIError('Claude trả về dữ liệu không đọc được. Thử lại.') from None
 
 
-def _ollama(config, system, parts, schema):
+def _ollama(config, system, parts, schema, images_required=False):
     texts, images = [], []
     for part in parts:
         if part['kind'] == 'image':
@@ -171,6 +172,9 @@ def _ollama(config, system, parts, schema):
     except AIError:
         if not images:
             raise
+        if images_required:
+            raise AIError('Mô hình Ollama ' + config['ollama_model'] + ' không đọc được ảnh, mà buổi này chỉ có ảnh. '
+                          'Dùng mô hình đọc ảnh (ví dụ qwen2.5vl) hoặc Claude.') from None
         # Text-only models reject images; keep the text so the notes still get made.
         return _ollama_call(config, system, message, schema)
 

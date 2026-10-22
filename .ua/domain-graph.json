@@ -18,8 +18,8 @@
       "pywebview/WebView2"
     ],
     "description": "Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn; chạy như ứng dụng Windows (CunZoom.exe) hoặc Docker Linux. Windows tự mở link lớp, Docker chỉ đưa link tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra trong 2.x; Trang Ôn tập hệ thống hoá bài giảng và tài liệu bằng Claude (khóa riêng) hoặc Ollama, tạo đề cương và đề thi thử. RTMS chưa triển khai.",
-    "analyzedAt": "2026-10-22T11:56:20.425510+00:00",
-    "gitCommitHash": "11a8e5e085e414026d9a01b7a2f62eff2eff7422"
+    "analyzedAt": "2026-10-22T15:44:12.776069+00:00",
+    "gitCommitHash": "53decc9d4b95fc032f132c375f05960eb5e824a2"
   },
   "nodes": [
     {
@@ -1421,8 +1421,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        522,
-        531
+        533,
+        542
       ]
     },
     {
@@ -1436,8 +1436,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        507,
-        519
+        518,
+        530
       ]
     },
     {
@@ -1480,8 +1480,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        589,
-        618
+        600,
+        629
       ]
     },
     {
@@ -1495,8 +1495,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        183,
-        189
+        184,
+        190
       ]
     },
     {
@@ -1518,22 +1518,22 @@
       "id": "step:dong-bo:ghi-chu-buoi",
       "type": "step",
       "name": "Hệ thống hoá một buổi",
-      "summary": "Gửi bản chép lời, tài liệu và tối đa 20 ảnh slide; bài quá dài được chia phần rồi gộp; kết quả sắp theo độ liên quan và độ khó.",
+      "summary": "Gửi bản chép lời, tài liệu và tối đa 20 ảnh slide; bài quá dài được chia phần rồi gộp; kết quả sắp theo độ liên quan và độ khó; không có nội dung đọc được (chỉ có file hỏng) thì báo lỗi, không gọi AI.",
       "tags": [
         "on-tap"
       ],
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        239,
-        295
+        240,
+        301
       ]
     },
     {
       "id": "step:dong-bo:goi-ai",
       "type": "step",
       "name": "Gọi AI với JSON theo schema",
-      "summary": "Claude: SDK, output_config.format, fallback máy chủ, cache, xử lý từ chối/quá dài; Ollama: /api/chat với format schema, bỏ ảnh nếu mô hình chỉ đọc chữ.",
+      "summary": "Claude: SDK, output_config.format, fallback máy chủ, cache, xử lý từ chối/quá dài; Ollama: /api/chat với format schema, bỏ ảnh nếu mô hình chỉ đọc chữ, trừ khi buổi chỉ có ảnh thì báo lỗi thay vì đoán.",
       "tags": [
         "on-tap"
       ],
@@ -1541,7 +1541,7 @@
       "filePath": "src/ai_backend.py",
       "lineRange": [
         89,
-        96
+        97
       ]
     },
     {
@@ -1555,8 +1555,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        316,
-        349
+        322,
+        355
       ]
     },
     {
@@ -1570,8 +1570,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        359,
-        370
+        365,
+        376
       ]
     },
     {
@@ -1585,8 +1585,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        487,
-        504
+        498,
+        515
       ]
     },
     {
@@ -1600,8 +1600,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        620,
-        625
+        631,
+        636
       ]
     },
     {
@@ -1644,8 +1644,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        559,
-        568
+        570,
+        579
       ]
     },
     {
@@ -1659,8 +1659,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        373,
-        394
+        379,
+        400
       ]
     },
     {
@@ -1718,8 +1718,8 @@
       "complexity": "moderate",
       "filePath": "src/ai_backend.py",
       "lineRange": [
-        107,
-        158
+        108,
+        159
       ]
     },
     {
@@ -1733,8 +1733,8 @@
       "complexity": "moderate",
       "filePath": "src/ai_backend.py",
       "lineRange": [
-        161,
-        175
+        163,
+        179
       ]
     },
     {
@@ -1748,8 +1748,8 @@
       "complexity": "moderate",
       "filePath": "src/ai_backend.py",
       "lineRange": [
-        99,
-        104
+        100,
+        105
       ]
     }
   ],
