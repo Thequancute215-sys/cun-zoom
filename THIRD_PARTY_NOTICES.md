@@ -8,12 +8,12 @@ Inter, Space Grotesk and JetBrains Mono are bundled under the SIL Open Font Lice
 
 ## Zoom
 
-Zoom Meeting SDK is proprietary and is **not included** in this repository, release archives or public container image. Download it directly from Zoom Marketplace under the terms applicable to your account and mount it at runtime. Our MIT license does not grant any rights to Zoom's SDK, services or trademarks.
+Zoom Meeting SDK is proprietary. It is **not included** in this repository, the source archives or the public container image; Docker users download the Linux SDK from Zoom Marketplace under the terms applicable to their account and mount it at runtime. The Windows application `CunZoom.exe` bundles the Windows Meeting SDK runtime libraries needed to run, as part of the application; the SDK archive itself is not published. Zoom's SDK remains subject to Zoom's own terms. Our MIT license does not grant any rights to Zoom's SDK, services or trademarks.
 
 The Linux integration was checked against the API usage documented by the official [Zoom raw recording sample](https://github.com/zoom/meetingsdk-linux-raw-recording-sample). No credentials or pre-authorized Zoom application are supplied.
 
 ## Dependencies and design references
 
-Python dependencies retain their own licenses, available in the installed packages. Container OS packages retain their Ubuntu/upstream licenses. Faster Whisper uses the separately downloaded model selected by the installer.
+Python dependencies retain their own licenses, available in the installed packages. `CunZoom.exe` is built with PyInstaller and bundles pywebview, pystray, Pillow, faster-whisper and their dependencies (exact versions in `requirements-windows-lock.txt`) under their respective licenses. Container OS packages retain their Ubuntu/upstream licenses. Faster Whisper uses the separately downloaded model selected by the installer.
 
 Design references: [Nutlope/hallmark](https://github.com/Nutlope/hallmark) and [nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill). The UI implementation and design decisions are in this repository; design-tool repositories are not shipped in the container.

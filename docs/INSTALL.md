@@ -1,5 +1,7 @@
 # Cài đặt Docker từng bước
 
+Chỉ dùng trên Windows và không cần Docker? Tải `CunZoom.exe` và làm theo [hướng dẫn Windows](WINDOWS.md) — nhanh hơn, không cần tự tải SDK.
+
 ## 1. Chuẩn bị máy
 
 - Máy **Intel/AMD x86-64** chạy Linux, hoặc Docker Desktop với Linux containers trên Windows/macOS Intel. Bản này chưa hỗ trợ ARM/Apple Silicon; không khuyến nghị ép chạy QEMU/Rosetta cho Meeting SDK.
@@ -15,7 +17,7 @@ docker version
 docker compose version
 ```
 
-Nếu Docker chưa chạy, mở Docker Desktop và chờ trạng thái Engine running. Không gỡ bản Windows Cún Zoom đang dùng để thử Docker.
+Nếu Docker chưa chạy, mở Docker Desktop và chờ trạng thái Engine running. Có thể giữ bản Windows `CunZoom.exe` song song (cổng 18766, Docker dùng 18767), nhưng không cho cả hai ghi cùng một phòng.
 
 ## 2. Tải mã nguồn
 

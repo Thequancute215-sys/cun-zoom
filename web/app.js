@@ -82,6 +82,8 @@ function showLink(url,label){
 function paintPlatform(s){
   if(!s.container)return;
   $('document-folder').textContent='Tải buổi học (.zip)';
+  $('feed-open-title').textContent='Gửi link lớp tới giao diện trước 2 phút';$('feed-open-help').textContent='Giữ giao diện mở để thấy link. Bấm liên kết để mở Zoom.';
+  $('app-lifecycle').textContent='Bản Docker chạy khi Docker đang bật. Đóng tab sẽ ngừng hiển thị nhắc tức thời; dùng Docker Compose để dừng ứng dụng.';
   $('choose-folder').hidden=true;$('quit-app').hidden=true;
   const entries=s.browser_events||[];
   if(eventCursor===null){eventCursor=entries.at(-1)?.sequence||0;return;}

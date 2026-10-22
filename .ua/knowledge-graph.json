@@ -12,11 +12,13 @@
       "Python HTTPServer",
       "Zoom Meeting SDK",
       "Docker Compose",
+      "pywebview/WebView2",
+      "PyInstaller",
       "faster-whisper"
     ],
-    "description": "Bản đồ cấp file và import Python được trích từ AST; không phải graph toàn bộ hàm. Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn. Docker chỉ đưa link lịch tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra; RTMS chưa triển khai.",
-    "analyzedAt": "2026-10-22T02:40:50.537327+00:00",
-    "gitCommitHash": "3ba7a3f6bc2d89f4fdf6c51cdecb678b29f204f7"
+    "description": "Bản đồ cấp file và import Python được trích từ AST; không phải graph toàn bộ hàm. Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn; chạy như ứng dụng Windows (CunZoom.exe) hoặc Docker Linux. Windows tự mở link lớp, Docker chỉ đưa link tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra trong 2.x; RTMS chưa triển khai.",
+    "analyzedAt": "2026-10-22T09:34:02.320891+00:00",
+    "gitCommitHash": "83a5f1cd5cc644dd2137efcea579dbac0a755a16"
   },
   "nodes": [
     {
@@ -38,7 +40,7 @@
       "id": "file:.github/workflows/docker-release.yml",
       "type": "pipeline",
       "name": ".github/workflows/docker-release.yml",
-      "summary": "Kiểm tra source/bản đồ/tests, build, smoke test và phát hành theo yêu cầu.",
+      "summary": "Kiểm tra source/bản đồ/tests trên Linux và Windows, build CunZoom.exe và Docker, smoke test và phát hành theo yêu cầu.",
       "tags": [
         "delivery"
       ],
@@ -46,7 +48,7 @@
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
         1,
-        121
+        196
       ]
     },
     {
@@ -121,7 +123,7 @@
       "filePath": "README.md",
       "lineRange": [
         1,
-        52
+        65
       ]
     },
     {
@@ -181,7 +183,7 @@
       "filePath": "docs/DEVELOPMENT.md",
       "lineRange": [
         1,
-        54
+        56
       ]
     },
     {
@@ -196,7 +198,7 @@
       "filePath": "docs/HANDOVER.md",
       "lineRange": [
         1,
-        37
+        38
       ]
     },
     {
@@ -211,7 +213,7 @@
       "filePath": "docs/INSTALL.md",
       "lineRange": [
         1,
-        110
+        112
       ]
     },
     {
@@ -226,14 +228,14 @@
       "filePath": "docs/OPERATIONS.md",
       "lineRange": [
         1,
-        116
+        118
       ]
     },
     {
       "id": "file:docs/RELEASE_NOTES.md",
       "type": "document",
       "name": "docs/RELEASE_NOTES.md",
-      "summary": "Phạm vi chức năng và giới hạn của bản phát hành 2.0.0.",
+      "summary": "Phạm vi chức năng và giới hạn của các bản phát hành 2.x.",
       "tags": [
         "reference"
       ],
@@ -241,7 +243,7 @@
       "filePath": "docs/RELEASE_NOTES.md",
       "lineRange": [
         1,
-        17
+        32
       ]
     },
     {
@@ -256,7 +258,22 @@
       "filePath": "docs/VALIDATION.md",
       "lineRange": [
         1,
-        25
+        37
+      ]
+    },
+    {
+      "id": "file:docs/WINDOWS.md",
+      "type": "document",
+      "name": "docs/WINDOWS.md",
+      "summary": "Dùng, nâng cấp từ 1.x giữ dữ liệu, và build/phát hành CunZoom.exe cùng kho SDK riêng tư.",
+      "tags": [
+        "reference"
+      ],
+      "complexity": "moderate",
+      "filePath": "docs/WINDOWS.md",
+      "lineRange": [
+        1,
+        88
       ]
     },
     {
@@ -271,7 +288,7 @@
       "filePath": "docs/ZOOM_AND_CALENDAR.md",
       "lineRange": [
         1,
-        51
+        64
       ]
     },
     {
@@ -287,6 +304,21 @@
       "lineRange": [
         1,
         3
+      ]
+    },
+    {
+      "id": "file:requirements-windows-lock.txt",
+      "type": "document",
+      "name": "requirements-windows-lock.txt",
+      "summary": "Phiên bản khóa chính xác của phụ thuộc để build CunZoom.exe.",
+      "tags": [
+        "delivery"
+      ],
+      "complexity": "moderate",
+      "filePath": "requirements-windows-lock.txt",
+      "lineRange": [
+        1,
+        47
       ]
     },
     {
@@ -323,7 +355,7 @@
       "id": "file:scripts/build.py",
       "type": "file",
       "name": "scripts/build.py",
-      "summary": "Đóng gói bản desktop Windows với PyInstaller.",
+      "summary": "Đóng gói CunZoom.exe với PyInstaller, ghi SHA-256 và thông tin build.",
       "tags": [
         "capture"
       ],
@@ -398,7 +430,7 @@
       "id": "file:scripts/prepare_sdk.py",
       "type": "file",
       "name": "scripts/prepare_sdk.py",
-      "summary": "Chuẩn bị SDK riêng cho nhà phát triển Windows.",
+      "summary": "Giải nén SDK Windows x64 từ archive chính thức vào thư mục build, không thực thi nội dung ZIP.",
       "tags": [
         "capture"
       ],
@@ -451,7 +483,7 @@
       "filePath": "scripts/workflow_map.py",
       "lineRange": [
         1,
-        348
+        354
       ]
     },
     {
@@ -578,7 +610,7 @@
       "id": "file:src/paths.py",
       "type": "file",
       "name": "src/paths.py",
-      "summary": "Đường dẫn đa nền tảng, phiên bản và thiết lập theo từng bản cài.",
+      "summary": "Đường dẫn đa nền tảng, phiên bản, thiết lập theo bản cài và nhận lại dữ liệu Windows 1.x.",
       "tags": [
         "service"
       ],
@@ -586,7 +618,7 @@
       "filePath": "src/paths.py",
       "lineRange": [
         1,
-        29
+        43
       ]
     },
     {
@@ -661,7 +693,7 @@
       "filePath": "src/transcribe.py",
       "lineRange": [
         1,
-        42
+        44
       ]
     },
     {
@@ -722,6 +754,21 @@
       "lineRange": [
         1,
         101
+      ]
+    },
+    {
+      "id": "file:tests/test_desktop_upgrade.py",
+      "type": "file",
+      "name": "tests/test_desktop_upgrade.py",
+      "summary": "Kiểm thử desktop_upgrade.",
+      "tags": [
+        "quality"
+      ],
+      "complexity": "moderate",
+      "filePath": "tests/test_desktop_upgrade.py",
+      "lineRange": [
+        1,
+        57
       ]
     },
     {
@@ -811,7 +858,7 @@
       "filePath": "web/app.js",
       "lineRange": [
         1,
-        93
+        95
       ]
     },
     {
@@ -1217,6 +1264,14 @@
       "weight": 0.8
     },
     {
+      "source": "file:tests/test_desktop_upgrade.py",
+      "target": "file:src/paths.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
       "source": "file:tests/test_room_link.py",
       "target": "file:src/room_link.py",
       "type": "imports",
@@ -1286,6 +1341,30 @@
       "type": "serves",
       "direction": "forward",
       "description": "Phục vụ frontend có xác thực.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:.github/workflows/docker-release.yml",
+      "target": "file:scripts/build.py",
+      "type": "deploys",
+      "direction": "forward",
+      "description": "Build và tự kiểm tra CunZoom.exe trước khi phát hành.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:.github/workflows/docker-release.yml",
+      "target": "file:requirements-windows-lock.txt",
+      "type": "depends_on",
+      "direction": "forward",
+      "description": "Cài phụ thuộc Windows đã khóa.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/build.py",
+      "target": "file:src/main.py",
+      "type": "depends_on",
+      "direction": "forward",
+      "description": "Điểm vào được đóng gói thành CunZoom.exe.",
       "weight": 0.8
     },
     {
@@ -1427,6 +1506,7 @@
         "file:Dockerfile",
         "file:compose.yaml",
         "file:requirements-transcription.txt",
+        "file:requirements-windows-lock.txt",
         "file:requirements-windows.txt",
         "file:requirements.txt",
         "file:scripts/container_entry.py",
@@ -1450,6 +1530,7 @@
         "file:tests/bootstrap.py",
         "file:tests/test_calendar_watch.py",
         "file:tests/test_container.py",
+        "file:tests/test_desktop_upgrade.py",
         "file:tests/test_room_link.py",
         "file:tests/test_server.py",
         "file:tests/test_workflow_map.py"
@@ -1469,6 +1550,7 @@
         "file:docs/OPERATIONS.md",
         "file:docs/RELEASE_NOTES.md",
         "file:docs/VALIDATION.md",
+        "file:docs/WINDOWS.md",
         "file:docs/ZOOM_AND_CALENDAR.md",
         "file:vendor/README.md"
       ]
@@ -1532,6 +1614,7 @@
         "file:Dockerfile",
         "file:compose.yaml",
         "file:requirements-transcription.txt",
+        "file:requirements-windows-lock.txt",
         "file:requirements-windows.txt",
         "file:requirements.txt",
         "file:scripts/container_entry.py",
@@ -1555,6 +1638,7 @@
         "file:tests/bootstrap.py",
         "file:tests/test_calendar_watch.py",
         "file:tests/test_container.py",
+        "file:tests/test_desktop_upgrade.py",
         "file:tests/test_room_link.py",
         "file:tests/test_server.py",
         "file:tests/test_workflow_map.py"
@@ -1574,6 +1658,7 @@
         "file:docs/OPERATIONS.md",
         "file:docs/RELEASE_NOTES.md",
         "file:docs/VALIDATION.md",
+        "file:docs/WINDOWS.md",
         "file:docs/ZOOM_AND_CALENDAR.md",
         "file:vendor/README.md"
       ]

@@ -15,8 +15,10 @@ def draft(text):
     return '# Bản nháp trích ý từ lời giảng\n\nĐược chọn tự động từ bản chép lời; chưa đối chiếu slide và có thể sai nhận dạng. Chưa phải bản tóm lược đã được Cún rà soát.\n\n## Các đoạn nổi bật\n\n'+('\n'.join('- '+s for s in points) or 'Chưa nhận dạng được nội dung.')+'\n\n## Đoạn có thể liên quan bài tập / kiểm tra\n\n'+('\n'.join('- '+s for s in tasks) or 'Không tìm thấy; không có nghĩa là không có bài tập.')+'\n\n## Cần rà soát\n\n- Đối chiếu thuật ngữ, công thức, tên riêng và số liệu với slide.\n- Xác nhận hạn nộp và yêu cầu bài tập từ giảng viên.\n'
 
 def model_root():
-    from paths import DATA
-    return DATA/'models'
+    from paths import DATA, DESKTOP, V1_ROOT
+    # Reuse a model the Windows 1.x app already downloaded instead of fetching ~150 MB again.
+    legacy=V1_ROOT/'Cong_cu/models'
+    return legacy if DESKTOP and legacy.is_dir() else DATA/'models'
 
 def main():
     folder=Path(sys.argv[1]); out=folder/'02_Tom_tat'; status=out/'trang_thai.json'

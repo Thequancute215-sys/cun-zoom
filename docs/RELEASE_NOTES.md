@@ -1,3 +1,18 @@
+# Cún Zoom 2.1.0 · Windows + Docker
+
+Gộp bản Windows (repo `AI-Zoom`, 1.0.0 – 1.1.1) vào repo này. Một mã nguồn, một quy trình kiểm tra, một Release gồm `CunZoom.exe` và image Docker.
+
+- **Windows:** `CunZoom.exe` được build lại trên CI từ mã hiện tại (giao diện 1.1 + các sửa lỗi của 2.0.0) và tự kiểm tra trước khi đăng. Đọc [hướng dẫn Windows](https://github.com/Thequancute215-sys/cun-zoom/blob/main/docs/WINDOWS.md).
+- **Nâng cấp từ 1.x giữ dữ liệu:** dùng tiếp thư mục dữ liệu và thư mục bài giảng cũ, sao chép (không xóa) `quyen_zoom.dpapi`/`calendar.dpapi` sang tên mới, dùng lại bộ chép lời đã tải.
+- Giao diện hiển thị đúng hành vi theo nền tảng: Windows tự mở link lớp và thu gọn xuống khay; Docker chuyển link tới giao diện đang mở.
+- Docker không đổi chức năng so với 2.0.0; image `ghcr.io/thequancute215-sys/cun-zoom:2.1.0`.
+
+Chưa kiểm tra OAuth/ghi trong phòng Zoom thật của bản 2.1.0; thử với phòng được phép trước buổi học quan trọng. Xem [phạm vi kiểm thử](https://github.com/Thequancute215-sys/cun-zoom/blob/main/docs/VALIDATION.md).
+
+---
+
+# Cún Zoom 2.0.0 · Docker Linux
+
 Bản mã nguồn mở MIT, có Docker Linux x86-64 và giao diện tiếng Việt.
 
 Module Meeting SDK cần quyền/phê duyệt phù hợp của Zoom. Tài liệu Zoom hiện hướng bot mới sang RTMS; bản này chưa tích hợp RTMS. Không hứa hỗ trợ mọi tài khoản hoặc tự vào lớp trước người cấp OBF.
