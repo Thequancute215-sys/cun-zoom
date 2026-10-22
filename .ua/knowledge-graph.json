@@ -19,8 +19,8 @@
       "pywebview/WebView2"
     ],
     "description": "Bản đồ cấp file và import Python được trích từ AST; không phải graph toàn bộ hàm. Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn; chạy như ứng dụng Windows (CunZoom.exe) hoặc Docker Linux. Windows tự mở link lớp, Docker chỉ đưa link tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra trong 2.x; Trang Ôn tập hệ thống hoá bài giảng và tài liệu bằng Claude (khóa riêng) hoặc Ollama, tạo đề cương và đề thi thử. RTMS chưa triển khai.",
-    "analyzedAt": "2026-10-22T19:36:44.676371+00:00",
-    "gitCommitHash": "100c771999fd2fd37533b5afc15a42175ab70f6f"
+    "analyzedAt": "2026-10-22T20:13:47.260807+00:00",
+    "gitCommitHash": "ba69e0a6fc0a9cc0caa940d35767e57c887ff382"
   },
   "nodes": [
     {
@@ -245,7 +245,7 @@
       "filePath": "docs/RELEASE_NOTES.md",
       "lineRange": [
         1,
-        45
+        59
       ]
     },
     {

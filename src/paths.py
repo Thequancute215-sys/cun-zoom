@@ -5,7 +5,7 @@ from pathlib import Path
 import shutil
 import sys
 
-VERSION = '2.2.0'
+VERSION = '2.2.1'
 REPOSITORY = 'Thequancute215-sys/cun-zoom'
 RESOURCES = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parents[1]))
 CONTAINER = os.environ.get('CUN_ZOOM_CONTAINER') == '1'

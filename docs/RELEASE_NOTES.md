@@ -1,3 +1,17 @@
+# Cún Zoom 2.2.1 · Sửa lỗi Ôn tập
+
+Bản sửa lỗi sau khi chạy thật trang Ôn tập với Ollama (`qwen2.5:3b` và `qwen2.5:7b`).
+
+- **Không còn ghi chú bịa:** buổi chỉ có file không đọc được (file hỏng, PDF scan khi dùng Ollama) giờ báo lỗi kèm tên file thay vì để AI tự viết bài từ tên buổi. Buổi chỉ có ảnh mà mô hình Ollama không đọc được ảnh cũng báo lỗi, không đoán.
+- **Một buổi lỗi không chặn cả môn:** hệ thống kiến thức và đề cương vẫn cập nhật từ các buổi khác; lỗi của buổi đó vẫn hiện kèm tên buổi cho tới khi bạn sửa file.
+- **Đề thi rõ hơn:** câu hỏi luôn có đề bài (trước đây mô hình nhỏ đôi khi chỉ ghi số câu hoặc tên chủ đề); thiếu câu thì tự hỏi AI thêm một lần. Tạo đề không còn thử lại buổi đang lỗi.
+- **Mục lục:** link tới ghi chú mở được cả khi tên môn/buổi có dấu cách và dấu tiếng Việt.
+- Hướng dẫn ôn tập ghi rõ: mô hình dưới 7B chỉ nên dùng để thử. Kết quả chạy thật ở [phạm vi kiểm thử](https://github.com/Thequancute215-sys/cun-zoom/blob/main/docs/VALIDATION.md).
+
+Dữ liệu và cấu hình 2.2.0 dùng tiếp, không cần làm gì thêm.
+
+---
+
 # Cún Zoom 2.2.0 · Ôn tập bằng AI
 
 - **Trang Ôn tập:** hệ thống hoá từng buổi và cả môn, sắp kiến thức theo nhóm chủ đề, mức độ liên quan (cốt lõi → tham khảo) và độ khó (cơ bản → nâng cao); đề cương có ý trọng tâm; đề thi thử trắc nghiệm + tự luận, làm và chấm trắc nghiệm ngay trong app.
