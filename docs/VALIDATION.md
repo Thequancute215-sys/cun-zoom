@@ -7,7 +7,7 @@ Các mức kiểm tra được phân biệt rõ:
 3. **Native SDK**: biên dịch với SDK Linux chính thức được cung cấp riêng và khởi tạo SDK không vào phòng.
 4. **Phòng thật**: xác thực/OAuth/OBF, host nhận bot, cho quyền ghi, nói thử/chia sẻ slide, tải và nghe/xem file thực tế.
 
-CI công khai kiểm tra mức 1–2. SDK không được phân phối trong CI công khai. Mức 3 được kiểm tra riêng khi có gói SDK hợp lệ; chỉ ghi đạt khi có log biên dịch và init trả thành công. Mức 4 phải thử với phòng được phép của người cài; không suy từ SDK init hay thời gian đã chờ.
+CI kiểm tra mức 1–2 trên Linux và Windows. Với Windows, CI còn kiểm tra mức 3 ở dạng nạp SDK (`--self-test` của gói exe) bằng SDK lấy từ kho riêng tư; archive SDK không được đăng công khai. Mức 3 của SDK Linux được kiểm tra riêng khi có gói SDK hợp lệ; chỉ ghi đạt khi có log biên dịch và init trả thành công. Mức 4 phải thử với phòng được phép của người cài; không suy từ SDK init hay thời gian đã chờ.
 
 ## Kết quả bản 2.0.0 — 22/10/2026 (Asia/Bangkok)
 

@@ -33,6 +33,6 @@ Luồng chính: trình duyệt → API có xác thực → cấu hình mã hóa/
 
 ## Những thứ được giữ ngoài repo công khai
 
-SDK/thư viện Zoom có điều khoản riêng, thông tin đăng nhập, nguồn iCal riêng tư, khóa mã hóa, dữ liệu volume, file âm thanh và slide của buổi học không được đưa lên GitHub. Người cài tự lấy SDK chính thức và cấu hình tài khoản của mình. Repo Windows cũ `AI-Zoom` được giữ làm kho lưu trữ (lịch sử 1.x) và kho SDK cho CI; cần đặt ở chế độ riêng tư. Mã Windows hiện hành nằm ở repo này; lịch sử và cấu hình riêng của `AI-Zoom` không được chép sang.
+Archive SDK Zoom (điều khoản riêng), thông tin đăng nhập, nguồn iCal riêng tư, khóa mã hóa, dữ liệu volume, file âm thanh và slide của buổi học không được đưa lên GitHub. `CunZoom.exe` chỉ đóng gói phần runtime SDK Windows cần để chạy; người dùng Docker tự lấy SDK Linux chính thức. Mỗi người tự cấu hình ứng dụng Zoom của mình. Repo Windows cũ `AI-Zoom` được giữ làm kho lưu trữ (lịch sử 1.x) và kho SDK cho CI; cần đặt ở chế độ riêng tư. Mã Windows hiện hành nằm ở repo này; lịch sử và cấu hình riêng của `AI-Zoom` không được chép sang.
 
-Graph mô tả cơ chế đã thấy trong nguồn, không phải bằng chứng ghi thành công. Bản Docker đã kiểm tra source/HTTP/container và khởi tạo SDK; OAuth/OBF và ghi phòng thật còn cần thử trong phòng được phép. Kết quả và phiên bản SDK cụ thể nằm trong VALIDATION.
+Graph mô tả cơ chế đã thấy trong nguồn, không phải bằng chứng ghi thành công. Bản Windows đã kiểm tra tests và self-test gói exe (SDK nạp được); bản Docker đã kiểm tra source/HTTP/container và khởi tạo SDK. OAuth/OBF và ghi phòng thật của 2.x còn cần thử trong phòng được phép. Kết quả và phiên bản SDK cụ thể nằm trong VALIDATION.

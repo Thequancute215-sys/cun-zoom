@@ -9,13 +9,19 @@ Một mã nguồn, hai cách chạy:
 | **Windows — `CunZoom.exe`** | Máy Windows 10/11 x64; cửa sổ riêng, khay hệ thống, tự mở link lớp | Tải exe ở [Releases](https://github.com/Thequancute215-sys/cun-zoom/releases), đọc [hướng dẫn Windows](docs/WINDOWS.md) |
 | **Docker — Linux x86-64** | Máy chủ/Linux hoặc Docker Desktop; giao diện web có đăng nhập | Làm theo [hướng dẫn cài Docker](docs/INSTALL.md) |
 
-Bản Windows trước đây ở repo `AI-Zoom` (1.x) nay được phát hành từ repo này; nâng cấp giữ nguyên cấu hình và bài giảng cũ trên cùng máy ([chi tiết](docs/WINDOWS.md#nâng-cấp-từ-1x--dữ-liệu-được-giữ-nguyên)). Người dùng tự cấu hình ứng dụng Zoom của mình; không có khóa dùng chung. Bản Docker không chứa SDK: người cài tự tải Zoom Meeting SDK chính thức.
+Bản Windows trước đây ở repo `AI-Zoom` (1.x) nay được phát hành từ repo này; nâng cấp giữ nguyên cấu hình và bài giảng cũ trên cùng máy ([chi tiết](docs/WINDOWS.md#nâng-cấp-từ-1x--dữ-liệu-được-giữ-nguyên)). Mỗi người dùng cần tài khoản Zoom và ứng dụng Meeting SDK của **chính mình** ([cách cấu hình](docs/ZOOM_AND_CALENDAR.md)); không có khóa dùng chung. Bản Docker không chứa SDK: người cài tự tải Zoom Meeting SDK chính thức.
 
-**Phạm vi hỗ trợ Zoom:** [trang Meeting SDK Linux](https://developers.zoom.us/docs/meeting-sdk/linux/) hiện hướng bot/notetaker mới sang RTMS; [OBF FAQ](https://developers.zoom.us/docs/meeting-sdk/obf-faq/) vẫn mô tả OBF cho ứng dụng legacy. Module SDK của bản này chỉ dành cho trường hợp Zoom cho phép tài khoản/app của bạn sử dụng. Không coi cài Docker hoặc có OBF là đã được Zoom chấp thuận. RTMS chưa được triển khai trong bản này.
-
-## Cài bản Docker
+**Phạm vi hỗ trợ Zoom:** [trang Meeting SDK Linux](https://developers.zoom.us/docs/meeting-sdk/linux/) hiện hướng bot/notetaker mới sang RTMS; [OBF FAQ](https://developers.zoom.us/docs/meeting-sdk/obf-faq/) vẫn mô tả OBF cho ứng dụng legacy. Module SDK của bản này chỉ dành cho trường hợp Zoom cho phép tài khoản/app của bạn sử dụng. Không coi cài Cún Zoom hoặc có OBF là đã được Zoom chấp thuận. RTMS chưa được triển khai trong bản này.
 
 Tất cả hướng dẫn, giải thích cơ chế, nguồn và skill bảo trì được gom tại [mục lục bàn giao](docs/HANDOVER.md).
+
+## Cài bản Windows
+
+1. Tải `CunZoom.exe` ở [Releases](https://github.com/Thequancute215-sys/cun-zoom/releases) và mở. Không cần Python hay Docker; SDK đã kèm trong exe. Windows có thể cảnh báo SmartScreen vì exe chưa ký số — xem [WINDOWS.md](docs/WINDOWS.md#xử-lý-lỗi-thường-gặp).
+2. Làm theo [hướng dẫn cấu hình Zoom và Google Calendar](docs/ZOOM_AND_CALENDAR.md).
+3. Cách dùng, sao lưu, cập nhật và xử lý lỗi: [WINDOWS.md](docs/WINDOWS.md).
+
+## Cài bản Docker
 
 1. Đọc [hướng dẫn cài đặt từng bước](docs/INSTALL.md): Docker, tải SDK, đặt đúng thư mục, chạy ứng dụng và lấy mật khẩu local.
 2. Làm theo [hướng dẫn cấu hình Zoom và Google Calendar](docs/ZOOM_AND_CALENDAR.md).
@@ -32,7 +38,7 @@ docker compose exec app cat /data/access-password.txt
 
 Mở **http://127.0.0.1:18767**, tên đăng nhập **cunzoom**, mật khẩu là dòng vừa lấy ở trên. Không đưa mật khẩu lên GitHub/chat. Lần đầu có thể cần vài phút để biên dịch bộ ghi với SDK do bạn cung cấp.
 
-Trên Windows, dùng Docker Desktop ở chế độ Linux containers. Docker Desktop/WSL2 có thể cần bật ảo hóa và khởi động lại máy; xem tài liệu Docker chính thức trước khi cài. Không chạy song song hai bản bot ghi cùng một phòng.
+Nếu muốn chạy bản Docker trên Windows, dùng Docker Desktop ở chế độ Linux containers. Docker Desktop/WSL2 có thể cần bật ảo hóa và khởi động lại máy; xem tài liệu Docker chính thức trước khi cài. Không chạy song song hai bản bot ghi cùng một phòng.
 
 ## Chức năng hiện có
 
@@ -46,7 +52,7 @@ Trên Windows, dùng Docker Desktop ở chế độ Linux containers. Docker Des
 | Chép lời | Faster Whisper chạy CPU, mô hình tải một lần; trích ý là bản nháp cần đối chiếu |
 | Thư viện | Đọc bản chép/tóm tắt; Windows mở thư mục trên máy, Docker tải ZIP từng buổi từ volume `/data` |
 
-**Giới hạn:** bot không thay thế tài khoản học viên để điểm danh, không tự vượt phòng chờ hoặc quyền ghi. Với cơ chế OBF, người cấp quyền cần có mặt trong cuộc họp. Docker không thể mở Zoom trên máy chủ của bạn khi đóng giao diện: link đến giờ học xuất hiện trong giao diện đang mở để bạn bấm. Theo dõi lịch không đồng nghĩa tự bắt đầu ghi.
+**Giới hạn:** bot không thay thế tài khoản học viên để điểm danh, không tự vượt phòng chờ hoặc quyền ghi. Với cơ chế OBF, người cấp quyền cần có mặt trong cuộc họp. Bản Windows tự mở link lớp khi ứng dụng đang chạy; bản Docker không thể mở Zoom trên máy của bạn khi đóng giao diện: link đến giờ học xuất hiện trong giao diện đang mở để bạn bấm. Theo dõi lịch không đồng nghĩa tự bắt đầu ghi.
 
 ## Mã nguồn, kiểm tra và giấy phép
 

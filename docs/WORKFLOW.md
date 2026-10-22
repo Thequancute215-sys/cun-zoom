@@ -120,10 +120,10 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Dừng ghi và chép lời trước sao lưu | Đợi xử lý hoàn tất rồi dừng container để có bản sao nhất quán. | [docs/OPERATIONS.md](../docs/OPERATIONS.md#L50) |
-| 2. Sao lưu toàn bộ dữ liệu cùng khóa | Đóng gói /data gồm cấu hình, khóa, mô hình và lessons; bản sao phải giữ riêng vì có thông tin truy cập. | [docs/OPERATIONS.md](../docs/OPERATIONS.md#L54) |
-| 3. Khôi phục có bảo toàn dữ liệu đích | Sao lưu volume đích trước thao tác có thể ghi đè; dùng đúng khóa, không chuyển thẳng DPAPI sang Linux. | [docs/OPERATIONS.md](../docs/OPERATIONS.md#L66) |
-| 4. Đổi mã/image, giữ volume | Đọc release và sao lưu trước; cập nhật source hoặc tag image rồi tạo lại container, không xóa volume. | [docs/OPERATIONS.md](../docs/OPERATIONS.md#L78) |
+| 1. Dừng ghi và chép lời trước sao lưu | Đợi xử lý hoàn tất rồi dừng container để có bản sao nhất quán. | [docs/OPERATIONS.md](../docs/OPERATIONS.md#L52) |
+| 2. Sao lưu toàn bộ dữ liệu cùng khóa | Đóng gói /data gồm cấu hình, khóa, mô hình và lessons; bản sao phải giữ riêng vì có thông tin truy cập. | [docs/OPERATIONS.md](../docs/OPERATIONS.md#L56) |
+| 3. Khôi phục có bảo toàn dữ liệu đích | Sao lưu volume đích trước thao tác có thể ghi đè; dùng đúng khóa, không chuyển thẳng DPAPI sang Linux. | [docs/OPERATIONS.md](../docs/OPERATIONS.md#L68) |
+| 4. Đổi mã/image, giữ volume | Đọc release và sao lưu trước; cập nhật source hoặc tag image rồi tạo lại container, không xóa volume. | [docs/OPERATIONS.md](../docs/OPERATIONS.md#L80) |
 
 </details>
 

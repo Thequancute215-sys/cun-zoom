@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "reviewedAt": "2026-10-22T09:08:03.121551+00:00",
-  "sourceBaseCommit": "13c8fd445cbd7c6ac195b630f9f30071ec6b0615",
-  "reviewNote": "Ghi ket qua kiem thu 2.1.0 vao VALIDATION (them muc cuoi file, khong doi cac buoc da tro toi); luong va so dong khong doi.",
+  "reviewedAt": "2026-10-22T09:34:02.320891+00:00",
+  "sourceBaseCommit": "83a5f1cd5cc644dd2137efcea579dbac0a755a16",
+  "reviewNote": "Dong bo tai lieu Windows/Docker de chia se cong khai: Zoom/Calendar, cai dat, van hanh, sao luu va xu ly loi Windows, ghi chu SDK; doi chieu lai so dong cac buoc tro vao OPERATIONS va HANDOVER.",
   "sourceFiles": {
     ".dockerignore": "adc297c63c84ec0349097ec584416f959ac1daf8a1b07806051fda28a1f260dc",
     ".github/workflows/docker-release.yml": "8460e99dc03ad947cfb1205a16e799c005aa7c345a50067e5dd2a7bac4449813",
@@ -10,18 +10,18 @@
     "AGENTS.md": "1728e6a47dc19604ab742deed5ab98840a48d8cf1e40a70c42700e6b3a5a8ee4",
     "Dockerfile": "9c766719b1a5ea9f9c5920934ab9cde043a7d819d3692fde100d6637ee21d6ca",
     "LICENSE": "6e8a94e2670be8ff6953387e52e76a8099af52af36224d1558cef545517750c6",
-    "README.md": "010722aea9b540beba06f4c6f8babe0a13200b9a1cc7905765421aa48ac6118d",
-    "THIRD_PARTY_NOTICES.md": "2a1939f73f2dc596db8be42b45ee091f25bc9a6652bc76f60b8d44b6db99e23b",
+    "README.md": "e130047f91c13a5d22d9fb0444b4bd64fd8e569f998ec9729eab6c701bd50f9d",
+    "THIRD_PARTY_NOTICES.md": "ed9a50e59fae99c0ea2e778340311e7ad08ed2d6b3ae74a637d4723c3ed0eeb3",
     "compose.yaml": "3625c74c8d00695f71e2a1bd8139c5853608970c11b2ecd411845252582511ff",
     "design.md": "d00b92809c27369bfbc6c78c0de06a3323df27aa47e11113142384f2123ce45a",
-    "docs/DEVELOPMENT.md": "c203a6c5fa3a8f95ad01f4858f1adb55b3695e252c9e56222287a26a95ecea11",
-    "docs/HANDOVER.md": "fe5a0c2543f0f3be53713215857c43cc45e3f9ab166329e93c07876852001721",
-    "docs/INSTALL.md": "f69462b1cbecc1f13e10bf0cb942912c884014b271cd19b966d065426b20a495",
-    "docs/OPERATIONS.md": "1ada29b9c7a79c27685155f4c1d9b94483e77679b186fd2d7c589e6d4f68c36c",
+    "docs/DEVELOPMENT.md": "6e4e4919a4cc40f89b0aeade74d4c212f95b37294d430e7b040ebaa50e866116",
+    "docs/HANDOVER.md": "f81747d6c5448871eb465a4deac354465d52bcc7ec1ead8159585d4dd455c289",
+    "docs/INSTALL.md": "f6d7c86fb962aa68ce4174e801820111ab756ececef458f406bf80c2d9e2f69e",
+    "docs/OPERATIONS.md": "1524c981a8e2c8718ee14c7f84ea55e661d4927b83c1d757063a12d995612a3d",
     "docs/RELEASE_NOTES.md": "28541aecfd6fdfdda666b6e63c9483eac95963275e7ec06cdade9842533566f5",
-    "docs/VALIDATION.md": "1ddae5b26150118230911128600cfdd3cbe2671d784c94b99b0e76b97f7593ed",
-    "docs/WINDOWS.md": "10b75582e3f6b67838e0484e476c650951526273892c8ed70f009898b9bda6f6",
-    "docs/ZOOM_AND_CALENDAR.md": "a994b3f88a82463bd4d41cb2cb5dcf3f94b8f3ec075bc3b0b1dc38fbe162570b",
+    "docs/VALIDATION.md": "92963f6968d6016d8a0f825447f3b979bff09ef1e5261d399d9811cd258e681e",
+    "docs/WINDOWS.md": "a2d049f9b01fda2783a2e9e96b4dba47d639e2bb250250b9a96158f64c2b00a8",
+    "docs/ZOOM_AND_CALENDAR.md": "a1d5754d18ab15358b686a503313cf701df362005da7e260f8835ffdf96a2ff3",
     "native/bot.cpp": "f51b1feedde969d34bf6db6ecd4daaa1b6c870f8aa8b2d6639a4cc059720a79c",
     "native/linux_bot.cpp": "68cd7b964f3eb6614d373f6adc9d300796216d7dd7fbea896e245d9caeb3ea3e",
     "requirements-transcription.txt": "222f822942b599581ebf616ce3b977555c7350dbf339cd52a7a5f31c7a21ea04",
@@ -79,10 +79,10 @@
     "web/tokens.css": "2fcc50ba1980b33b18fe9b63dfa20f27029b2e2f254df3525dd7ae6ac34c1095"
   },
   "artifacts": {
-    ".ua/domain-graph.json": "0bbb8f85279f20e911d3d005bfc1df4bb07fc0498f4e41fe70fabf8b0d413128",
-    ".ua/knowledge-graph.json": "995314773d3e51d7ec9972dedaf952fcc4c37686aa816298f30a66e30c5f8828",
+    ".ua/domain-graph.json": "0a217f74d868bfdafc7c000c857c453e5f8c837c9b80923cf8c3c7940f251821",
+    ".ua/knowledge-graph.json": "b4376e5f87e5302ebf8d4b793b7b77011e8bc2d8f69b7d24c08e4d4c878bd634",
     ".ua/config.json": "fc45c2c2e3bbd9a1f0df975e5b3e8605705401f2709fb67fa1206b8ac196c0e1",
     ".ua/tooling.json": "b4425175a232d702308d6ca43730e0f373aab604a1b2a625414e43789c56205e",
-    "docs/WORKFLOW.md": "55004c6b0252a5b7744cbd634b0ace0ab0bbff29aa16fa77a9a9246313b237e2"
+    "docs/WORKFLOW.md": "6c5238410e116096a02aabc3502129f62c73fd20e0b8afa8ab672cfe14c89910"
   }
 }

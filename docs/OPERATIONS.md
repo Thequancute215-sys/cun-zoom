@@ -1,4 +1,6 @@
-# Sử dụng, cập nhật và sao lưu
+# Sử dụng, cập nhật và sao lưu — bản Docker
+
+Bản Windows (`CunZoom.exe`): xem mục sao lưu, cập nhật và xử lý lỗi trong [WINDOWS.md](WINDOWS.md).
 
 ## Khởi động / dừng
 
@@ -73,7 +75,7 @@ docker compose run --rm --no-deps -v ./backup:/backup:ro app tar -xzf /backup/cu
 docker compose start app
 ```
 
-Khôi phục ghi đè tệp cùng tên; sao lưu volume đích trước. Khóa sai/mất khóa sẽ không giải mã được cấu hình. Windows DPAPI của bản desktop cũ không chuyển thẳng sang Fernet Linux; hãy nhập lại cấu hình trong Docker thay vì chép file `.dpapi`.
+Khôi phục ghi đè tệp cùng tên; sao lưu volume đích trước. Khóa sai/mất khóa sẽ không giải mã được cấu hình. Cấu hình của bản Windows (DPAPI) không chuyển thẳng sang Fernet Linux; hãy nhập lại cấu hình trong Docker thay vì chép file `.dpapi`/`.vault` của Windows.
 
 ## Cập nhật
 

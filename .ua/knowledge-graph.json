@@ -17,8 +17,8 @@
       "faster-whisper"
     ],
     "description": "Bản đồ cấp file và import Python được trích từ AST; không phải graph toàn bộ hàm. Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn; chạy như ứng dụng Windows (CunZoom.exe) hoặc Docker Linux. Windows tự mở link lớp, Docker chỉ đưa link tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra trong 2.x; RTMS chưa triển khai.",
-    "analyzedAt": "2026-10-22T09:08:03.121551+00:00",
-    "gitCommitHash": "13c8fd445cbd7c6ac195b630f9f30071ec6b0615"
+    "analyzedAt": "2026-10-22T09:34:02.320891+00:00",
+    "gitCommitHash": "83a5f1cd5cc644dd2137efcea579dbac0a755a16"
   },
   "nodes": [
     {
@@ -123,7 +123,7 @@
       "filePath": "README.md",
       "lineRange": [
         1,
-        59
+        65
       ]
     },
     {
@@ -213,7 +213,7 @@
       "filePath": "docs/INSTALL.md",
       "lineRange": [
         1,
-        110
+        112
       ]
     },
     {
@@ -228,7 +228,7 @@
       "filePath": "docs/OPERATIONS.md",
       "lineRange": [
         1,
-        116
+        118
       ]
     },
     {
@@ -273,7 +273,7 @@
       "filePath": "docs/WINDOWS.md",
       "lineRange": [
         1,
-        62
+        88
       ]
     },
     {
@@ -288,7 +288,7 @@
       "filePath": "docs/ZOOM_AND_CALENDAR.md",
       "lineRange": [
         1,
-        51
+        64
       ]
     },
     {
