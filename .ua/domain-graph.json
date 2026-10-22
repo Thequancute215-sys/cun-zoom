@@ -16,8 +16,8 @@
       "faster-whisper"
     ],
     "description": "Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn; chạy như ứng dụng Windows (CunZoom.exe) hoặc Docker Linux. Windows tự mở link lớp, Docker chỉ đưa link tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra trong 2.x; RTMS chưa triển khai.",
-    "analyzedAt": "2026-10-22T08:57:43.032455+00:00",
-    "gitCommitHash": "ec95aa3c9d2a94da02df79370b7eac68209c790d"
+    "analyzedAt": "2026-10-22T09:08:03.121551+00:00",
+    "gitCommitHash": "13c8fd445cbd7c6ac195b630f9f30071ec6b0615"
   },
   "nodes": [
     {

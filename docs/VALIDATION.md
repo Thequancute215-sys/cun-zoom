@@ -23,3 +23,15 @@ Docker/source: [CI thành công](https://github.com/Thequancute215-sys/cun-zoom/
 SDK được cung cấp qua kho kiểm tra riêng tư, không xuất bản archive hoặc thư viện vào kho này. Bài kiểm tra native riêng đạt lúc **01:54:46 ngày 22/10/2026 UTC+7**. SHA-256 của archive chính thức đã dùng: `459561050c5f3291756fef612ad70406feffed7b3b4820ed5f6418444e8f7da3`.
 
 Không dùng bản này cho buổi học quan trọng trước khi kiểm tra một phòng riêng được phép. Khởi tạo SDK không xác nhận quyền ứng dụng, OAuth, âm thanh hoặc slide trong một cuộc họp.
+
+## Kết quả bản 2.1.0 (gộp Windows + Docker) — 22/10/2026 (Asia/Bangkok)
+
+| Mức | Kết quả thực tế |
+| --- | --- |
+| Source/unit/integration | Đạt 30 tests trên Linux và cùng bộ tests trên Windows (`requirements-windows-lock.txt`); kiểm tra nguồn, bản đồ workflow và JavaScript đạt |
+| Windows | Biên dịch `CunZoomBot.exe` với Windows Meeting SDK **7.2.1.49056** (SHA-256 archive `67ba466b38bdaa61df95b892398996d2a1c6db328b19a42ad814ec32d91dcb83`), đóng gói `CunZoom.exe`; `--self-test` đạt: `sdk_loadable`, `encryption_roundtrip`, `https_context`, `web_resources`, `native_status_consistent` đều `true` |
+| Nâng cấp từ 1.x | Tests tự động: sao chép `.dpapi` sang tên mới, giữ nguyên file nguồn, không ghi đè kho 2.x, giữ thư mục bài giảng 1.x. Chưa thử trên máy Windows thật có dữ liệu 1.x |
+| Docker | Build và smoke HTTP thật đạt trên CI và khi build lại cục bộ (non-root, đăng nhập, CSRF, mã hóa, dữ liệu qua restart) |
+| SDK OAuth / phòng thật | **Chưa kiểm tra** trong 2.1.0 |
+
+CI: [lần chạy kiểm tra](https://github.com/Thequancute215-sys/cun-zoom/actions/runs/39751797754) trên commit `13c8fd445cbd7c6ac195b630f9f30071ec6b0615`.
