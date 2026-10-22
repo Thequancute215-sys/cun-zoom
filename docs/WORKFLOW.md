@@ -432,8 +432,8 @@ flowchart LR
 | --- | --- | --- |
 | 1. Chọn môn, buổi và file | Giao diện gửi từng file thành một request riêng kèm token; file đầu tạo buổi mới, các file sau vào cùng buổi. | [web/study.js](../web/study.js#L119) |
 | 2. Nhận file theo luồng có giới hạn | Server kiểm tra token, nguồn, kích thước ≤ 2 GB, ghi từng phần ra file tạm rồi đổi tên; lỗi thì xóa phần dở. | [src/server.py](../src/server.py#L451) |
-| 3. Kiểm tra loại và tên file | Chỉ nhận đuôi được hỗ trợ, làm sạch tên, không ghi đè file cùng tên. | [src/study.py](../src/study.py#L541) |
-| 4. Tạo buổi chỉ có tài liệu | Tạo thư mục buổi cùng cấu trúc bản ghi, chặn tên môn đặc biệt hoặc thoát khỏi thư mục bài giảng. | [src/study.py](../src/study.py#L526) |
+| 3. Kiểm tra loại và tên file | Chỉ nhận đuôi được hỗ trợ, làm sạch tên, không ghi đè file cùng tên. | [src/study.py](../src/study.py#L567) |
+| 4. Tạo buổi chỉ có tài liệu | Tạo thư mục buổi cùng cấu trúc bản ghi, chặn tên môn đặc biệt hoặc thoát khỏi thư mục bài giảng. | [src/study.py](../src/study.py#L552) |
 | 5. Chép lời âm thanh/video tải lên | Bộ chép lời đọc âm thanh bot ghi và mọi file media tải lên, ghi bản chép lời một lần khi xong. | [src/transcribe.py](../src/transcribe.py#L28) |
 
 </details>
@@ -468,15 +468,15 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Quét thay đổi và xếp việc | Mỗi 30 giây hoặc khi được đánh thức: khởi chạy một lượt chép lời nếu cần, xếp việc cho buổi/môn/đề cương đã cũ. | [src/study.py](../src/study.py#L611) |
+| 1. Quét thay đổi và xếp việc | Mỗi 30 giây hoặc khi được đánh thức: khởi chạy một lượt chép lời nếu cần, xếp việc cho buổi/môn/đề cương đã cũ. | [src/study.py](../src/study.py#L637) |
 | 2. So dấu vân tay nội dung | Ghi chú hợp lệ khi dấu vân tay bản chép lời, tài liệu và slide trùng lúc tạo; khác thì là cũ. | [src/study.py](../src/study.py#L185) |
 | 3. Chuẩn bị tài liệu cho AI | PDF gửi nguyên cho Claude hoặc tách chữ cho Ollama; DOCX/PPTX đọc XML; ảnh giới hạn 5 MB; file lỗi thành cảnh báo. | [src/documents.py](../src/documents.py#L60) |
 | 4. Hệ thống hoá một buổi | Gửi bản chép lời, tài liệu và tối đa 20 ảnh slide; bài quá dài được chia phần rồi gộp; kết quả sắp theo độ liên quan và độ khó; không có nội dung đọc được (chỉ có file hỏng) thì báo lỗi, không gọi AI. | [src/study.py](../src/study.py#L241) |
 | 5. Gọi AI với JSON theo schema | Claude: SDK, output_config.format, fallback máy chủ, cache, xử lý từ chối/quá dài; Ollama: /api/chat với format schema, bỏ ảnh nếu mô hình chỉ đọc chữ, trừ khi buổi chỉ có ảnh thì báo lỗi thay vì đoán. | [src/ai_backend.py](../src/ai_backend.py#L89) |
 | 6. Tổng hợp kiến thức của môn | Gộp ghi chú các buổi, bỏ trùng, đánh giá lại độ liên quan/độ khó, ghi buổi nguồn và liên kết khái niệm. | [src/study.py](../src/study.py#L323) |
 | 7. Lập đề cương | Chia chương, đánh dấu ý trọng tâm, câu hỏi tự kiểm tra, trọng tâm thi và kế hoạch ôn; đánh dấu cũ khi hệ thống kiến thức đổi. | [src/study.py](../src/study.py#L366) |
-| 8. Cập nhật mục lục tổng | Ghi 00_Tong_hop/Muc_luc.md khi nội dung đổi, liên kết tới file của từng môn. | [src/study.py](../src/study.py#L506) |
-| 9. Không lặp lại việc lỗi | Việc lỗi được nhớ theo dữ liệu đầu vào; chỉ chạy lại khi file đổi hoặc người dùng yêu cầu. Buổi lỗi không chặn hệ thống kiến thức và đề cương của các buổi khác, lỗi của buổi vẫn hiện. | [src/study.py](../src/study.py#L643) |
+| 8. Cập nhật mục lục tổng | Ghi 00_Tong_hop/Muc_luc.md khi nội dung đổi, liên kết tới file của từng môn. | [src/study.py](../src/study.py#L532) |
+| 9. Không lặp lại việc lỗi | Việc lỗi được nhớ theo dữ liệu đầu vào; chỉ chạy lại khi file đổi hoặc người dùng yêu cầu. Buổi lỗi không chặn hệ thống kiến thức và đề cương của các buổi khác, lỗi của buổi vẫn hiện. | [src/study.py](../src/study.py#L669) |
 
 </details>
 
@@ -501,8 +501,8 @@ flowchart LR
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
 | 1. Chọn số câu và mức độ | Tối đa 60 trắc nghiệm và 10 tự luận, mức cân bằng / cơ bản / nâng cao. | [web/study.js](../web/study.js#L86) |
-| 2. Xếp việc tạo đề | Server kiểm tra mức độ rồi đưa việc vào hàng chờ, không trùng việc đang chạy; tạo đề không thử lại buổi đang lỗi, Đồng bộ lại thì có. | [src/study.py](../src/study.py#L579) |
-| 3. Soạn đề từ hệ thống kiến thức | Gửi hệ thống kiến thức trước (dùng lại cache), yêu cầu sau; loại câu không có đề bài (chỉ ghi số) hoặc trắc nghiệm không đủ 4 lựa chọn; lưu JSON và Markdown có đáp án cuối file. | [src/study.py](../src/study.py#L380) |
+| 2. Xếp việc tạo đề | Server kiểm tra mức độ rồi đưa việc vào hàng chờ, không trùng việc đang chạy; tạo đề không thử lại buổi đang lỗi, Đồng bộ lại thì có. | [src/study.py](../src/study.py#L605) |
+| 3. Soạn đề từ hệ thống kiến thức | Gửi hệ thống kiến thức trước (dùng lại cache), yêu cầu sau; câu chỉ ghi tên chủ đề thành "Phát biểu nào đúng về…", loại câu chỉ ghi số hoặc thiếu 4 lựa chọn; thiếu câu thì hỏi thêm một lần; lưu JSON và Markdown có đáp án cuối file. | [src/study.py](../src/study.py#L380) |
 | 4. Làm bài và chấm trắc nghiệm | Chọn đáp án, nộp để xem đúng/sai, giải thích và điểm; tự luận có ô trả lời và gợi ý chấm. | [web/study.js](../web/study.js#L99) |
 
 </details>

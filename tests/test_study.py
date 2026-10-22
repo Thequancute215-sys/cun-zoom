@@ -152,6 +152,10 @@ class StudyPipelineTests(unittest.TestCase):
         exam = study.make_exam(subject, multiple_choice=2, essays=1)
         # Questions that are only a number, or lack four options, are dropped; stored questions keep the 'cau' field.
         self.assertEqual([q['cau'] for q in exam['trac_nghiem'] + exam['tu_luan']], ['Cung là?', 'Phân tích'])
+        # One question short: the AI is asked once more for the rest, without repeating what it already wrote.
+        exam_calls = [c for c in self.calls if c['schema'] is study.EXAM_SCHEMA]
+        self.assertEqual(len(exam_calls), 2)
+        self.assertIn('Không lặp lại các câu đã có', exam_calls[1]['parts'][-1]['text'])
         self.assertEqual(study.exam(subject, exam['_meta']['id'])['tieu_de'], 'Đề')
         markdown = (subject / '00_Tong_hop_mon/de_thi_thu' / (exam['_meta']['id'] + '.md')).read_text(encoding='utf-8')
         self.assertIn('Đáp án', markdown)
@@ -199,6 +203,17 @@ class StudyPipelineTests(unittest.TestCase):
         engine.request('subject', 'Kinh tế vi mô')
         self.assertEqual(len(engine.jobs), 1)
 
+    def test_exam_stems_that_only_name_a_topic_become_questions(self):
+        options = ['a', 'b', 'c', 'd']
+        choice, written = study._exam_questions({'trac_nghiem': [{'noi_dung_cau_hoi': 'Cân bằng thị trường', 'lua_chon': options},
+                                                                 {'noi_dung_cau_hoi': 'GDP danh nghĩa', 'lua_chon': options},
+                                                                 {'noi_dung_cau_hoi': 'Khi giá tăng thì lượng cầu thay đổi thế nào?', 'lua_chon': options}],
+                                                 'tu_luan': [{'noi_dung_cau_hoi': '1'}]})
+        self.assertEqual([q['cau'] for q in choice], ['Phát biểu nào sau đây đúng về cân bằng thị trường?',
+                                                      'Phát biểu nào sau đây đúng về GDP danh nghĩa?',
+                                                      'Khi giá tăng thì lượng cầu thay đổi thế nào?'])
+        self.assertEqual(written, [])
+
     def test_a_broken_lesson_does_not_hold_back_the_subject(self):
         good = self.lesson()
         broken = self.lesson(title='File hỏng', transcript='')
@@ -222,7 +237,7 @@ class StudyPipelineTests(unittest.TestCase):
         self.assertEqual(engine.jobs[0][0], 'exam')
         self.assertEqual(len(engine.jobs), 1)
         engine.run_jobs()
-        self.assertEqual([c['schema'] for c in self.calls[calls:]], [study.EXAM_SCHEMA])
+        self.assertEqual({id(c['schema']) for c in self.calls[calls:]}, {id(study.EXAM_SCHEMA)})
         # A manual sync retries it once, still builds the subject map from the good lesson, and keeps the error.
         engine.request('subject', 'Kinh tế vi mô')
         engine.run_jobs()

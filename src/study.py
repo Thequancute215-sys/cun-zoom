@@ -377,6 +377,22 @@ def make_outline(subject, config=None):
     return result
 
 
+def _exam_questions(result):
+    """Questions with real text; a multiple-choice stem that only names a topic becomes 'which statement is true about it'."""
+    for question in result.get('trac_nghiem', []) + result.get('tu_luan', []):
+        question['cau'] = str(question.pop('noi_dung_cau_hoi', '')).strip()
+    asked = lambda q: len(q['cau']) > 3 and not q['cau'].rstrip('.').isdigit()
+    choice = []
+    for question in result.get('trac_nghiem', []):
+        if not asked(question) or len(question.get('lua_chon', [])) != 4:
+            continue
+        stem = question['cau']
+        if not stem.endswith(('?', ':', '…', '...')) and len(stem.split()) <= 6:
+            question['cau'] = 'Phát biểu nào sau đây đúng về ' + (stem[0].lower() if stem[1:2].islower() else stem[0]) + stem[1:] + '?'
+        choice.append(question)
+    return choice, [q for q in result.get('tu_luan', []) if asked(q)]
+
+
 def make_exam(subject, multiple_choice=20, essays=3, mix='can_bang', config=None):
     config = config or ai.settings()
     multiple_choice = max(0, min(60, int(multiple_choice)))
@@ -384,18 +400,28 @@ def make_exam(subject, multiple_choice=20, essays=3, mix='can_bang', config=None
     if not multiple_choice and not essays:
         raise ai.AIError('Chọn ít nhất một câu trắc nghiệm hoặc tự luận.')
     data, knowledge = _knowledge_text(subject)
-    task = ('Soạn đề thi thử môn "' + subject.name + '" chỉ từ hệ thống kiến thức đã cho: ' + str(multiple_choice) + ' câu trắc nghiệm '
-            '(đúng 4 lựa chọn, ghi nội dung lựa chọn không kèm chữ A-D, một đáp án đúng, giải thích ngắn) và ' + str(essays) + ' câu tự luận '
-            '(thang điểm, gợi ý chấm theo ý). Độ khó ' + MIX.get(mix, MIX['can_bang']) + '. Ưu tiên mục cốt lõi và quan trọng, trải đều các '
-            'nhóm, không hỏi ngoài tài liệu. Ghi chủ đề (tên nhóm) và độ khó cho từng câu, ước lượng thời gian làm bài.')
-    # Knowledge first, task last: the knowledge block stays cached between the outline and repeated exams.
-    result = ai.generate(SYSTEM, [{'kind': 'text', 'text': knowledge}, {'kind': 'text', 'text': task}], EXAM_SCHEMA, 'high', config)
-    for question in result.get('trac_nghiem', []) + result.get('tu_luan', []):
-        question['cau'] = str(question.pop('noi_dung_cau_hoi', '')).strip()
-    # Drop questions without real text (only a number) or without exactly four options.
-    asked = lambda q: len(q['cau']) > 3 and not q['cau'].rstrip('.').isdigit()
-    result['trac_nghiem'] = [q for q in result.get('trac_nghiem', []) if asked(q) and len(q.get('lua_chon', [])) == 4]
-    result['tu_luan'] = [q for q in result.get('tu_luan', []) if asked(q)]
+
+    def ask(choices, essays_wanted, existing):
+        task = ('Soạn đề thi thử môn "' + subject.name + '" chỉ từ hệ thống kiến thức đã cho: ' + str(choices) + ' câu trắc nghiệm '
+                '(đúng 4 lựa chọn, ghi nội dung lựa chọn không kèm chữ A-D, một đáp án đúng, giải thích ngắn) và ' + str(essays_wanted) + ' câu tự luận '
+                '(thang điểm, gợi ý chấm theo ý). Mỗi câu ghi đề bài đầy đủ trong noi_dung_cau_hoi, là một câu hỏi hoàn chỉnh, không chỉ tên '
+                'chủ đề. Độ khó ' + MIX.get(mix, MIX['can_bang']) + '. Ưu tiên mục cốt lõi và quan trọng, trải đều các '
+                'nhóm, không hỏi ngoài tài liệu. Ghi chủ đề (tên nhóm) và độ khó cho từng câu, ước lượng thời gian làm bài.')
+        if existing:
+            task += ' Không lặp lại các câu đã có: ' + json.dumps(existing, ensure_ascii=False)
+        # Knowledge first, task last: the knowledge block stays cached between the outline and repeated exams.
+        return ai.generate(SYSTEM, [{'kind': 'text', 'text': knowledge}, {'kind': 'text', 'text': task}], EXAM_SCHEMA, 'high', config)
+
+    result = ask(multiple_choice, essays, [])
+    choice, written = _exam_questions(result)
+    missing = (multiple_choice - len(choice), essays - len(written))
+    if max(missing) > 0:
+        # Local models often stop short of the requested count; ask once more for the rest.
+        more_choice, more_written = _exam_questions(ask(max(missing[0], 0), max(missing[1], 0), [q['cau'] for q in choice + written]))
+        seen = {q['cau'] for q in choice + written}
+        choice += [q for q in more_choice if q['cau'] not in seen][:max(missing[0], 0)]
+        written += [q for q in more_written if q['cau'] not in seen][:max(missing[1], 0)]
+    result['trac_nghiem'], result['tu_luan'] = choice, written
     if not result['trac_nghiem'] and not result['tu_luan']:
         raise ai.AIError('AI không soạn được câu hỏi hợp lệ. Thử lại hoặc dùng mô hình lớn hơn.')
     stamp = datetime.now().strftime('%Y%m%d-%H%M%S')

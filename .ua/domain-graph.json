@@ -18,8 +18,8 @@
       "pywebview/WebView2"
     ],
     "description": "Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn; chạy như ứng dụng Windows (CunZoom.exe) hoặc Docker Linux. Windows tự mở link lớp, Docker chỉ đưa link tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra trong 2.x; Trang Ôn tập hệ thống hoá bài giảng và tài liệu bằng Claude (khóa riêng) hoặc Ollama, tạo đề cương và đề thi thử. RTMS chưa triển khai.",
-    "analyzedAt": "2026-10-22T19:15:23.311988+00:00",
-    "gitCommitHash": "b4b2311b67985275bab0385b8cd900dc1ec64672"
+    "analyzedAt": "2026-10-22T19:36:44.676371+00:00",
+    "gitCommitHash": "100c771999fd2fd37533b5afc15a42175ab70f6f"
   },
   "nodes": [
     {
@@ -1421,8 +1421,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        541,
-        550
+        567,
+        576
       ]
     },
     {
@@ -1436,8 +1436,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        526,
-        538
+        552,
+        564
       ]
     },
     {
@@ -1480,8 +1480,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        611,
-        641
+        637,
+        667
       ]
     },
     {
@@ -1585,8 +1585,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        506,
-        523
+        532,
+        549
       ]
     },
     {
@@ -1600,8 +1600,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        643,
-        650
+        669,
+        676
       ]
     },
     {
@@ -1644,15 +1644,15 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        579,
-        590
+        605,
+        616
       ]
     },
     {
       "id": "step:de-thi:soan-de",
       "type": "step",
       "name": "Soạn đề từ hệ thống kiến thức",
-      "summary": "Gửi hệ thống kiến thức trước (dùng lại cache), yêu cầu sau; loại câu không có đề bài (chỉ ghi số) hoặc trắc nghiệm không đủ 4 lựa chọn; lưu JSON và Markdown có đáp án cuối file.",
+      "summary": "Gửi hệ thống kiến thức trước (dùng lại cache), yêu cầu sau; câu chỉ ghi tên chủ đề thành \"Phát biểu nào đúng về…\", loại câu chỉ ghi số hoặc thiếu 4 lựa chọn; thiếu câu thì hỏi thêm một lần; lưu JSON và Markdown có đáp án cuối file.",
       "tags": [
         "on-tap"
       ],
@@ -1660,7 +1660,7 @@
       "filePath": "src/study.py",
       "lineRange": [
         380,
-        408
+        434
       ]
     },
     {
