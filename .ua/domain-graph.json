@@ -16,8 +16,8 @@
       "faster-whisper"
     ],
     "description": "Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn; chạy như ứng dụng Windows (CunZoom.exe) hoặc Docker Linux. Windows tự mở link lớp, Docker chỉ đưa link tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra trong 2.x; RTMS chưa triển khai.",
-    "analyzedAt": "2026-10-22T10:16:27.462716+00:00",
-    "gitCommitHash": "213e03164c91287959eabcb3da34de22cf254a82"
+    "analyzedAt": "2026-10-22T10:19:51.755833+00:00",
+    "gitCommitHash": "1bbe3d3f8b00f3540de59d130b5507badfb6663c"
   },
   "nodes": [
     {
@@ -323,8 +323,8 @@
       "complexity": "moderate",
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
-        108,
-        135
+        112,
+        139
       ]
     },
     {
@@ -338,8 +338,8 @@
       "complexity": "moderate",
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
-        136,
-        153
+        140,
+        157
       ]
     },
     {
@@ -353,8 +353,8 @@
       "complexity": "moderate",
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
-        154,
-        170
+        158,
+        174
       ]
     },
     {
@@ -368,8 +368,8 @@
       "complexity": "moderate",
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
-        171,
-        199
+        175,
+        203
       ]
     },
     {
@@ -1313,7 +1313,7 @@
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
         38,
-        107
+        111
       ]
     },
     {

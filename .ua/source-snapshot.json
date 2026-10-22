@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "reviewedAt": "2026-10-22T10:16:27.462716+00:00",
-  "sourceBaseCommit": "213e03164c91287959eabcb3da34de22cf254a82",
-  "reviewNote": "Kho SDK AI-Zoom chi giu Private (khong archive); chi doi mot cau trong WINDOWS.md, luong va so dong khong doi.",
+  "reviewedAt": "2026-10-22T10:19:51.755833+00:00",
+  "sourceBaseCommit": "1bbe3d3f8b00f3540de59d130b5507badfb6663c",
+  "reviewNote": "CI bao ro thieu secret WINDOWS_SDK_TOKEN hay token thieu quyen doc kho SDK (khong in token); doi chieu lai so dong cac buoc tro vao workflow.",
   "sourceFiles": {
     ".dockerignore": "adc297c63c84ec0349097ec584416f959ac1daf8a1b07806051fda28a1f260dc",
-    ".github/workflows/docker-release.yml": "999a1cf0ca1cd4b7fac1ec146dfe116251268e91bfdd69ea328e6f04c6366b3f",
+    ".github/workflows/docker-release.yml": "0c2774ea839ddceb1a66b23dbfb7b6b528bce750136de2bf6808b3943095a3bc",
     ".gitignore": "192472c67f95878bc1e6eaa0f6fecfc7058f9712d75717b184c93d4dc4571917",
     "AGENTS.md": "1728e6a47dc19604ab742deed5ab98840a48d8cf1e40a70c42700e6b3a5a8ee4",
     "Dockerfile": "9c766719b1a5ea9f9c5920934ab9cde043a7d819d3692fde100d6637ee21d6ca",
@@ -81,10 +81,10 @@
     "web/tokens.css": "2fcc50ba1980b33b18fe9b63dfa20f27029b2e2f254df3525dd7ae6ac34c1095"
   },
   "artifacts": {
-    ".ua/domain-graph.json": "27c66effa4213858a20fba1445bae72f1ad5d3ef3a73c4ca82bb9c1fad37406f",
-    ".ua/knowledge-graph.json": "5cdc75cb1f5a26a8f5537626f7fabeab79aa902f9d0c7ce8e1d5aebb9d46c897",
+    ".ua/domain-graph.json": "ecc9e9a9ec73149ef295f1803ad7e21f24fa75992e8eadda2b888bb807b5fce1",
+    ".ua/knowledge-graph.json": "b93ad3e9524cad3193b0723d22557ec070ddc172e7990abc47b896589cb2c3e0",
     ".ua/config.json": "fc45c2c2e3bbd9a1f0df975e5b3e8605705401f2709fb67fa1206b8ac196c0e1",
     ".ua/tooling.json": "b4425175a232d702308d6ca43730e0f373aab604a1b2a625414e43789c56205e",
-    "docs/WORKFLOW.md": "50ac88905d6bb84e17a57ec38402b38f6283b69c4a18e77a28e53e8af0b3960c"
+    "docs/WORKFLOW.md": "d0212e87f9b17aee2b78c1f5ca031b2d62d8e46b8f799e96a7ef3e88c8002ca0"
   }
 }

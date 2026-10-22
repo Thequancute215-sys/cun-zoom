@@ -62,10 +62,14 @@ jobs:
         id: sdk
         env:
           GH_TOKEN: ${{ secrets.WINDOWS_SDK_TOKEN || github.token }}
+          SDK_TOKEN_SET: ${{ secrets.WINDOWS_SDK_TOKEN != '' }}
         run: |
           New-Item -ItemType Directory -Path build/vendor -Force | Out-Null
           gh release download $env:SDK_TAG --repo $env:SDK_REPO --pattern $env:SDK_ASSET --dir build/vendor
           if ($LASTEXITCODE -ne 0) {
+            # Say which fix applies without ever printing the token.
+            if ($env:SDK_TOKEN_SET -ne 'true') { Write-Output '::warning::Secret WINDOWS_SDK_TOKEN is not set for this repository (Settings > Secrets and variables > Actions > Repository secrets).' }
+            else { Write-Output "::warning::WINDOWS_SDK_TOKEN is set but cannot read release $env:SDK_TAG of $env:SDK_REPO. The token needs Contents: Read-only on that repository." }
             if ($env:PUBLISH -eq 'true') { throw "Cannot read $env:SDK_ASSET from $env:SDK_REPO. See docs/WINDOWS.md." }
             Write-Output '::warning::Windows SDK unavailable; Windows tests passed but CunZoom.exe was not built.'
             'available=false' >> $env:GITHUB_OUTPUT
