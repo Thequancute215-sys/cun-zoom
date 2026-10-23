@@ -24,7 +24,7 @@ import ai_backend
 import platform_actions
 import sdk_setup
 import study
-from paths import DATA, RESOURCES, WEB, VERSION, REPOSITORY, SDK, MANAGED_SDK, NATIVE, PREFERENCES, preferences, CONTAINER, sdk_present
+from paths import DATA, RESOURCES, WEB, VERSION, REPOSITORY, SDK, MANAGED_SDK, NATIVE, PREFERENCES, preferences, CONTAINER, sdk_present, V1_ROOT, V1_REFUSED, V1_LOCK
 from room_link import parse_room_link
 
 
@@ -111,6 +111,7 @@ class Service:
                 'library': recordings, 'preferences': preferences(), 'message': self.message,
                 'model': {'state': self.model_state, 'available': self.model_available()},
                 'data_directory': str(DATA), 'container': CONTAINER,
+                'legacy_refused': {'folder': str(V1_ROOT), 'command': V1_LOCK} if V1_REFUSED else None,
                 'browser_events': platform_actions.events(),
                 'oauth_redirect': self.base + '/oauth/callback' if CONTAINER else 'Cổng loopback ngẫu nhiên trên Windows'}
 

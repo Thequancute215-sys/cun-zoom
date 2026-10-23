@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import stat
 import sys
 
 VERSION = '2.2.1'
@@ -10,11 +11,72 @@ REPOSITORY = 'Thequancute215-sys/cun-zoom'
 RESOURCES = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parents[1]))
 CONTAINER = os.environ.get('CUN_ZOOM_CONTAINER') == '1'
 DESKTOP = os.name == 'nt' and not CONTAINER
+# Grants to these still leave an item private: SYSTEM, Administrators, TrustedInstaller, and CREATOR OWNER / OWNER RIGHTS,
+# which only reach the item's owner, itself checked to be this user, SYSTEM or Administrators.
+SERVICE_SIDS = {'S-1-5-18','S-1-5-32-544','S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464','S-1-3-0','S-1-3-4'}
+# Read data, write, append, extended attributes, delete child, attributes, delete, change permissions/owner, generic read/write/all.
+SHARED_RIGHTS = 0xD00D0157
+
+def private_path(path):
+    """True on Windows when `path` is not a link, belongs to this user (or SYSTEM/Administrators) and no other account can read or change it."""
+    if os.name != 'nt':return False
+    try:
+        if os.lstat(path).st_file_attributes & stat.FILE_ATTRIBUTE_REPARSE_POINT:return False
+    except OSError:return False
+    import ctypes
+    from ctypes import wintypes as W
+    P=ctypes.c_void_p
+    advapi=ctypes.WinDLL('advapi32',use_last_error=True);kernel=ctypes.WinDLL('kernel32',use_last_error=True)
+    advapi.GetNamedSecurityInfoW.argtypes=[W.LPCWSTR,W.DWORD,W.DWORD]+[ctypes.POINTER(P)]*5;advapi.GetNamedSecurityInfoW.restype=W.DWORD
+    advapi.ConvertSidToStringSidW.argtypes=[P,ctypes.POINTER(P)];advapi.ConvertSidToStringSidW.restype=W.BOOL
+    advapi.GetAce.argtypes=[P,W.DWORD,ctypes.POINTER(P)];advapi.GetAce.restype=W.BOOL
+    advapi.OpenProcessToken.argtypes=[W.HANDLE,W.DWORD,ctypes.POINTER(W.HANDLE)];advapi.OpenProcessToken.restype=W.BOOL
+    advapi.GetTokenInformation.argtypes=[W.HANDLE,ctypes.c_int,P,W.DWORD,ctypes.POINTER(W.DWORD)];advapi.GetTokenInformation.restype=W.BOOL
+    kernel.GetCurrentProcess.restype=W.HANDLE;kernel.CloseHandle.argtypes=[W.HANDLE];kernel.LocalFree.argtypes=[P];kernel.LocalFree.restype=P
+    def text(sid):
+        out=P()
+        if not advapi.ConvertSidToStringSidW(sid,ctypes.byref(out)):raise OSError(ctypes.get_last_error())
+        try:return ctypes.wstring_at(out.value)
+        finally:kernel.LocalFree(out)
+    token=W.HANDLE();size=W.DWORD()
+    if not advapi.OpenProcessToken(kernel.GetCurrentProcess(),8,ctypes.byref(token)):return False
+    try:
+        advapi.GetTokenInformation(token,1,None,0,ctypes.byref(size))
+        user=ctypes.create_string_buffer(size.value)
+        if not advapi.GetTokenInformation(token,1,user,size,ctypes.byref(size)):return False
+        me=text(ctypes.cast(user,ctypes.POINTER(P))[0])
+    except OSError:return False
+    finally:kernel.CloseHandle(token)
+    owner,dacl,descriptor=P(),P(),P()
+    # Owner and DACL of the item itself; a link was refused above, so this is the real folder or file.
+    if advapi.GetNamedSecurityInfoW(str(path),1,0x5,ctypes.byref(owner),None,ctypes.byref(dacl),None,ctypes.byref(descriptor)):return False
+    try:
+        if not dacl.value or text(owner) not in SERVICE_SIDS|{me}:return False
+        for index in range(ctypes.cast(dacl,ctypes.POINTER(W.WORD))[2]):
+            ace=P()
+            if not advapi.GetAce(dacl,index,ctypes.byref(ace)):return False
+            kind=ctypes.cast(ace,ctypes.POINTER(ctypes.c_ubyte))[0]
+            if kind==1:continue
+            # Only plain allow and deny entries are understood; anything else (conditional, callback) counts as shared.
+            if kind!=0:return False
+            if ctypes.cast(ace,ctypes.POINTER(W.DWORD))[1]&SHARED_RIGHTS and text(ace.value+8) not in SERVICE_SIDS|{me}:return False
+        return True
+    except OSError:return False
+    finally:kernel.LocalFree(descriptor)
+
 # Windows 1.x (repo AI-Zoom) defaulted to these folders. Keep reading them so an upgrade finds the same settings and lessons.
 V1_ROOT = Path('D:/HocTap_Zoom')
 V1_DATA = V1_ROOT/'Du_lieu_ung_dung'
-DEFAULT_DATA = V1_DATA if DESKTOP and V1_DATA.is_dir() else Path(os.environ.get('LOCALAPPDATA', Path.home()/'.local/share'))/'CunZoom'
+# D: is often writable by every account. Adopt the 1.x folder only when it is this user's alone: it holds the app token
+# and the sdk.dll the bot loads. Otherwise use a new folder and say why (V1_REFUSED) instead of loading another user's files.
+def v1_private():
+    return DESKTOP and V1_DATA.is_dir() and private_path(V1_ROOT) and private_path(V1_DATA)
+V1_ADOPTED = v1_private()
+DEFAULT_DATA = V1_DATA if V1_ADOPTED else Path(os.environ.get('LOCALAPPDATA', Path.home()/'.local/share'))/'CunZoom'
 DATA = Path(os.environ.get('CUN_ZOOM_DATA_DIR', DEFAULT_DATA)).resolve()
+V1_REFUSED = DESKTOP and V1_DATA.is_dir() and not V1_ADOPTED and 'CUN_ZOOM_DATA_DIR' not in os.environ
+# The one command that makes the 1.x folder this user's alone; shown with V1_REFUSED.
+V1_LOCK = f'icacls "{V1_ROOT}" /inheritance:r /grant:r "{os.environ.get("USERNAME","%USERNAME%")}:(OI)(CI)F" "*S-1-5-18:(OI)(CI)F" "*S-1-5-32-544:(OI)(CI)F"'
 DATA.mkdir(parents=True, exist_ok=True)
 # The Windows exe ships without Zoom's SDK: each user installs their own copy into MANAGED_SDK from the app.
 MANAGED_SDK = DATA/'zoom-sdk'

@@ -1,11 +1,65 @@
 import bootstrap
 import os
 from pathlib import Path
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
 
 import paths
+import runner
+import transcribe
+
+
+def icacls(*args):
+    subprocess.run(['icacls',*map(str,args)],check=True,capture_output=True)
+
+
+@unittest.skipUnless(os.name=='nt','Windows ACLs')
+class SharedV1FolderTests(unittest.TestCase):
+    def setUp(self):
+        directory=tempfile.TemporaryDirectory();self.addCleanup(directory.cleanup)
+        self.root=Path(directory.name)/'HocTap_Zoom';self.data=self.root/'Du_lieu_ung_dung';self.data.mkdir(parents=True)
+        # Exactly the command the app shows the owner, aimed at this test folder.
+        subprocess.run(paths.V1_LOCK.replace(str(paths.V1_ROOT),str(self.root)),check=True,capture_output=True)
+        patcher=patch.multiple(paths,DESKTOP=True,V1_ROOT=self.root,V1_DATA=self.data);patcher.start();self.addCleanup(patcher.stop)
+
+    def test_locked_v1_folder_is_adopted(self):
+        self.assertTrue(paths.private_path(self.data))
+        self.assertTrue(paths.v1_private())
+
+    def test_folder_other_accounts_can_change_or_read_is_not_adopted(self):
+        icacls(self.root,'/grant','*S-1-5-11:(OI)(CI)(M)')
+        self.assertFalse(paths.private_path(self.data))
+        self.assertFalse(paths.v1_private())
+        icacls(self.root,'/remove:g','*S-1-5-11')
+        self.assertTrue(paths.v1_private())
+        icacls(self.data,'/grant','*S-1-5-32-545:(R)')
+        self.assertFalse(paths.v1_private())
+
+    def test_link_in_place_of_the_folder_is_not_adopted(self):
+        target=self.root/'elsewhere';target.mkdir()
+        self.data.rmdir();subprocess.run(['cmd','/c','mklink','/J',str(self.data),str(target)],check=True,capture_output=True)
+        self.assertTrue(self.data.is_dir())
+        self.assertFalse(paths.v1_private())
+
+    def test_shared_v1_model_folder_is_not_used(self):
+        models=self.root/'Cong_cu'/'models';models.mkdir(parents=True)
+        self.assertEqual(transcribe.model_root(),models)
+        icacls(models,'/grant','*S-1-5-11:(OI)(CI)(M)')
+        self.assertEqual(transcribe.model_root(),paths.DATA/'models')
+
+
+class SharedSdkTests(unittest.TestCase):
+    def test_bot_refuses_an_sdk_other_accounts_could_have_placed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            sdk=Path(directory).resolve()
+            with patch.multiple(runner,EXE=Path(__file__),DESKTOP=True,SDK=sdk,MANAGED_SDK=sdk,sdk_present=lambda:True,private_path=lambda path:False):
+                with self.assertRaisesRegex(ValueError,'không thuộc riêng'):runner.launch({},'jwt')
+
+    @unittest.skipIf(os.name=='nt','POSIX')
+    def test_private_path_is_windows_only(self):
+        self.assertFalse(paths.private_path(Path.home()))
 
 
 class WindowsUpgradeTests(unittest.TestCase):

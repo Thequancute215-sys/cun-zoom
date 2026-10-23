@@ -4,7 +4,7 @@ from datetime import datetime
 from pathlib import Path
 import vault
 
-from paths import DATA, NATIVE, SDK, preferences, sdk_present
+from paths import DATA, DESKTOP, MANAGED_SDK, NATIVE, SDK, preferences, private_path, sdk_present
 ROOT=DATA
 EXE=NATIVE
 STATE_FILE=DATA/'native_state.json'
@@ -91,6 +91,9 @@ def launch(config,jwt,mode='auth-test',meeting='',password='',subject='',title='
     with MUTEX:
         if not EXE.exists():raise ValueError('Chưa biên dịch xong bộ chạy bot.')
         if not sdk_present():raise ValueError('Chưa có Zoom SDK. Windows: Cài đặt → Kết nối → Cài Zoom SDK (.zip). Docker: đặt SDK vào vendor/zoom-linux.')
+        # The bot loads sdk.dll into this user's process: never one that another Windows account placed or can replace.
+        if DESKTOP and SDK==MANAGED_SDK.resolve() and not (private_path(SDK) and private_path(SDK/'sdk.dll')):
+            raise ValueError('Zoom SDK trên máy không thuộc riêng tài khoản Windows này nên không được nạp. Cài lại Zoom SDK trong Cài đặt → Kết nối.')
         if PROCESS is not None and PROCESS.poll() is None:raise ValueError('Bot đang chạy; hãy dừng trước khi thử lần khác.')
         directory=None;obf=''
         if mode!='auth-test':

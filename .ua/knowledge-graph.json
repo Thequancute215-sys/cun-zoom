@@ -19,8 +19,8 @@
       "pywebview/WebView2"
     ],
     "description": "Bản đồ cấp file và import Python được trích từ AST; không phải graph toàn bộ hàm. Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn; chạy như ứng dụng Windows (CunZoom.exe) hoặc Docker Linux. Windows tự mở link lớp, Docker chỉ đưa link tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra trong 2.x; Trang Ôn tập hệ thống hoá bài giảng và tài liệu bằng Claude (khóa riêng) hoặc Ollama, tạo đề cương và đề thi thử. RTMS chưa triển khai.",
-    "analyzedAt": "2026-10-23T15:58:12.116812+00:00",
-    "gitCommitHash": "ffa3fc5a0ef3143045ff6d09797ad774e7fdfe61"
+    "analyzedAt": "2026-10-23T20:58:02.492599+00:00",
+    "gitCommitHash": "2f92de9546354f7a8d41c0bb80dd41b5fd1e7fc0"
   },
   "nodes": [
     {
@@ -245,7 +245,7 @@
       "filePath": "docs/RELEASE_NOTES.md",
       "lineRange": [
         1,
-        70
+        71
       ]
     },
     {
@@ -290,7 +290,7 @@
       "filePath": "docs/WINDOWS.md",
       "lineRange": [
         1,
-        148
+        156
       ]
     },
     {
@@ -665,7 +665,7 @@
       "filePath": "src/paths.py",
       "lineRange": [
         1,
-        49
+        111
       ]
     },
     {
@@ -710,7 +710,7 @@
       "filePath": "src/runner.py",
       "lineRange": [
         1,
-        154
+        157
       ]
     },
     {
@@ -740,7 +740,7 @@
       "filePath": "src/server.py",
       "lineRange": [
         1,
-        530
+        531
       ]
     },
     {
@@ -860,7 +860,7 @@
       "filePath": "tests/test_desktop_upgrade.py",
       "lineRange": [
         1,
-        57
+        111
       ]
     },
     {
@@ -980,7 +980,7 @@
       "filePath": "web/app.js",
       "lineRange": [
         1,
-        100
+        105
       ]
     },
     {
@@ -1055,7 +1055,7 @@
       "filePath": "web/index.html",
       "lineRange": [
         1,
-        49
+        50
       ]
     },
     {
@@ -1515,6 +1515,22 @@
     {
       "source": "file:tests/test_desktop_upgrade.py",
       "target": "file:src/paths.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_desktop_upgrade.py",
+      "target": "file:src/runner.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_desktop_upgrade.py",
+      "target": "file:src/transcribe.py",
       "type": "imports",
       "direction": "forward",
       "description": "Import được đọc từ AST Python.",

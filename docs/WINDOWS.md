@@ -78,13 +78,21 @@ Thoát bản cũ ở khay hệ thống, thay `CunZoom.exe` bằng bản mới, r
 
 | Dữ liệu bản 1.x | Bản 2.1.0 làm gì |
 | --- | --- |
-| Thư mục dữ liệu `D:\HocTap_Zoom\Du_lieu_ung_dung` (nếu máy có ổ D:) hoặc `%LOCALAPPDATA%\CunZoom` | Tiếp tục dùng đúng thư mục đó |
+| Thư mục dữ liệu `D:\HocTap_Zoom\Du_lieu_ung_dung` (nếu máy có ổ D:) hoặc `%LOCALAPPDATA%\CunZoom` | Tiếp tục dùng đúng thư mục đó. Từ 2.2.1, thư mục trên ổ D: chỉ được dùng khi nó thuộc riêng tài khoản Windows của bạn (xem bên dưới) |
 | `quyen_zoom.dpapi`, `calendar.dpapi` | **Sao chép** thành `zoom.vault`, `calendar.vault` ở cùng thư mục. File cũ được giữ, không bị xóa hay sửa |
 | Bài giảng trong `D:\HocTap_Zoom\<Môn>` hoặc `Documents\CunZoom` | Thư viện vẫn đọc thư mục cũ; thư mục bạn đã tự chọn trong Cài đặt cũng được giữ |
-| Bộ chép lời đã tải ở `D:\HocTap_Zoom\Cong_cu\models` | Dùng lại, không tải lại ~150 MB |
+| Bộ chép lời đã tải ở `D:\HocTap_Zoom\Cong_cu\models` | Dùng lại, không tải lại ~150 MB, nếu thư mục thuộc riêng tài khoản của bạn |
 | Zoom SDK nằm trong exe 1.x | Cài lại một lần bằng **Cài Zoom SDK (.zip)** |
 
 Nếu đã có `zoom.vault`/`calendar.vault`, ứng dụng không ghi đè. DPAPI chỉ giải mã được trên đúng tài khoản Windows đã mã hóa; chuyển sang máy khác thì nhập lại cấu hình. Muốn quay lại bản cũ: mở lại `CunZoom.exe` 1.1.1, các file `.dpapi` vẫn còn nguyên.
+
+**Thư mục `D:\HocTap_Zoom` dùng chung.** Ổ D: thường cho mọi tài khoản trên máy quyền sửa, nên thư mục bản 1.x cũng vậy. Thư mục này chứa khóa phiên của ứng dụng và `zoom-sdk\sdk.dll` mà bot nạp. Vì vậy từ 2.2.1, Cún Zoom chỉ dùng nó khi thư mục không phải liên kết, thuộc tài khoản của bạn và tài khoản Windows khác không đọc hay sửa được. Nếu không đạt, ứng dụng dùng `%LOCALAPPDATA%\CunZoom`, để nguyên bài giảng cũ và hiện cảnh báo kèm lệnh khóa thư mục. Chạy lệnh đó trong PowerShell (tài khoản thường, không cần quyền quản trị) rồi mở lại ứng dụng:
+
+```powershell
+icacls "D:\HocTap_Zoom" /inheritance:r /grant:r "${env:USERNAME}:(OI)(CI)F" "*S-1-5-18:(OI)(CI)F" "*S-1-5-32-544:(OI)(CI)F"
+```
+
+Lệnh chỉ giữ quyền cho bạn, SYSTEM và Administrators; dữ liệu không bị đổi. Muốn hoàn tác: `icacls "D:\HocTap_Zoom" /inheritance:e`. Nếu đặt `CUN_ZOOM_DATA_DIR`, ứng dụng dùng đúng thư mục đó và bỏ qua kiểm tra này. Zoom SDK trong thư mục dữ liệu cũng chỉ được nạp khi thư mục `zoom-sdk` và `sdk.dll` thuộc riêng tài khoản của bạn; nếu không, hãy cài lại SDK.
 
 ## Sao lưu và cập nhật
 

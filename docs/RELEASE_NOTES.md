@@ -17,9 +17,10 @@ Bản sửa lỗi sau khi chạy thật trang Ôn tập với Ollama (`qwen2.5:3
   - Trên Windows, trang ứng dụng chỉ mở từ cửa sổ Cún Zoom, nên tài khoản Windows khác trên cùng máy không đọc được khóa phiên. Cổng ứng dụng không cho tiến trình khác dùng chung.
   - Kết nối HTTP bỏ ngỏ tự đóng sau 60 giây.
   - Lọc thẻ HTML trong mô tả sự kiện lịch nay chạy trong thời gian tuyến tính.
+  - Thư mục bản 1.x `D:\HocTap_Zoom` chỉ được dùng khi nó thuộc riêng tài khoản Windows của bạn. Nếu tài khoản khác cũng sửa được, ứng dụng không nạp Zoom SDK hay khóa phiên từ đó mà hiện lệnh khóa thư mục; bài giảng cũ giữ nguyên. Xem [hướng dẫn Windows](https://github.com/Thequancute215-sys/cun-zoom/blob/main/docs/WINDOWS.md).
 - Hướng dẫn ôn tập ghi rõ: mô hình dưới 7B chỉ nên dùng để thử. Kết quả chạy thật ở [phạm vi kiểm thử](https://github.com/Thequancute215-sys/cun-zoom/blob/main/docs/VALIDATION.md).
 
-Dữ liệu và cấu hình 2.2.0 dùng tiếp, không cần làm gì thêm.
+Dữ liệu và cấu hình 2.2.0 dùng tiếp. Riêng máy còn dùng `D:\HocTap_Zoom` của bản 1.x: nếu ứng dụng hiện cảnh báo thư mục dùng chung, chạy lệnh khóa thư mục được hiển thị rồi mở lại.
 
 ---
 

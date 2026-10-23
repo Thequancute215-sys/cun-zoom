@@ -18,8 +18,8 @@
       "pywebview/WebView2"
     ],
     "description": "Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn; chạy như ứng dụng Windows (CunZoom.exe) hoặc Docker Linux. Windows tự mở link lớp, Docker chỉ đưa link tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra trong 2.x; Trang Ôn tập hệ thống hoá bài giảng và tài liệu bằng Claude (khóa riêng) hoặc Ollama, tạo đề cương và đề thi thử. RTMS chưa triển khai.",
-    "analyzedAt": "2026-10-23T15:58:12.116812+00:00",
-    "gitCommitHash": "ffa3fc5a0ef3143045ff6d09797ad774e7fdfe61"
+    "analyzedAt": "2026-10-23T20:58:02.492599+00:00",
+    "gitCommitHash": "2f92de9546354f7a8d41c0bb80dd41b5fd1e7fc0"
   },
   "nodes": [
     {
@@ -488,8 +488,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        462,
-        482
+        463,
+        483
       ]
     },
     {
@@ -503,8 +503,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        202,
-        219
+        203,
+        220
       ]
     },
     {
@@ -533,8 +533,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        135,
-        159
+        136,
+        160
       ]
     },
     {
@@ -548,8 +548,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        161,
-        176
+        162,
+        177
       ]
     },
     {
@@ -741,8 +741,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        197,
-        201
+        198,
+        202
       ]
     },
     {
@@ -763,15 +763,15 @@
       "id": "step:kiem-tra-va-vao-phong:thu-sdk",
       "type": "step",
       "name": "Kiểm tra SDK riêng, không vào phòng",
-      "summary": "API gọi worker ở chế độ auth-test; native xác thực SDK và thoát khi chỉ kiểm tra.",
+      "summary": "API gọi worker ở chế độ auth-test; native xác thực SDK và thoát khi chỉ kiểm tra. Trên Windows, runner từ chối nạp Zoom SDK trong thư mục dữ liệu nếu thư mục hoặc sdk.dll không thuộc riêng tài khoản đang dùng.",
       "tags": [
         "ghi-buoi-hoc"
       ],
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        220,
-        235
+        221,
+        236
       ]
     },
     {
@@ -785,8 +785,8 @@
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        115,
-        145
+        118,
+        148
       ]
     },
     {
@@ -800,8 +800,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        236,
-        248
+        237,
+        249
       ]
     },
     {
@@ -816,7 +816,7 @@
       "filePath": "src/runner.py",
       "lineRange": [
         62,
-        113
+        116
       ]
     },
     {
@@ -949,8 +949,8 @@
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        124,
-        148
+        127,
+        151
       ]
     },
     {
@@ -986,15 +986,15 @@
       "id": "step:chep-loi-local:tai-model",
       "type": "step",
       "name": "Tải bộ chép lời khi yêu cầu",
-      "summary": "Tải faster-whisper-base từ Hugging Face vào cache local; báo trạng thái tải, sẵn sàng hoặc thất bại.",
+      "summary": "Tải faster-whisper-base từ Hugging Face vào cache local; báo trạng thái tải, sẵn sàng hoặc thất bại. Model bản 1.x chỉ được dùng lại khi thư mục của nó thuộc riêng tài khoản đang dùng.",
       "tags": [
         "tai-lieu-bai-giang"
       ],
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        117,
-        133
+        118,
+        134
       ]
     },
     {
@@ -1008,8 +1008,8 @@
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        149,
-        149
+        152,
+        152
       ]
     },
     {
@@ -1112,8 +1112,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        253,
-        260
+        254,
+        261
       ]
     },
     {
@@ -1142,8 +1142,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        374,
-        397
+        375,
+        398
       ]
     },
     {
@@ -1195,7 +1195,7 @@
       "id": "flow:chay-ban-windows",
       "type": "flow",
       "name": "Mở và nâng cấp bản Windows",
-      "summary": "Chạy CunZoom.exe một phiên duy nhất, nhận lại dữ liệu của bản 1.x trên cùng máy, mở cửa sổ và khay hệ thống, rồi để người dùng cài Zoom SDK của chính họ.",
+      "summary": "Chạy CunZoom.exe một phiên duy nhất, nhận lại dữ liệu bản 1.x trên cùng máy khi thư mục đó thuộc riêng tài khoản Windows đang dùng, mở cửa sổ và khay hệ thống, rồi để người dùng cài Zoom SDK của chính họ.",
       "tags": [
         "van-hanh",
         "windows"
@@ -1210,7 +1210,7 @@
       "id": "step:chay-ban-windows:thu-muc-du-lieu",
       "type": "step",
       "name": "Chọn thư mục dữ liệu theo nền tảng",
-      "summary": "Windows dùng tiếp thư mục dữ liệu mặc định mà bản 1.x đã tạo trên máy, nếu không có thì dùng %LOCALAPPDATA%\\CunZoom; Docker/Linux dùng thư mục được cấu hình.",
+      "summary": "Windows chỉ dùng tiếp thư mục dữ liệu của bản 1.x khi nó không phải liên kết, thuộc tài khoản đang dùng và tài khoản Windows khác không đọc hay sửa được (private_path đọc chủ sở hữu và DACL). Nếu không đạt thì dùng %LOCALAPPDATA%\\CunZoom, để nguyên dữ liệu cũ và giao diện hiện lệnh icacls khóa thư mục; Docker/Linux dùng thư mục được cấu hình.",
       "tags": [
         "van-hanh",
         "windows"
@@ -1218,8 +1218,8 @@
       "complexity": "moderate",
       "filePath": "src/paths.py",
       "lineRange": [
-        11,
-        18
+        12,
+        80
       ]
     },
     {
@@ -1234,8 +1234,8 @@
       "complexity": "moderate",
       "filePath": "src/paths.py",
       "lineRange": [
-        30,
-        42
+        92,
+        104
       ]
     },
     {
@@ -1250,8 +1250,8 @@
       "complexity": "moderate",
       "filePath": "src/paths.py",
       "lineRange": [
-        44,
-        49
+        106,
+        111
       ]
     },
     {
@@ -1406,8 +1406,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        483,
-        516
+        484,
+        517
       ]
     },
     {
