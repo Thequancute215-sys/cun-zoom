@@ -186,7 +186,7 @@ class Client:
                 self.save()
                 self.require()
                 return {'ok': True}
-            if route in ('me', 'licenses/key', 'licenses/redeem', 'devices/remove'):
+            if route in ('me', 'plans', 'orders/create', 'orders/cancel', 'licenses/key', 'licenses/redeem', 'devices/remove'):
                 result = self.request(route, data)
                 if route == 'devices/remove':
                     self.checked_until = self.retry_at = 0

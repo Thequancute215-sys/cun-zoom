@@ -78,9 +78,9 @@ async function authenticate(request, env) {
   const token = bearer?.startsWith('Bearer ') ? bearer.slice(7) : cookie?.slice(11);
   if (!token || !/^[a-f0-9]{64}$/.test(token)) fail('Vui lòng đăng nhập.', 401);
   const digest = await hash(token);
-  const row = await env.DB.prepare('SELECT users.id,users.identity FROM sessions JOIN users ON users.id=sessions.user_id WHERE sessions.digest=? AND sessions.expires>?').bind(digest, now()).first();
+  const row = await env.DB.prepare('SELECT users.id,users.identity,sessions.expires FROM sessions JOIN users ON users.id=sessions.user_id WHERE sessions.digest=? AND sessions.expires>?').bind(digest, now()).first();
   if (!row) fail('Phiên đã hết hạn. Vui lòng đăng nhập lại.', 401);
-  return {...row, session: digest};
+  return {id: row.id, identity: row.identity, started: row.expires - SESSION_SECONDS, session: digest};
 }
 const cookie = (token, origin, age = SESSION_SECONDS) => `cz_session=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${age}${origin.protocol === 'https:' ? '; Secure' : ''}`;
 function device(data) {
@@ -92,6 +92,154 @@ async function licenseFor(env, user, id, active = true) {
   if (!row || (active && (!row.expires || row.expires <= now()))) fail('Bản quyền không còn hiệu lực.', 403);
   return row;
 }
+// The admin console signs in with the same OTP, but only identities listed in ADMIN_IDENTITIES, for at most 12 hours.
+const ADMIN_SESSION_SECONDS = 12 * 3600;
+const VN_OFFSET = 7 * 3600;
+const ORDER_STATES = ['pending', 'approved', 'rejected', 'cancelled'];
+function admins(env) {
+  const list = new Set();
+  for (const item of String(env.ADMIN_IDENTITIES || '').split(',')) {
+    try { if (item.trim()) list.add(identity(item)); } catch {}
+  }
+  return list;
+}
+async function operator(request, env) {
+  const supplied = request.headers.get('Authorization') || '';
+  if (supplied && constantEqual(supplied, 'Bearer ' + env.ADMIN_TOKEN)) return 'cli';
+  if (supplied && !/^Bearer [a-f0-9]{64}$/.test(supplied)) fail('Không có quyền quản trị.', 403);
+  const user = await authenticate(request, env);
+  if (!admins(env).has(user.identity)) fail('Không có quyền quản trị.', 403);
+  if (user.started < now() - ADMIN_SESSION_SECONDS) fail('Phiên quản trị quá 12 giờ. Đăng nhập lại bằng OTP.', 401);
+  return user.identity;
+}
+const record = (env, action, actor, license, detail = '') =>
+  env.DB.prepare('INSERT INTO audit(action,license_id,created,actor,detail) VALUES (?,?,?,?,?)').bind(action, license, now(), actor, String(detail).slice(0, 200));
+const whole = (value, low, high) => Number.isInteger(value) && value >= low && value <= high;
+function search(data) {
+  const text = typeof data.query === 'string' ? data.query.trim().toLowerCase().slice(0, 100) : '';
+  return {text, like: '%' + text.replace(/[\\%_]/g, c => '\\' + c) + '%'};
+}
+function cursor(data) {
+  const before = data.before && typeof data.before === 'object' ? data.before : {};
+  return {created: whole(before.created, 0, 2 ** 40) ? before.created : 2 ** 40, id: typeof before.id === 'string' ? before.id.slice(0, 64) : '￿'};
+}
+const LICENSE_STATE = "CASE WHEN revoked=1 THEN 'revoked' WHEN owner_id IS NULL AND key_digest IS NULL THEN 'pending' WHEN owner_id IS NULL THEN 'issued' WHEN expires>?1 THEN 'active' ELSE 'expired' END";
+const vnDay = column => `date(${column}+${VN_OFFSET},'unixepoch')`;
+async function overview(env, data) {
+  const days = [7, 30, 90].includes(data.days) ? data.days : 30, time = now();
+  // Whole days in Vietnam time, today included.
+  const since = Math.floor((time + VN_OFFSET) / 86400) * 86400 - VN_OFFSET - (days - 1) * 86400;
+  const [statuses, created, revenue, users, totalUsers, licenses, devices] = (await env.DB.batch([
+    env.DB.prepare('SELECT status,count(*) AS n FROM orders GROUP BY status'),
+    env.DB.prepare(`SELECT ${vnDay('created')} AS d,status,count(*) AS n FROM orders WHERE created>=? GROUP BY d,status`).bind(since),
+    env.DB.prepare(`SELECT ${vnDay('decided')} AS d,sum(price) AS amount,count(*) AS n FROM orders WHERE status='approved' AND decided>=? GROUP BY d`).bind(since),
+    env.DB.prepare(`SELECT ${vnDay('created')} AS d,count(*) AS n FROM users WHERE created>=? GROUP BY d`).bind(since),
+    env.DB.prepare('SELECT count(*) AS n FROM users'),
+    env.DB.prepare(`SELECT ${LICENSE_STATE} AS state,count(*) AS n FROM licenses GROUP BY state`).bind(time),
+    env.DB.prepare('SELECT count(*) AS n FROM devices WHERE last_seen>=?').bind(time - 7 * 86400)
+  ])).map(result => result.results);
+  const series = [];
+  for (let i = 0; i < days; i++) {
+    const date = new Date((since + i * 86400 + VN_OFFSET) * 1000).toISOString().slice(0, 10);
+    const count = state => created.filter(r => r.d === date && state.includes(r.status)).reduce((sum, r) => sum + r.n, 0);
+    const paid = revenue.find(r => r.d === date);
+    series.push({date, approved: count(['approved']), pending: count(['pending']), closed: count(['rejected', 'cancelled']),
+      revenue: paid?.amount || 0, sales: paid?.n || 0, users: users.find(r => r.d === date)?.n || 0});
+  }
+  const byState = Object.fromEntries(licenses.map(r => [r.state, r.n]));
+  return {days, series,
+    orders: Object.fromEntries(ORDER_STATES.map(s => [s, statuses.find(r => r.status === s)?.n || 0])),
+    licenses: Object.fromEntries(['active', 'issued', 'pending', 'expired', 'revoked'].map(s => [s, byState[s] || 0])),
+    totals: {revenue: series.reduce((sum, d) => sum + d.revenue, 0), sales: series.reduce((sum, d) => sum + d.sales, 0),
+      new_users: series.reduce((sum, d) => sum + d.users, 0), users: totalUsers[0].n, active_devices: devices[0].n}};
+}
+async function admin(request, env, path, data) {
+  const actor = await operator(request, env);
+  if (path === '/api/admin/me') return json({identity: actor});
+  if (path === '/api/admin/overview') return json(await overview(env, data));
+  if (path === '/api/admin/orders') {
+    const state = [...ORDER_STATES, 'all'].includes(data.status) ? data.status : 'pending', q = search(data), c = cursor(data);
+    const rows = await env.DB.prepare(`SELECT id,code,identity,plan_name,days,device_limit,price,note,status,created,decided,decided_by,reason,license_id FROM orders
+      WHERE (?1='all' OR status=?1) AND (?2='' OR identity LIKE ?3 ESCAPE '\\' OR code=upper(?2)) AND (created<?4 OR (created=?4 AND id<?5))
+      ORDER BY created DESC,id DESC LIMIT 50`).bind(state, q.text, q.like, c.created, c.id).all();
+    return json({orders: rows.results});
+  }
+  if (path === '/api/admin/orders/approve') {
+    const id = String(data.order_id || ''), license = crypto.randomUUID(), time = now();
+    // One transaction: the licence exists only if this request moved the order out of pending.
+    const results = await env.DB.batch([
+      env.DB.prepare("INSERT INTO licenses(id,identity,days,device_limit,created) SELECT ?,identity,days,device_limit,? FROM orders WHERE id=? AND status='pending'").bind(license, time, id),
+      env.DB.prepare("UPDATE orders SET status='approved',decided=?,decided_by=?,license_id=? WHERE id=? AND status='pending' AND EXISTS (SELECT 1 FROM licenses WHERE id=?) RETURNING code").bind(time, actor, license, id, license),
+      env.DB.prepare("INSERT INTO audit(action,license_id,created,actor,detail) SELECT 'approve',?,?,?,code FROM orders WHERE id=? AND license_id=?").bind(license, time, actor, id, license)
+    ]);
+    if (!results[1].results.length) fail('Đơn không còn ở trạng thái chờ duyệt.', 409);
+    return json({ok: true, license_id: license});
+  }
+  if (path === '/api/admin/orders/reject') {
+    const reason = typeof data.reason === 'string' ? data.reason.replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, 200) : '';
+    const row = await env.DB.prepare("UPDATE orders SET status='rejected',decided=?,decided_by=?,reason=? WHERE id=? AND status='pending' RETURNING code").bind(now(), actor, reason, String(data.order_id || '')).first();
+    if (!row) fail('Đơn không còn ở trạng thái chờ duyệt.', 409);
+    await record(env, 'reject', actor, '', row.code + (reason ? ': ' + reason : '')).run();
+    return json({ok: true});
+  }
+  if (path === '/api/admin/licenses') {
+    const state = ['active', 'issued', 'pending', 'expired', 'revoked', 'all'].includes(data.status) ? data.status : 'all', q = search(data), c = cursor(data);
+    const rows = await env.DB.prepare(`SELECT licenses.id,licenses.identity,licenses.days,licenses.device_limit,licenses.created,licenses.expires,
+      ${LICENSE_STATE} AS status,(SELECT count(*) FROM devices WHERE license_id=licenses.id) AS devices,
+      (SELECT code FROM orders WHERE license_id=licenses.id) AS order_code FROM licenses
+      WHERE (?2='all' OR ${LICENSE_STATE}=?2) AND (?3='' OR licenses.identity LIKE ?4 ESCAPE '\\') AND (licenses.created<?5 OR (licenses.created=?5 AND licenses.id<?6))
+      ORDER BY licenses.created DESC,licenses.id DESC LIMIT 50`).bind(now(), state, q.text, q.like, c.created, c.id).all();
+    return json({licenses: rows.results});
+  }
+  if (path === '/api/admin/grant') {
+    const recipient = identity(data.identity), days = data.days, devices = data.device_limit;
+    if (!whole(days, 1, 3650) || !whole(devices, 1, 10)) fail('Thời hạn hoặc số thiết bị không hợp lệ.');
+    const id = crypto.randomUUID();
+    await env.DB.batch([
+      env.DB.prepare('INSERT INTO licenses(id,identity,days,device_limit,created) VALUES (?,?,?,?,?)').bind(id, recipient, days, devices, now()),
+      record(env, 'grant', actor, id, recipient)
+    ]);
+    return json({id, identity: recipient, days, device_limit: devices});
+  }
+  if (path === '/api/admin/revoke') {
+    const row = await env.DB.prepare('UPDATE licenses SET revoked=1 WHERE id=? AND revoked=0 RETURNING id,identity').bind(String(data.license_id || '')).first();
+    if (!row) fail('Không tìm thấy bản quyền còn hiệu lực.', 404);
+    await record(env, 'revoke', actor, row.id, row.identity).run();
+    return json({ok: true});
+  }
+  if (path === '/api/admin/reissue') {
+    // A key lost before activation is replaced, never shown again: clearing the digest lets the buyer fetch a new one.
+    const row = await env.DB.prepare('UPDATE licenses SET key_digest=NULL WHERE id=? AND key_digest IS NOT NULL AND owner_id IS NULL AND revoked=0 RETURNING id,identity').bind(String(data.license_id || '')).first();
+    if (!row) fail('Chỉ cấp lại được mã đã phát nhưng chưa kích hoạt.', 409);
+    await record(env, 'reissue', actor, row.id, row.identity).run();
+    return json({ok: true});
+  }
+  if (path === '/api/admin/plans') {
+    const rows = await env.DB.prepare('SELECT id,name,days,device_limit,price,active,created FROM plans ORDER BY active DESC,price,days').all();
+    return json({plans: rows.results});
+  }
+  if (path === '/api/admin/plans/save') {
+    const name = typeof data.name === 'string' ? data.name.replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, 80) : '';
+    if (!name || !whole(data.days, 1, 3650) || !whole(data.device_limit, 1, 10) || !whole(data.price, 0, 1000000000) || typeof data.active !== 'boolean') fail('Tên, số ngày (1–3650), số máy (1–10) hoặc giá chưa hợp lệ.');
+    const values = [name, data.days, data.device_limit, data.price, data.active ? 1 : 0];
+    let id = typeof data.id === 'string' && data.id ? data.id : null;
+    if (id) {
+      // Orders keep the plan as sold, so editing a plan never changes what earlier buyers paid for.
+      const row = await env.DB.prepare('UPDATE plans SET name=?,days=?,device_limit=?,price=?,active=? WHERE id=? RETURNING id').bind(...values, id).first();
+      if (!row) fail('Không tìm thấy gói.', 404);
+    } else {
+      id = crypto.randomUUID();
+      await env.DB.prepare('INSERT INTO plans(name,days,device_limit,price,active,id,created) VALUES (?,?,?,?,?,?,?)').bind(...values, id, now()).run();
+    }
+    await record(env, 'plan', actor, '', `${name} · ${data.days} ngày · ${data.device_limit} máy · ${data.price}đ${data.active ? '' : ' · tạm ẩn'}`).run();
+    return json({id});
+  }
+  if (path === '/api/admin/audit') {
+    const rows = await env.DB.prepare('SELECT action,license_id,created,actor,detail FROM audit ORDER BY id DESC LIMIT 100').all();
+    return json({audit: rows.results});
+  }
+  fail('Không tìm thấy.', 404);
+}
 async function api(request, env, url, origin) {
   const path = url.pathname;
   if (request.method !== 'POST') fail('Phương thức không được hỗ trợ.', 405);
@@ -99,35 +247,10 @@ async function api(request, env, url, origin) {
   const data = await body(request);
   const ip = request.headers.get('CF-Connecting-IP') || 'local';
   await limit(env, 'requests', ip, 180, 60);
-  if (path.startsWith('/api/admin/')) {
-    const supplied = request.headers.get('Authorization') || '';
-    if (!constantEqual(supplied, 'Bearer ' + env.ADMIN_TOKEN)) fail('Không có quyền quản trị.', 403);
-    if (path === '/api/admin/grant') {
-      const recipient = identity(data.identity), days = data.days, devices = data.device_limit;
-      if (!Number.isInteger(days) || days < 1 || days > 3650 || !Number.isInteger(devices) || devices < 1 || devices > 10) fail('Thời hạn hoặc số thiết bị không hợp lệ.');
-      const id = crypto.randomUUID();
-      await env.DB.batch([
-        env.DB.prepare('INSERT INTO licenses(id,identity,days,device_limit,created) VALUES (?,?,?,?,?)').bind(id, recipient, days, devices, now()),
-        env.DB.prepare('INSERT INTO audit(action,license_id,created) VALUES (?,?,?)').bind('grant', id, now())
-      ]);
-      return json({id, identity: recipient, days, device_limit: devices});
-    }
-    if (path === '/api/admin/revoke') {
-      const results = await env.DB.batch([
-        env.DB.prepare('UPDATE licenses SET revoked=1 WHERE id=? RETURNING id').bind(String(data.license_id || '')),
-        env.DB.prepare('INSERT INTO audit(action,license_id,created) SELECT ?,id,? FROM licenses WHERE id=?').bind('revoke', now(), String(data.license_id || ''))
-      ]);
-      if (!results[0].results.length) fail('Không tìm thấy bản quyền.', 404);
-      return json({ok: true});
-    }
-    if (path === '/api/admin/reissue') {
-      // A key lost before activation is replaced, never shown again: clearing the digest lets the buyer fetch a new one.
-      const row = await env.DB.prepare('UPDATE licenses SET key_digest=NULL WHERE id=? AND key_digest IS NOT NULL AND owner_id IS NULL AND revoked=0 RETURNING id').bind(String(data.license_id || '')).first();
-      if (!row) fail('Chỉ cấp lại được mã đã phát nhưng chưa kích hoạt.', 409);
-      await env.DB.prepare('INSERT INTO audit(action,license_id,created) VALUES (?,?,?)').bind('reissue', row.id, now()).run();
-      return json({ok: true});
-    }
-    fail('Không tìm thấy.', 404);
+  if (path.startsWith('/api/admin/')) return await admin(request, env, path, data);
+  if (path === '/api/plans') {
+    const rows = await env.DB.prepare('SELECT id,name,days,device_limit,price FROM plans WHERE active=1 ORDER BY price,days,name').all();
+    return json({plans: rows.results});
   }
   if (path === '/api/otp/request') {
     const recipient = identity(data.identity);
@@ -177,7 +300,31 @@ async function api(request, env, url, origin) {
       const devices = await env.DB.prepare('SELECT id,name,created,last_seen FROM devices WHERE license_id=?').bind(row.id).all();
       licenses.push({id: row.id, days: row.days, device_limit: row.device_limit, expires: row.expires, status: row.revoked ? 'revoked' : row.owner_id ? (row.expires > now() ? 'active' : 'expired') : row.key_digest ? 'issued' : 'pending', devices: devices.results});
     }
-    return json({identity: user.identity, licenses, download_url: /^https:\/\//.test(env.DOWNLOAD_URL || '') ? env.DOWNLOAD_URL : null});
+    const orders = await env.DB.prepare('SELECT id,code,plan_name,days,device_limit,price,note,status,created,decided,reason FROM orders WHERE user_id=? ORDER BY created DESC,id DESC LIMIT 20').bind(user.id).all();
+    return json({identity: user.identity, licenses, orders: orders.results, download_url: /^https:\/\//.test(env.DOWNLOAD_URL || '') ? env.DOWNLOAD_URL : null});
+  }
+  if (path === '/api/orders/create') {
+    await limit(env, 'order', user.id, 5, 3600);
+    const plan = await env.DB.prepare('SELECT * FROM plans WHERE id=? AND active=1').bind(String(data.plan_id || '')).first();
+    if (!plan) fail('Gói không còn mở bán. Tải lại trang để xem gói hiện có.', 404);
+    const waiting = await env.DB.prepare("SELECT count(*) AS n FROM orders WHERE user_id=? AND status='pending'").bind(user.id).first();
+    if (waiting.n >= 3) fail('Bạn đang có 3 đơn chờ duyệt. Chờ người bán duyệt hoặc hủy bớt đơn.', 409);
+    const note = typeof data.note === 'string' ? data.note.replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, 200) : '';
+    const id = crypto.randomUUID();
+    // The short code is what the buyer writes in the bank transfer, so the seller can match payment to order.
+    for (let attempt = 0; ; attempt++) {
+      const code = 'CZ' + random(4).toUpperCase();
+      try {
+        await env.DB.prepare('INSERT INTO orders(id,code,user_id,identity,plan_id,plan_name,days,device_limit,price,note,created) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
+          .bind(id, code, user.id, user.identity, plan.id, plan.name, plan.days, plan.device_limit, plan.price, note, now()).run();
+        return json({id, code, status: 'pending', plan_name: plan.name, price: plan.price});
+      } catch (error) { if (attempt >= 2 || !String(error).includes('UNIQUE')) throw error; }
+    }
+  }
+  if (path === '/api/orders/cancel') {
+    const row = await env.DB.prepare("UPDATE orders SET status='cancelled',decided=?,decided_by=? WHERE id=? AND user_id=? AND status='pending' RETURNING id").bind(now(), user.identity, String(data.order_id || ''), user.id).first();
+    if (!row) fail('Chỉ hủy được đơn của bạn đang chờ duyệt.', 409);
+    return json({ok: true});
   }
   if (path === '/api/licenses/key') {
     const raw = 'CZ-' + random(20).toUpperCase();
@@ -228,7 +375,8 @@ export default {
       if (url.pathname === '/health' && request.method === 'GET') return json({product: 'CunZoom Accounts'});
       if (url.pathname.startsWith('/api/')) return await api(request, env, url, origin);
       if (request.method !== 'GET') fail('Phương thức không được hỗ trợ.', 405);
-      const known = {'/': '/account.html', '/account.js': '/account.js', '/account.css': '/account.css', '/logo.svg': '/logo.svg'};
+      const known = {'/': '/account.html', '/account.js': '/account.js', '/account.css': '/account.css', '/logo.svg': '/logo.svg',
+        '/admin': '/admin.html', '/admin.js': '/admin.js', '/admin.css': '/admin.css'};
       if (!known[url.pathname]) fail('Không tìm thấy.', 404);
       const asset = await env.ASSETS.fetch(new Request(new URL(known[url.pathname], request.url)));
       if (!asset.ok) return json({error: 'Thiếu giao diện tài khoản.'}, 503);

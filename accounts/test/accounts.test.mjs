@@ -1,6 +1,6 @@
 import {after, before, test} from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {readFile, readdir} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {Miniflare} from 'miniflare';
 
@@ -36,7 +36,7 @@ before(async () => {
     compatibilityDate: '2026-08-01', d1Databases: {DB: 'accounts-test'},
     bindings: {PUBLIC_ORIGIN: 'http://localhost', OTP_SECRET: 'synthetic-otp-secret-for-tests-only-000000', ADMIN_TOKEN: admin,
       RESEND_API_KEY: 'synthetic-provider-key', EMAIL_FROM: 'Cún Zoom <test@example.com>', OTP_DAILY_LIMIT: '100',
-      SMS_ENABLED: 'false', DOWNLOAD_URL: 'https://example.com/download'},
+      SMS_ENABLED: 'false', DOWNLOAD_URL: 'https://example.com/download', ADMIN_IDENTITIES: 'Boss@Example.com, chief@example.com, not-an-identity'},
     serviceBindings: {ASSETS: async request => {
       const name = new URL(request.url).pathname.slice(1);
       const raw = await readFile(new URL('../../web/' + name, import.meta.url));
@@ -50,9 +50,12 @@ before(async () => {
     }
   });
   db = await mf.getD1Database('DB');
-  const schema = await readFile(new URL('../migrations/0001_accounts.sql', import.meta.url), 'utf8');
-  // D1 exec splits on lines; submit each complete migration statement instead.
-  for (const sql of schema.replace(/^--.*$/gm, '').split(/;\s*\n/).filter(s => s.trim())) await db.prepare(sql).run();
+  // Every migration in order, as `wrangler d1 migrations apply` would. D1 exec splits on lines; submit whole statements.
+  const folder = new URL('../migrations/', import.meta.url);
+  for (const name of (await readdir(folder)).filter(n => n.endsWith('.sql')).sort()) {
+    const schema = await readFile(new URL(name, folder), 'utf8');
+    for (const sql of schema.replace(/^--.*$/gm, '').split(/;\s*\n/).filter(s => s.trim())) await db.prepare(sql).run();
+  }
 });
 after(async () => { await mf?.dispose(); });
 
@@ -182,4 +185,77 @@ test('host, origin, content type, oversized body and asset access are checked', 
   assert.equal((await mf.dispatchFetch('http://localhost/app.js')).status, 404);
   const page = await mf.dispatchFetch('http://localhost/'); assert.equal(page.status, 200);
   assert.ok(!(await page.text()).includes('__TOKEN__'));
+  const console = await mf.dispatchFetch('http://localhost/admin'); assert.equal(console.status, 200);
+  assert.match(await console.text(), /admin\.js/);
+});
+
+async function plan(fields = {}) {
+  const saved = await call('admin/plans/save', {name: 'Gói 30 ngày', days: 30, device_limit: 2, price: 199000, active: true, ...fields}, admin);
+  assert.equal(saved.status, 200, JSON.stringify(saved.value)); return saved.value.id;
+}
+test('a buyer orders a plan; one approval grants exactly one licence the buyer can activate', async () => {
+  const planId = await plan();
+  assert.ok((await call('plans', {})).value.plans.some(p => p.id === planId && p.price === 199000));
+  const buyer = await login('buyer@example.com');
+  const order = await call('orders/create', {plan_id: planId, note: 'Chuyển khoản\nVCB 0123'}, buyer.token);
+  assert.equal(order.status, 200); assert.match(order.value.code, /^CZ[0-9A-F]{8}$/);
+  const mine = await call('me', {}, buyer.token);
+  assert.equal(mine.value.orders[0].status, 'pending'); assert.equal(mine.value.orders[0].note, 'Chuyển khoản VCB 0123');
+  // Buyers and non-listed accounts never reach the console; listed admins do, through the same OTP.
+  assert.equal((await call('admin/orders', {}, buyer.token)).status, 403);
+  assert.equal((await call('admin/me', {}, 'not-a-token')).status, 403);
+  const boss = await login('boss@example.com');
+  assert.equal((await call('admin/me', {}, boss.token)).value.identity, 'boss@example.com');
+  const pending = await call('admin/orders', {status: 'pending'}, boss.token);
+  assert.ok(pending.value.orders.some(o => o.id === order.value.id && o.identity === 'buyer@example.com'));
+  const decided = await Promise.all([call('admin/orders/approve', {order_id: order.value.id}, boss.token), call('admin/orders/approve', {order_id: order.value.id}, boss.token)]);
+  assert.deepEqual(decided.map(r => r.status).sort(), [200, 409]);
+  assert.equal((await call('admin/orders/reject', {order_id: order.value.id}, boss.token)).status, 409);
+  const after = await call('me', {}, buyer.token);
+  assert.equal(after.value.orders[0].status, 'approved');
+  assert.equal(after.value.licenses.length, 1);
+  assert.deepEqual([after.value.licenses[0].days, after.value.licenses[0].device_limit], [30, 2]);
+  const key = await call('licenses/key', {license_id: after.value.licenses[0].id}, buyer.token);
+  assert.equal((await call('licenses/redeem', {key: key.value.key}, buyer.token)).status, 200);
+  const audit = await call('admin/audit', {}, boss.token);
+  assert.ok(audit.value.audit.some(a => a.action === 'approve' && a.actor === 'boss@example.com' && a.detail === order.value.code));
+  const listed = await call('admin/licenses', {query: 'buyer@'}, boss.token);
+  assert.equal(listed.value.licenses[0].status, 'active'); assert.equal(listed.value.licenses[0].order_code, order.value.code);
+});
+test('orders can be rejected or cancelled once, are capped per buyer and searched safely', async () => {
+  const open = await plan({name: 'Gói 90 ngày', days: 90, price: 499000}), hidden = await plan({name: 'Gói cũ', active: false});
+  const buyer = await login('many@example.com'), other = await login('nosy@example.com');
+  assert.equal((await call('orders/create', {plan_id: hidden}, buyer.token)).status, 404);
+  const ids = [];
+  for (let i = 0; i < 3; i++) ids.push((await call('orders/create', {plan_id: open}, buyer.token)).value);
+  assert.equal((await call('orders/create', {plan_id: open}, buyer.token)).status, 409);
+  assert.equal((await call('orders/cancel', {order_id: ids[0].id}, other.token)).status, 409);
+  assert.equal((await call('orders/cancel', {order_id: ids[0].id}, buyer.token)).status, 200);
+  assert.equal((await call('orders/cancel', {order_id: ids[0].id}, buyer.token)).status, 409);
+  assert.equal((await call('admin/orders/reject', {order_id: ids[1].id, reason: 'Chưa nhận được tiền'}, admin)).status, 200);
+  const mine = (await call('me', {}, buyer.token)).value.orders;
+  assert.equal(mine.find(o => o.id === ids[1].id).reason, 'Chưa nhận được tiền');
+  assert.equal(mine.find(o => o.id === ids[0].id).status, 'cancelled');
+  const byCode = await call('admin/orders', {status: 'all', query: ids[2].code.toLowerCase()}, admin);
+  assert.deepEqual(byCode.value.orders.map(o => o.id), [ids[2].id]);
+  assert.equal((await call('admin/orders', {status: 'all', query: '%'}, admin)).value.orders.length, 0);
+  assert.equal((await call('admin/plans/save', {name: 'Sai', days: 30, device_limit: 2, price: -1, active: true}, admin)).status, 400);
+});
+test('overview counts orders, revenue, new users and licences by Vietnam day', async () => {
+  const result = await call('admin/overview', {days: 7}, admin);
+  assert.equal(result.status, 200);
+  const {series, totals, orders, licenses} = result.value;
+  assert.equal(series.length, 7);
+  assert.equal(series.at(-1).date, new Date(Date.now() + 7 * 3600000).toISOString().slice(0, 10));
+  assert.equal(totals.revenue, series.reduce((sum, d) => sum + d.revenue, 0));
+  assert.ok(totals.revenue >= 199000 && totals.sales >= 1 && totals.new_users >= 1);
+  assert.equal(orders.pending, series.reduce((sum, d) => sum + d.pending, 0));
+  assert.ok(licenses.active >= 1 && licenses.revoked >= 1);
+});
+test('admin console sessions end after 12 hours even though the session lasts longer', async () => {
+  const chief = await login('chief@example.com');
+  assert.equal((await call('admin/me', {}, chief.token)).status, 200);
+  await db.prepare("UPDATE sessions SET expires=expires-13*3600 WHERE user_id=(SELECT id FROM users WHERE identity='chief@example.com')").run();
+  assert.equal((await call('admin/me', {}, chief.token)).status, 401);
+  assert.equal((await call('me', {}, chief.token)).status, 200);
 });

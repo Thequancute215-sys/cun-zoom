@@ -182,17 +182,17 @@ flowchart LR
 | --- | --- | --- |
 | 1. Đọc trạng thái bàn giao trước tiếp tục | Claude Code đọc AGENTS, đặc tả bàn giao và tài khoản; phân biệt mã/test local với production, giữ khác biệt Word về offline và dừng ghi chờ quyết định. | [CLAUDE.md](../CLAUDE.md#L1) |
 | 2. Dispatch theo môi trường production riêng | Workflow không tự chạy khi push; dùng environment accounts-production, concurrency không cancel, vars công khai và secret Cloudflare. | [.github/workflows/accounts-deploy.yml](../.github/workflows/accounts-deploy.yml#L1) |
-| 3. Cài dependency và kiểm tra secret bắt buộc | Node 24/npm ci/test chạy trước; kiểm thiếu Cloudflare và OTP/admin/Resend bindings mà không in giá trị. | [.github/workflows/accounts-deploy.yml](../.github/workflows/accounts-deploy.yml#L25) |
+| 3. Cài dependency và kiểm tra secret bắt buộc | Node 24/npm ci/test chạy trước; kiểm thiếu Cloudflare và OTP/admin/Resend bindings mà không in giá trị. | [.github/workflows/accounts-deploy.yml](../.github/workflows/accounts-deploy.yml#L26) |
 | 4. Sinh cấu hình công khai từ biến đã kiểm tra | Script kiểm HTTPS origin, UUID D1, sender, download HTTPS và tên worker ASCII; ghi cấu hình ignored .wrangler/production.json, SMS tắt, không ghi credentials. | [accounts/configure-production.mjs](../accounts/configure-production.mjs#L7) |
-| 5. Dry-run, migration rồi deploy | Sau sinh config, workflow dry-run bundle, áp dụng migration remote và deploy. Mã workflow không là bằng chứng đã chạy thật. | [.github/workflows/accounts-deploy.yml](../.github/workflows/accounts-deploy.yml#L47) |
-| 6. Nạp secrets qua stdin | Worker secrets lấy từ GitHub environment, truyền JSON vào wrangler secret bulk qua pipe; không đặt giá trị lên argv. | [.github/workflows/accounts-deploy.yml](../.github/workflows/accounts-deploy.yml#L53) |
-| 7. Kiểm tra health và giữ nghiệm thu thật riêng | Fetch origin/health không redirect, timeout 15s, yêu cầu product đúng; health đạt vẫn cần OTP/thanh toán thủ công/thiết bị/revoke nghiệm thu riêng. | [.github/workflows/accounts-deploy.yml](../.github/workflows/accounts-deploy.yml#L67) |
+| 5. Dry-run, migration rồi deploy | Sau sinh config, workflow dry-run bundle, áp dụng migration remote và deploy. Mã workflow không là bằng chứng đã chạy thật. | [.github/workflows/accounts-deploy.yml](../.github/workflows/accounts-deploy.yml#L48) |
+| 6. Nạp secrets qua stdin | Worker secrets lấy từ GitHub environment, truyền JSON vào wrangler secret bulk qua pipe; không đặt giá trị lên argv. | [.github/workflows/accounts-deploy.yml](../.github/workflows/accounts-deploy.yml#L54) |
+| 7. Kiểm tra health và giữ nghiệm thu thật riêng | Fetch origin/health không redirect, timeout 15s, yêu cầu product đúng; health đạt vẫn cần OTP/thanh toán thủ công/thiết bị/revoke nghiệm thu riêng. | [.github/workflows/accounts-deploy.yml](../.github/workflows/accounts-deploy.yml#L68) |
 
 </details>
 
 ### Tài khoản và bản quyền
 
-Portal Workers/D1 phục vụ OTP, phiên, gói được người bán cấp thủ công, key dùng một lần và quản lý thiết bị. Đây là mã và kiểm thử local; cấu hình production hiện còn placeholder, chưa chứng minh gửi OTP thật hoặc thanh toán tự động.
+Portal Workers/D1 phục vụ OTP, phiên, đơn đặt mua chờ người bán duyệt, gói, key dùng một lần và quản lý thiết bị; trang /admin cho người bán duyệt đơn, cấp gói và xem số liệu. Đây là mã và kiểm thử local; chưa chạy production, chưa gửi OTP thật, chưa có thanh toán tự động.
 
 <details>
 <summary>Cấu hình dịch vụ tài khoản và bản thương mại</summary>
@@ -220,7 +220,7 @@ flowchart LR
 | --- | --- | --- |
 | 1. Điền D1 và origin của portal | wrangler dùng assets run_worker_first; D1 ID đang là placeholder, localhost origin và SMS tắt. Đây chưa phải production đã cấu hình. | [accounts/wrangler.jsonc](../accounts/wrangler.jsonc#L1) |
 | 2. Kiểm tra bí mật và origin trước phục vụ | Worker yêu cầu OTP_SECRET/ADMIN_TOKEN đủ dài, origin HTTPS ngoài local và Host khớp; lỗi cấu hình trả 503. | [accounts/worker.mjs](../accounts/worker.mjs#L26) |
-| 3. Giới hạn assets cho tài khoản | Worker chỉ cho trang tài khoản/account.js/account.css/logo và health; không mở giao diện app đầy đủ trên website. | [accounts/worker.mjs](../accounts/worker.mjs#L223) |
+| 3. Giới hạn assets cho tài khoản | Worker chỉ cho trang tài khoản/account.js/account.css/logo và health; không mở giao diện app đầy đủ trên website. | [accounts/worker.mjs](../accounts/worker.mjs#L370) |
 | 4. Áp dụng schema và chạy triển khai riêng | package cung cấp migration local/remote và deploy; workflow riêng tổ chức việc chạy chúng khi được dispatch. Chưa xác nhận các lệnh đã chạy production. | [accounts/package.json](../accounts/package.json#L5) |
 | 5. Đóng gói origin công khai trong exe | Chỉ --accounts-url hợp lệ mới tạo accounts-config.json và thêm vào bundle; CI hiện gọi build.py không truyền tùy chọn này. | [scripts/build.py](../scripts/build.py#L12) |
 | 6. Chọn dịch vụ khi mở ứng dụng | Exe frozen dùng origin đóng gói; source/Docker có thể dùng biến môi trường. Không có cấu hình thì bản cộng đồng không bật chốt license. | [src/account_client.py](../src/account_client.py#L27) |
@@ -256,11 +256,11 @@ flowchart LR
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
 | 1. Nhập danh tính ở website hoặc app | Một UI dùng API portal/cookie hoặc proxy local desktop; email/SĐT chuẩn hóa, không có đăng nhập Google OAuth. | [web/account.js](../web/account.js#L3) |
-| 2. Giới hạn gửi OTP và ngân sách | Tối đa 1/phút, 5/giờ/danh tính, 15/giờ/IP và hạn mức global/ngày; yêu cầu vẫn tính ngân sách khi gửi lỗi. | [accounts/worker.mjs](../accounts/worker.mjs#L132) |
-| 3. Tạo OTP có hạn và vô hiệu mã cũ | OTP sáu số rejection sampling, HMAC gắn challenge, hết hạn 300 giây; vô hiệu challenge cũ và dọn dữ liệu hết hạn. | [accounts/worker.mjs](../accounts/worker.mjs#L141) |
+| 2. Giới hạn gửi OTP và ngân sách | Tối đa 1/phút, 5/giờ/danh tính, 15/giờ/IP và hạn mức global/ngày; yêu cầu vẫn tính ngân sách khi gửi lỗi. | [accounts/worker.mjs](../accounts/worker.mjs#L255) |
+| 3. Tạo OTP có hạn và vô hiệu mã cũ | OTP sáu số rejection sampling, HMAC gắn challenge, hết hạn 300 giây; vô hiệu challenge cũ và dọn dữ liệu hết hạn. | [accounts/worker.mjs](../accounts/worker.mjs#L264) |
 | 4. Gửi qua nhà cung cấp khi đã cấu hình | Email dùng Resend, SMS Twilio chỉ khi bật/có secret; timeout 10 giây. Gửi lỗi vô hiệu challenge và báo lỗi, không trả OTP. | [accounts/worker.mjs](../accounts/worker.mjs#L60) |
-| 5. Giới hạn thử và tiêu thụ OTP nguyên tử | Tăng attempts trước kiểm HMAC, tối đa năm lần; conditional update chỉ cho một yêu cầu claim được mã. | [accounts/worker.mjs](../accounts/worker.mjs#L154) |
-| 6. Tạo user và phiên bảy ngày | DB chỉ giữ digest session; web nhận cookie HttpOnly/SameSite Strict/Secure trên HTTPS, desktop nhận token riêng. | [accounts/worker.mjs](../accounts/worker.mjs#L162) |
+| 5. Giới hạn thử và tiêu thụ OTP nguyên tử | Tăng attempts trước kiểm HMAC, tối đa năm lần; conditional update chỉ cho một yêu cầu claim được mã. | [accounts/worker.mjs](../accounts/worker.mjs#L277) |
+| 6. Tạo user và phiên bảy ngày | DB chỉ giữ digest session; web nhận cookie HttpOnly/SameSite Strict/Secure trên HTTPS, desktop nhận token riêng. | [accounts/worker.mjs](../accounts/worker.mjs#L285) |
 | 7. Giữ token desktop trong vault mã hóa | Proxy local yêu cầu client desktop, xác minh token, giữ device_id và license cũ khi cùng danh tính rồi mã hóa account.vault. | [src/account_client.py](../src/account_client.py#L150) |
 | 8. Thu hồi phiên và xóa đăng nhập local | Worker xóa session hiện tại; client cuối cùng xóa credentials/cache và giữ device_id kể cả khi logout mạng lỗi. | [src/account_client.py](../src/account_client.py#L171) |
 
@@ -269,7 +269,7 @@ flowchart LR
 <details>
 <summary>Cấp gói thủ công và lấy key một lần</summary>
 
-Người bán xác nhận mua qua kênh riêng rồi dùng CLI cấp gói đúng danh tính; chưa có cổng thanh toán. User tự lấy key chỉ một lần, DB không giữ bản rõ.
+Người bán cấp gói đúng danh tính bằng CLI hoặc trang /admin (trực tiếp, hoặc khi duyệt đơn của khách); chưa có cổng thanh toán tự động. User tự lấy key chỉ một lần, DB không giữ bản rõ.
 
 **Bắt đầu:** node accounts/admin.mjs grant; POST /api/licenses/key
 
@@ -290,11 +290,11 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Người bán dùng token quản trị ngoài argv | CLI đọc ADMIN_TOKEN từ môi trường, kiểm origin HTTPS ngoài local và nhận grant/revoke/reissue. | [accounts/admin.mjs](../accounts/admin.mjs#L1) |
-| 2. Cấp thời hạn và số thiết bị | Worker kiểm Bearer quản trị, danh tính, 1–3650 ngày, 1–10 máy; tạo license chưa owner/chưa expires và audit grant. | [accounts/worker.mjs](../accounts/worker.mjs#L102) |
+| 1. Người bán dùng token quản trị ngoài argv | CLI đọc ADMIN_TOKEN từ môi trường, kiểm origin HTTPS ngoài local và nhận grant/revoke/reissue. Trang /admin làm cùng việc bằng phiên OTP của danh tính quản trị. | [accounts/admin.mjs](../accounts/admin.mjs#L1) |
+| 2. Cấp thời hạn và số thiết bị | Worker kiểm quyền quản trị (ADMIN_TOKEN hoặc phiên quản trị), danh tính, 1–3650 ngày, 1–10 máy; tạo license chưa owner/chưa expires và audit grant kèm người thao tác. | [accounts/worker.mjs](../accounts/worker.mjs#L194) |
 | 3. Lưu trạng thái gói trong D1 | Schema tách identity, key_digest duy nhất, owner, số ngày, số máy, hạn và revoked; không có bảng thanh toán tự động. | [accounts/migrations/0001_accounts.sql](../accounts/migrations/0001_accounts.sql#L11) |
-| 4. Liệt kê gói và trạng thái | /me trả pending/issued/active/expired/revoked, thiết bị và download_url HTTPS; tài khoản mới không tự có gói. | [accounts/worker.mjs](../accounts/worker.mjs#L173) |
-| 5. Cấp key bản rõ duy nhất một lần | UPDATE có điều kiện chỉ khi đúng identity, chưa key/owner, chưa revoked; key 160 bit CZ- chỉ có trong response, DB giữ SHA-256. | [accounts/worker.mjs](../accounts/worker.mjs#L182) |
+| 4. Liệt kê gói và trạng thái | /me trả gói pending/issued/active/expired/revoked, thiết bị, 20 đơn gần nhất và download_url HTTPS; tài khoản mới không tự có gói. | [accounts/worker.mjs](../accounts/worker.mjs#L296) |
+| 5. Cấp key bản rõ duy nhất một lần | UPDATE có điều kiện chỉ khi đúng identity, chưa key/owner, chưa revoked; key 160 bit CZ- chỉ có trong response, DB giữ SHA-256. | [accounts/worker.mjs](../accounts/worker.mjs#L329) |
 | 6. Hiển thị và xóa key khỏi giao diện | UI cho sao chép, ẩn hoặc redeem; không lưu key/token vào localStorage, pagehide/logout xóa key. Mất key trước khi kích hoạt: người bán chạy reissue (có audit) để key cũ hết hiệu lực và khách lấy key mới. | [web/account.js](../web/account.js#L34) |
 
 </details>
@@ -323,11 +323,11 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Dùng key đúng danh tính một lần | Kiểm format/key hash và owner trống bằng UPDATE có điều kiện; expires tính từ now + days. Cùng chủ sở hữu gửi lại (mất phản hồi, hai yêu cầu song song) nhận lại đúng kết quả cũ, không cộng hạn; tài khoản khác bị từ chối. | [accounts/worker.mjs](../accounts/worker.mjs#L189) |
-| 2. Đăng ký thiết bị của user đang có gói | Kiểm gói còn hạn/chưa revoke, device_id và tên; INSERT/UPDATE thiết bị thuộc license của user. | [accounts/worker.mjs](../accounts/worker.mjs#L201) |
+| 1. Dùng key đúng danh tính một lần | Kiểm format/key hash và owner trống bằng UPDATE có điều kiện; expires tính từ now + days. Cùng chủ sở hữu gửi lại (mất phản hồi, hai yêu cầu song song) nhận lại đúng kết quả cũ, không cộng hạn; tài khoản khác bị từ chối. | [accounts/worker.mjs](../accounts/worker.mjs#L336) |
+| 2. Đăng ký thiết bị của user đang có gói | Kiểm gói còn hạn/chưa revoke, device_id và tên; INSERT/UPDATE thiết bị thuộc license của user. | [accounts/worker.mjs](../accounts/worker.mjs#L348) |
 | 3. Khóa giới hạn máy tại cơ sở dữ liệu | Trigger BEFORE INSERT đếm theo license, bỏ qua máy đã tồn tại; giữ giới hạn khi hai kích hoạt đồng thời. | [accounts/migrations/0001_accounts.sql](../accounts/migrations/0001_accounts.sql#L19) |
 | 4. Lưu gói đang dùng trên máy | Client lưu license_id nhận từ server, bỏ cache và xác minh trực tuyến trước trả thành công. | [src/account_client.py](../src/account_client.py#L180) |
-| 5. Gỡ máy thuộc gói của mình | Worker chỉ xóa device trong license user sở hữu; UI cho danh sách từng máy và xác nhận gỡ. | [accounts/worker.mjs](../accounts/worker.mjs#L210) |
+| 5. Gỡ máy thuộc gói của mình | Worker chỉ xóa device trong license user sở hữu; UI cho danh sách từng máy và xác nhận gỡ. | [accounts/worker.mjs](../accounts/worker.mjs#L357) |
 | 6. Mở ứng dụng sau chọn dùng trên máy | Chỉ desktop có nút Dùng trên máy này và luôn có nút Vào Cún Zoom; portal cung cấp tải app/gói/thiết bị, không chạy bot từ website. | [web/account.js](../web/account.js#L19) |
 
 </details>
@@ -356,12 +356,54 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Kiểm tra gói, owner và máy trực tuyến | Worker yêu cầu session hợp lệ, owner đúng, revoked=0, expires còn hạn và device hiện diện; cập nhật last_seen, trả recheck_after 60. | [accounts/worker.mjs](../accounts/worker.mjs#L215) |
+| 1. Kiểm tra gói, owner và máy trực tuyến | Worker yêu cầu session hợp lệ, owner đúng, revoked=0, expires còn hạn và device hiện diện; cập nhật last_seen, trả recheck_after 60. | [accounts/worker.mjs](../accounts/worker.mjs#L362) |
 | 2. Chỉ cache quyền tối đa sáu mươi giây | Client cache theo monotonic và hạn gói; giao diện, status và vòng nền chỉ đọc cache, kiểm tra mạng chạy nền một lần mỗi lúc, lỗi thì thử lại sau 15 giây. Chỉ thao tác trả phí (require) chờ server; thiếu credentials, phản hồi sai, mạng lỗi hoặc hết hạn là chưa có quyền. | [src/account_client.py](../src/account_client.py#L94) |
 | 3. Chốt UI/API ứng dụng | Account actions được truy cập trước license. Chỉ PAID_ROUTES (ghi Zoom, kiểm tra SDK, kết nối Zoom, lịch, tải model/SDK, kiểm tra AI, đồng bộ Ôn tập, tạo đề), bật theo dõi lịch và tải tài liệu lên cần bản quyền; xem, đọc, tải/xuất, cấu hình, ngắt kết nối và dừng luôn được. Trang chính luôn mở, kèm thông báo và link /account. | [src/server.py](../src/server.py#L185) |
 | 4. Tạm dừng watcher khi mất quyền | Service gắn account.authorized (chỉ đọc cache) cho watcher lịch và engine ôn tập; chúng kiểm lại mỗi vòng/job, tạm dừng chép lời và AI khi chưa có quyền, không hủy yêu cầu AI đã gửi. | [src/server.py](../src/server.py#L77) |
 | 5. Không cắt buổi đang ghi | Không còn watchdog: buổi đang ghi chạy tiếp đến khi người dùng dừng hoặc buổi kết thúc, kể cả khi bản quyền hết hạn hoặc mất mạng; bản chép lời của buổi đó vẫn được tạo. Khi khởi động, dịch vụ chỉ bắt đầu kiểm tra bản quyền ngầm. | [src/server.py](../src/server.py#L536) |
-| 6. Người bán thu hồi gói và ghi audit | Admin revoke cập nhật revoked=1 và audit cùng batch; key chưa dùng và gói đã active đều không qua kiểm tra tiếp theo. Admin reissue chỉ xóa digest của key đã phát chưa kích hoạt và ghi audit. | [accounts/worker.mjs](../accounts/worker.mjs#L115) |
+| 6. Người bán thu hồi gói và ghi audit | Admin revoke cập nhật revoked=1 và audit cùng batch; key chưa dùng và gói đã active đều không qua kiểm tra tiếp theo. Admin reissue chỉ xóa digest của key đã phát chưa kích hoạt và ghi audit. | [accounts/worker.mjs](../accounts/worker.mjs#L204) |
+
+</details>
+
+<details>
+<summary>Quản trị bán hàng</summary>
+
+Khách đặt đơn theo gói; người bán đăng nhập /admin bằng OTP để duyệt đơn (tự cấp gói), cấp/thu hồi/cấp lại mã, quản lý gói và xem doanh thu, đơn, người dùng, bản quyền theo ngày. Chưa có thanh toán tự động: người bán tự đối chiếu chuyển khoản.
+
+**Bắt đầu:** GET /admin; POST /api/orders/create
+
+```mermaid
+flowchart LR
+  s1["1 · Lưu gói bán, đơn và người thao tác"]
+  s2["2 · Chỉ danh tính quản trị vào được"]
+  s1 --> s2
+  s3["3 · Khách chọn gói và gửi đơn"]
+  s2 --> s3
+  s4["4 · Duyệt hoặc từ chối đơn"]
+  s3 --> s4
+  s5["5 · Cấp, thu hồi và cấp lại mã trên trang"]
+  s4 --> s5
+  s6["6 · Quản lý gói bán"]
+  s5 --> s6
+  s7["7 · Tổng hợp số liệu theo ngày Việt Nam"]
+  s6 --> s7
+  s8["8 · Biểu đồ và bảng số liệu"]
+  s7 --> s8
+  s9["9 · Nhật ký thao tác"]
+  s8 --> s9
+```
+
+| Bước | Thực hiện | Mã nguồn |
+| --- | --- | --- |
+| 1. Lưu gói bán, đơn và người thao tác | Migration 0002 thêm bảng plans và orders (mã CK duy nhất, ảnh chụp giá/số ngày/số máy lúc đặt, trạng thái pending/approved/rejected/cancelled, license đã cấp) và cột actor/detail cho audit. | [accounts/migrations/0002_orders.sql](../accounts/migrations/0002_orders.sql#L1) |
+| 2. Chỉ danh tính quản trị vào được | Trang /admin đăng nhập bằng OTP như khách; Worker chỉ nhận danh tính có trong ADMIN_IDENTITIES và phiên tạo chưa quá 12 giờ. CLI vẫn dùng ADMIN_TOKEN; token sai dạng bị từ chối. | [accounts/worker.mjs](../accounts/worker.mjs#L96) |
+| 3. Khách chọn gói và gửi đơn | Trang tài khoản (web hoặc desktop qua proxy) liệt kê gói đang bán; khách gửi đơn kèm ghi chú, nhận mã CK để ghi khi chuyển khoản. Tối đa 3 đơn chờ, 5 lần đặt mỗi giờ; khách tự hủy được đơn đang chờ. | [accounts/worker.mjs](../accounts/worker.mjs#L306) |
+| 4. Duyệt hoặc từ chối đơn | Người bán đối chiếu mã CK với sao kê rồi duyệt: một batch D1 tạo license từ ảnh chụp đơn, chuyển đơn sang approved và ghi audit; duyệt lần hai hay song song bị 409. Từ chối lưu lý do để khách thấy. | [accounts/worker.mjs](../accounts/worker.mjs#L167) |
+| 5. Cấp, thu hồi và cấp lại mã trên trang | Tab Bản quyền tìm theo danh tính/trạng thái, cấp gói trực tiếp, thu hồi gói, cấp lại mã đã phát chưa kích hoạt. Trang không bao giờ thấy mã bản rõ. | [web/admin.js](../web/admin.js#L269) |
+| 6. Quản lý gói bán | Thêm, sửa, tạm ẩn gói (tên, số ngày, số máy, giá đồng). Sửa gói không đổi đơn đã đặt vì mỗi đơn giữ ảnh chụp lúc mua. | [accounts/worker.mjs](../accounts/worker.mjs#L221) |
+| 7. Tổng hợp số liệu theo ngày Việt Nam | Overview gộp trong một batch: đơn theo trạng thái và ngày đặt, doanh thu theo ngày duyệt, người dùng mới, gói theo trạng thái, thiết bị hoạt động 7 ngày; cửa sổ 7/30/90 ngày tính theo UTC+7. | [accounts/worker.mjs](../accounts/worker.mjs#L128) |
+| 8. Biểu đồ và bảng số liệu | Ô số liệu (đơn chờ duyệt nổi bật), cột doanh thu, cột chồng đơn theo trạng thái, đường người dùng mới, thanh ngang gói theo trạng thái. SVG thuần theo CSP, màu theo bảng đã kiểm tra mù màu, tooltip khi rê chuột, chế độ sáng/tối và bảng số liệu dưới mỗi biểu đồ. | [web/admin.js](../web/admin.js#L93) |
+| 9. Nhật ký thao tác | Mọi thao tác cấp, thu hồi, cấp lại, duyệt, từ chối và lưu gói ghi người thao tác (danh tính hoặc cli) và chi tiết; tab Nhật ký xem 100 dòng gần nhất. Không ghi key, OTP hay token. | [accounts/worker.mjs](../accounts/worker.mjs#L237) |
 
 </details>
 

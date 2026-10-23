@@ -21,6 +21,7 @@ jobs:
       ACCOUNTS_EMAIL_FROM: ${{ vars.ACCOUNTS_EMAIL_FROM }}
       ACCOUNTS_DOWNLOAD_URL: ${{ vars.ACCOUNTS_DOWNLOAD_URL }}
       ACCOUNTS_WORKER_NAME: ${{ vars.ACCOUNTS_WORKER_NAME }}
+      ACCOUNTS_ADMIN_IDENTITIES: ${{ vars.ACCOUNTS_ADMIN_IDENTITIES }}
       WRANGLER_SEND_METRICS: 'false'
     steps:
       - uses: actions/checkout@v4

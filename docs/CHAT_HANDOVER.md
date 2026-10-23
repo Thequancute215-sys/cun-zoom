@@ -15,6 +15,7 @@
   - Kiểm tra bản quyền không còn chặn giao diện khi mất mạng.
   - P0 trong Word: `_chunks` giữ đủ ký tự, tài liệu dài được chia như bản chép lời, gộp theo tầng khi vượt ngân sách; dấu vân tay theo nội dung cho bản chép lời và tài liệu (đọc lại bytes khi khởi động hoặc Đồng bộ lại). P0 "tài liệu rỗng gọi AI" đã được 2.2.1 sửa.
   - Test Worker chạy được trên Windows.
+  - **Trang quản trị bán hàng `/admin`** (xem [ACCOUNTS.md](ACCOUNTS.md)): khách đặt đơn theo gói với mã CK; người bán đăng nhập OTP (chỉ `ADMIN_IDENTITIES`, phiên 12 giờ) để duyệt/từ chối đơn, cấp/thu hồi/cấp lại mã, quản lý gói, xem nhật ký và biểu đồ doanh thu/đơn/người dùng/bản quyền. Migration `0002_orders.sql`, biến `ACCOUNTS_ADMIN_IDENTITIES` trong workflow deploy. Đã thử bằng dữ liệu giả lập trong Miniflare và Edge headless; chưa chạy trên Cloudflare thật.
 - **Vẫn chờ chủ sản phẩm chốt:** OTP không mật khẩu hay thêm Google/mật khẩu; lease offline; hạn gói tính từ lúc cấp hay lúc kích hoạt; chính sách chuyển máy và khôi phục; danh sách thao tác tính là trả phí; đổi model AI có tự hệ thống hoá lại toàn bộ hay không (đang **không**, vì tốn phí).
 - **Chưa làm:** staging/production thật, gửi OTP thật, build EXE với `--accounts-url`, thanh toán, và các mục P1/P2 còn lại ở mục 8.
 

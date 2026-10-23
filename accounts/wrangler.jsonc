@@ -10,7 +10,8 @@
     "EMAIL_FROM": "",
     "SMS_ENABLED": "false",
     "OTP_DAILY_LIMIT": "100",
-    "DOWNLOAD_URL": "https://github.com/Thequancute215-sys/cun-zoom/releases"
+    "DOWNLOAD_URL": "https://github.com/Thequancute215-sys/cun-zoom/releases",
+    "ADMIN_IDENTITIES": ""
   },
   "observability": { "enabled": false }
 }

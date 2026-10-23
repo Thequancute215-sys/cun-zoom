@@ -47,7 +47,39 @@ async function refresh() {
     }
     el('licenses').append(card);
   }
+  await paintOrders(account.orders || []);
 }
+const money = n => new Intl.NumberFormat('vi-VN').format(n) + ' đ';
+const ORDER_LABELS = {pending: 'Chờ người bán duyệt', approved: 'Đã duyệt · gói đã cấp', rejected: 'Bị từ chối', cancelled: 'Bạn đã hủy'};
+async function paintOrders(orders) {
+  const {plans} = await api('plans');
+  el('plans').replaceChildren(); el('order-form').hidden = !plans.length; el('no-plans').hidden = !!plans.length;
+  plans.forEach((plan, index) => {
+    const option = text('label', '', 'plan'), radio = document.createElement('input');
+    radio.type = 'radio'; radio.name = 'plan'; radio.value = plan.id; radio.required = true; radio.checked = index === 0;
+    const body = text('span', ''); body.append(text('b', plan.name), text('span', `${plan.days} ngày · ${plan.device_limit} máy`), text('strong', money(plan.price)));
+    option.append(radio, body); el('plans').append(option);
+  });
+  el('orders').replaceChildren();
+  if (!orders.length) el('orders').append(text('p', 'Chưa có đơn nào.', 'help'));
+  for (const order of orders) {
+    const row = text('div', '', 'order'), info = text('div', '');
+    info.append(text('b', `${order.plan_name} · ${money(order.price)}`), text('span', `Mã đơn ${order.code} · ${new Date(order.created * 1000).toLocaleString('vi-VN')}`));
+    if (order.reason) info.append(text('span', 'Lý do: ' + order.reason));
+    row.append(info, text('span', ORDER_LABELS[order.status] || order.status, 'pill'));
+    if (order.status === 'pending') row.append(button('Hủy đơn', async () => {
+      if (!confirm(`Hủy đơn ${order.code}? Nếu đã chuyển khoản, hãy liên hệ người bán thay vì hủy.`)) return;
+      await api('orders/cancel', {order_id: order.id}); await refresh();
+    }, true));
+    el('orders').append(row);
+  }
+}
+el('order-form').onsubmit = busy(async () => {
+  const chosen = document.querySelector('input[name="plan"]:checked');
+  const result = await api('orders/create', {plan_id: chosen?.value, note: el('order-note').value});
+  el('order-note').value = ''; await refresh();
+  notice(`Đã gửi đơn ${result.code}. Ghi mã ${result.code} vào nội dung chuyển khoản ${money(result.price)}; người bán duyệt xong, gói sẽ hiện ở trên.`);
+});
 el('identity-form').onsubmit = busy(async () => {
   recipient = el('identity').value.trim(); const result = await api('otp/request', {identity: recipient}); challenge = result.challenge;
   el('identity-form').hidden = true; el('otp-form').hidden = false; el('otp').value = ''; el('otp-recipient').textContent = 'Mã xác minh đã gửi tới ' + recipient; el('otp').focus();

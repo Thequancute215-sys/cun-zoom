@@ -70,6 +70,15 @@ class AccountClientTests(unittest.TestCase):
             self.assertFalse(self.client.authorized())
             self.assertEqual(request.call_count, 1)
 
+    def test_desktop_forwards_orders_but_never_admin_routes(self):
+        with patch.object(self.client, 'request', return_value={'plans': []}) as request:
+            for route in ('plans', 'orders/create', 'orders/cancel'):
+                self.client.action(route, {'plan_id': 'p'})
+                self.assertEqual(request.call_args[0][0], route)
+            for route in ('admin/grant', 'admin/orders/approve', 'admin/overview'):
+                with self.assertRaises(account_client.AccountError): self.client.action(route, {})
+            self.assertEqual(request.call_count, 3)
+
     def test_expired_or_wrong_license_is_rejected(self):
         self.client.credentials = {'token': 'a'*64, 'device_id': 'b'*32, 'license_id': 'license'}
         for result in ({'active': True, 'license_id': 'other', 'expires': 9999999999}, {'active': True, 'license_id': 'license', 'expires': 0}, {'active': False}):

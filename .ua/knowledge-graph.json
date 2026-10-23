@@ -19,8 +19,8 @@
       "Docker"
     ],
     "description": "Bản đồ cấp file và import Python được trích từ AST; không phải graph toàn bộ hàm. Ứng dụng học tập local trên Windows/Docker: đọc lịch, ghi Zoom khi có quyền, chép lời và ôn tập tùy chọn AI; portal tài khoản/OTP/key/thiết bị riêng đang ở mức nguồn và kiểm thử local, chưa xác nhận triển khai production.",
-    "analyzedAt": "2026-10-23T21:29:12.988976+00:00",
-    "gitCommitHash": "9b663d8e093fc475e8ccb363287a77832226fbb8"
+    "analyzedAt": "2026-10-23T21:45:34.289133+00:00",
+    "gitCommitHash": "9d48413b6c85efe719bc5d5ffeaa4ebc1743df09"
   },
   "nodes": [
     {
@@ -50,7 +50,7 @@
       "filePath": ".github/workflows/accounts-deploy.yml",
       "lineRange": [
         1,
-        74
+        75
       ]
     },
     {
@@ -200,7 +200,7 @@
       "filePath": "accounts/configure-production.mjs",
       "lineRange": [
         1,
-        40
+        43
       ]
     },
     {
@@ -216,6 +216,21 @@
       "lineRange": [
         1,
         30
+      ]
+    },
+    {
+      "id": "file:accounts/migrations/0002_orders.sql",
+      "type": "file",
+      "name": "accounts/migrations/0002_orders.sql",
+      "summary": "Khai báo phụ thuộc hoặc giấy phép: accounts/migrations/0002_orders.sql.",
+      "tags": [
+        "service"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/migrations/0002_orders.sql",
+      "lineRange": [
+        1,
+        25
       ]
     },
     {
@@ -260,7 +275,7 @@
       "filePath": "accounts/test/accounts.test.mjs",
       "lineRange": [
         1,
-        185
+        261
       ]
     },
     {
@@ -275,7 +290,7 @@
       "filePath": "accounts/worker.mjs",
       "lineRange": [
         1,
-        241
+        389
       ]
     },
     {
@@ -290,7 +305,7 @@
       "filePath": "accounts/wrangler.jsonc",
       "lineRange": [
         1,
-        16
+        17
       ]
     },
     {
@@ -335,7 +350,7 @@
       "filePath": "docs/ACCOUNTS.md",
       "lineRange": [
         1,
-        89
+        102
       ]
     },
     {
@@ -350,7 +365,7 @@
       "filePath": "docs/CHAT_HANDOVER.md",
       "lineRange": [
         1,
-        745
+        746
       ]
     },
     {
@@ -1010,7 +1025,7 @@
       "filePath": "tests/test_accounts.py",
       "lineRange": [
         1,
-        157
+        166
       ]
     },
     {
@@ -1190,7 +1205,7 @@
       "filePath": "web/account.css",
       "lineRange": [
         1,
-        1
+        2
       ]
     },
     {
@@ -1205,7 +1220,7 @@
       "filePath": "web/account.html",
       "lineRange": [
         1,
-        29
+        30
       ]
     },
     {
@@ -1220,7 +1235,52 @@
       "filePath": "web/account.js",
       "lineRange": [
         1,
-        64
+        96
+      ]
+    },
+    {
+      "id": "file:web/admin.css",
+      "type": "file",
+      "name": "web/admin.css",
+      "summary": "Khai báo phụ thuộc hoặc giấy phép: web/admin.css.",
+      "tags": [
+        "interface"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/admin.css",
+      "lineRange": [
+        1,
+        127
+      ]
+    },
+    {
+      "id": "file:web/admin.html",
+      "type": "file",
+      "name": "web/admin.html",
+      "summary": "Khai báo phụ thuộc hoặc giấy phép: web/admin.html.",
+      "tags": [
+        "interface"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/admin.html",
+      "lineRange": [
+        1,
+        97
+      ]
+    },
+    {
+      "id": "file:web/admin.js",
+      "type": "file",
+      "name": "web/admin.js",
+      "summary": "Khai báo phụ thuộc hoặc giấy phép: web/admin.js.",
+      "tags": [
+        "interface"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/admin.js",
+      "lineRange": [
+        1,
+        343
       ]
     },
     {
@@ -2099,6 +2159,9 @@
         "file:web/account.css",
         "file:web/account.html",
         "file:web/account.js",
+        "file:web/admin.css",
+        "file:web/admin.html",
+        "file:web/admin.js",
         "file:web/app.js",
         "file:web/fonts.css",
         "file:web/fonts/OFL-inter.txt",
@@ -2117,6 +2180,7 @@
       "description": "API, truy cập, lịch, dữ liệu và thiết lập.",
       "nodeIds": [
         "file:accounts/migrations/0001_accounts.sql",
+        "file:accounts/migrations/0002_orders.sql",
         "file:accounts/worker.mjs",
         "file:src/access_control.py",
         "file:src/account_client.py",
@@ -2233,6 +2297,9 @@
         "file:web/account.css",
         "file:web/account.html",
         "file:web/account.js",
+        "file:web/admin.css",
+        "file:web/admin.html",
+        "file:web/admin.js",
         "file:web/app.js",
         "file:web/fonts.css",
         "file:web/fonts/OFL-inter.txt",
@@ -2251,6 +2318,7 @@
       "description": "API, truy cập, lịch, dữ liệu và thiết lập.",
       "nodeIds": [
         "file:accounts/migrations/0001_accounts.sql",
+        "file:accounts/migrations/0002_orders.sql",
         "file:accounts/worker.mjs",
         "file:src/access_control.py",
         "file:src/account_client.py",

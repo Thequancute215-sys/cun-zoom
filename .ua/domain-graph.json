@@ -18,8 +18,8 @@
       "Docker"
     ],
     "description": "Ứng dụng học tập local trên Windows/Docker: đọc lịch, ghi Zoom khi có quyền, chép lời và ôn tập tùy chọn AI; portal tài khoản/OTP/key/thiết bị riêng đang ở mức nguồn và kiểm thử local, chưa xác nhận triển khai production.",
-    "analyzedAt": "2026-10-23T21:29:12.988976+00:00",
-    "gitCommitHash": "9b663d8e093fc475e8ccb363287a77832226fbb8"
+    "analyzedAt": "2026-10-23T21:45:34.289133+00:00",
+    "gitCommitHash": "9d48413b6c85efe719bc5d5ffeaa4ebc1743df09"
   },
   "nodes": [
     {
@@ -54,7 +54,7 @@
       "id": "domain:tai-khoan-ban-quyen",
       "type": "domain",
       "name": "Tài khoản và bản quyền",
-      "summary": "Portal Workers/D1 phục vụ OTP, phiên, gói được người bán cấp thủ công, key dùng một lần và quản lý thiết bị. Đây là mã và kiểm thử local; cấu hình production hiện còn placeholder, chưa chứng minh gửi OTP thật hoặc thanh toán tự động.",
+      "summary": "Portal Workers/D1 phục vụ OTP, phiên, đơn đặt mua chờ người bán duyệt, gói, key dùng một lần và quản lý thiết bị; trang /admin cho người bán duyệt đơn, cấp gói và xem số liệu. Đây là mã và kiểm thử local; chưa chạy production, chưa gửi OTP thật, chưa có thanh toán tự động.",
       "tags": [
         "tai-khoan-ban-quyen"
       ],
@@ -64,7 +64,9 @@
           "Danh tính email/SĐT",
           "OTP",
           "Phiên",
-          "Gói",
+          "Gói bán",
+          "Đơn hàng",
+          "Gói đã cấp",
           "Key",
           "Thiết bị",
           "Audit"
@@ -74,11 +76,13 @@
           "Mã OTP không mật khẩu là hành vi hiện có, lựa chọn sản phẩm còn chờ chốt",
           "Key chỉ trả bản rõ một lần, kích hoạt một lần đúng danh tính",
           "Thời hạn bắt đầu lúc redeem; số thiết bị do DB ràng buộc",
-          "Không chứa SDK, dữ liệu buổi học hoặc khóa Zoom/AI"
+          "Không chứa SDK, dữ liệu buổi học hoặc khóa Zoom/AI",
+          "Đơn giữ nguyên tên, giá, số ngày và số máy lúc đặt; duyệt đơn cấp đúng một gói trong một transaction",
+          "Chỉ danh tính trong ADMIN_IDENTITIES vào /admin; phiên quản trị tối đa 12 giờ"
         ],
         "crossDomainInteractions": [
-          "Client lưu phiên trong vault và chốt các thao tác app",
-          "Watchdog dừng bot khi mất quyền; chính sách offline/giữa buổi còn cần chốt với đề xuất mới"
+          "Client lưu phiên trong vault, chỉ chặn thao tác trả phí khi chưa có quyền và không cắt buổi đang ghi",
+          "Khách đặt đơn từ website hoặc trang tài khoản trong ứng dụng desktop; người bán duyệt trên /admin"
         ]
       }
     },
@@ -661,7 +665,7 @@
       "filePath": "accounts/wrangler.jsonc",
       "lineRange": [
         1,
-        16
+        17
       ]
     },
     {
@@ -692,8 +696,8 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        223,
-        241
+        370,
+        389
       ]
     },
     {
@@ -787,8 +791,8 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        132,
-        141
+        255,
+        264
       ]
     },
     {
@@ -803,8 +807,8 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        141,
-        149
+        264,
+        272
       ]
     },
     {
@@ -835,8 +839,8 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        154,
-        162
+        277,
+        285
       ]
     },
     {
@@ -851,8 +855,8 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        162,
-        171
+        285,
+        294
       ]
     },
     {
@@ -891,7 +895,7 @@
       "id": "flow:cap-goi-va-key",
       "type": "flow",
       "name": "Cấp gói thủ công và lấy key một lần",
-      "summary": "Người bán xác nhận mua qua kênh riêng rồi dùng CLI cấp gói đúng danh tính; chưa có cổng thanh toán. User tự lấy key chỉ một lần, DB không giữ bản rõ.",
+      "summary": "Người bán cấp gói đúng danh tính bằng CLI hoặc trang /admin (trực tiếp, hoặc khi duyệt đơn của khách); chưa có cổng thanh toán tự động. User tự lấy key chỉ một lần, DB không giữ bản rõ.",
       "tags": [
         "tai-khoan-ban-quyen",
         "cap-goi-va-key"
@@ -906,7 +910,7 @@
       "id": "step:cap-goi-va-key:operator",
       "type": "step",
       "name": "Người bán dùng token quản trị ngoài argv",
-      "summary": "CLI đọc ADMIN_TOKEN từ môi trường, kiểm origin HTTPS ngoài local và nhận grant/revoke/reissue.",
+      "summary": "CLI đọc ADMIN_TOKEN từ môi trường, kiểm origin HTTPS ngoài local và nhận grant/revoke/reissue. Trang /admin làm cùng việc bằng phiên OTP của danh tính quản trị.",
       "tags": [
         "tai-khoan-ban-quyen",
         "cap-goi-va-key"
@@ -922,7 +926,7 @@
       "id": "step:cap-goi-va-key:grant",
       "type": "step",
       "name": "Cấp thời hạn và số thiết bị",
-      "summary": "Worker kiểm Bearer quản trị, danh tính, 1–3650 ngày, 1–10 máy; tạo license chưa owner/chưa expires và audit grant.",
+      "summary": "Worker kiểm quyền quản trị (ADMIN_TOKEN hoặc phiên quản trị), danh tính, 1–3650 ngày, 1–10 máy; tạo license chưa owner/chưa expires và audit grant kèm người thao tác.",
       "tags": [
         "tai-khoan-ban-quyen",
         "cap-goi-va-key"
@@ -930,8 +934,8 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        102,
-        114
+        194,
+        202
       ]
     },
     {
@@ -954,7 +958,7 @@
       "id": "step:cap-goi-va-key:overview",
       "type": "step",
       "name": "Liệt kê gói và trạng thái",
-      "summary": "/me trả pending/issued/active/expired/revoked, thiết bị và download_url HTTPS; tài khoản mới không tự có gói.",
+      "summary": "/me trả gói pending/issued/active/expired/revoked, thiết bị, 20 đơn gần nhất và download_url HTTPS; tài khoản mới không tự có gói.",
       "tags": [
         "tai-khoan-ban-quyen",
         "cap-goi-va-key"
@@ -962,8 +966,8 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        173,
-        181
+        296,
+        304
       ]
     },
     {
@@ -978,8 +982,8 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        182,
-        188
+        329,
+        335
       ]
     },
     {
@@ -995,7 +999,7 @@
       "filePath": "web/account.js",
       "lineRange": [
         34,
-        63
+        95
       ]
     },
     {
@@ -1025,8 +1029,8 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        189,
-        200
+        336,
+        346
       ]
     },
     {
@@ -1041,8 +1045,8 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        201,
-        209
+        348,
+        356
       ]
     },
     {
@@ -1089,8 +1093,8 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        210,
-        214
+        357,
+        361
       ]
     },
     {
@@ -1136,8 +1140,8 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        215,
-        220
+        362,
+        367
       ]
     },
     {
@@ -1216,8 +1220,8 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        115,
-        122
+        204,
+        210
       ]
     },
     {
@@ -2470,7 +2474,7 @@
       "filePath": ".github/workflows/accounts-deploy.yml",
       "lineRange": [
         1,
-        24
+        25
       ]
     },
     {
@@ -2485,8 +2489,8 @@
       "complexity": "moderate",
       "filePath": ".github/workflows/accounts-deploy.yml",
       "lineRange": [
-        25,
-        46
+        26,
+        47
       ]
     },
     {
@@ -2502,7 +2506,7 @@
       "filePath": "accounts/configure-production.mjs",
       "lineRange": [
         7,
-        39
+        42
       ]
     },
     {
@@ -2517,8 +2521,8 @@
       "complexity": "moderate",
       "filePath": ".github/workflows/accounts-deploy.yml",
       "lineRange": [
-        47,
-        52
+        48,
+        53
       ]
     },
     {
@@ -2533,8 +2537,8 @@
       "complexity": "moderate",
       "filePath": ".github/workflows/accounts-deploy.yml",
       "lineRange": [
-        53,
-        66
+        54,
+        67
       ]
     },
     {
@@ -2549,8 +2553,167 @@
       "complexity": "moderate",
       "filePath": ".github/workflows/accounts-deploy.yml",
       "lineRange": [
-        67,
-        74
+        68,
+        75
+      ]
+    },
+    {
+      "id": "flow:quan-tri-ban-hang",
+      "type": "flow",
+      "name": "Quản trị bán hàng",
+      "summary": "Khách đặt đơn theo gói; người bán đăng nhập /admin bằng OTP để duyệt đơn (tự cấp gói), cấp/thu hồi/cấp lại mã, quản lý gói và xem doanh thu, đơn, người dùng, bản quyền theo ngày. Chưa có thanh toán tự động: người bán tự đối chiếu chuyển khoản.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "quan-tri-ban-hang"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "GET /admin; POST /api/orders/create",
+        "entryType": "manual"
+      }
+    },
+    {
+      "id": "step:quan-tri-ban-hang:du-lieu",
+      "type": "step",
+      "name": "Lưu gói bán, đơn và người thao tác",
+      "summary": "Migration 0002 thêm bảng plans và orders (mã CK duy nhất, ảnh chụp giá/số ngày/số máy lúc đặt, trạng thái pending/approved/rejected/cancelled, license đã cấp) và cột actor/detail cho audit.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "quan-tri-ban-hang"
+      ],
+      "complexity": "simple",
+      "filePath": "accounts/migrations/0002_orders.sql",
+      "lineRange": [
+        1,
+        25
+      ]
+    },
+    {
+      "id": "step:quan-tri-ban-hang:dang-nhap",
+      "type": "step",
+      "name": "Chỉ danh tính quản trị vào được",
+      "summary": "Trang /admin đăng nhập bằng OTP như khách; Worker chỉ nhận danh tính có trong ADMIN_IDENTITIES và phiên tạo chưa quá 12 giờ. CLI vẫn dùng ADMIN_TOKEN; token sai dạng bị từ chối.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "quan-tri-ban-hang"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/worker.mjs",
+      "lineRange": [
+        96,
+        113
+      ]
+    },
+    {
+      "id": "step:quan-tri-ban-hang:dat-don",
+      "type": "step",
+      "name": "Khách chọn gói và gửi đơn",
+      "summary": "Trang tài khoản (web hoặc desktop qua proxy) liệt kê gói đang bán; khách gửi đơn kèm ghi chú, nhận mã CK để ghi khi chuyển khoản. Tối đa 3 đơn chờ, 5 lần đặt mỗi giờ; khách tự hủy được đơn đang chờ.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "quan-tri-ban-hang"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/worker.mjs",
+      "lineRange": [
+        306,
+        326
+      ]
+    },
+    {
+      "id": "step:quan-tri-ban-hang:duyet-don",
+      "type": "step",
+      "name": "Duyệt hoặc từ chối đơn",
+      "summary": "Người bán đối chiếu mã CK với sao kê rồi duyệt: một batch D1 tạo license từ ảnh chụp đơn, chuyển đơn sang approved và ghi audit; duyệt lần hai hay song song bị 409. Từ chối lưu lý do để khách thấy.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "quan-tri-ban-hang"
+      ],
+      "complexity": "complex",
+      "filePath": "accounts/worker.mjs",
+      "lineRange": [
+        167,
+        185
+      ]
+    },
+    {
+      "id": "step:quan-tri-ban-hang:cap-goi",
+      "type": "step",
+      "name": "Cấp, thu hồi và cấp lại mã trên trang",
+      "summary": "Tab Bản quyền tìm theo danh tính/trạng thái, cấp gói trực tiếp, thu hồi gói, cấp lại mã đã phát chưa kích hoạt. Trang không bao giờ thấy mã bản rõ.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "quan-tri-ban-hang"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/admin.js",
+      "lineRange": [
+        269,
+        300
+      ]
+    },
+    {
+      "id": "step:quan-tri-ban-hang:goi-ban",
+      "type": "step",
+      "name": "Quản lý gói bán",
+      "summary": "Thêm, sửa, tạm ẩn gói (tên, số ngày, số máy, giá đồng). Sửa gói không đổi đơn đã đặt vì mỗi đơn giữ ảnh chụp lúc mua.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "quan-tri-ban-hang"
+      ],
+      "complexity": "simple",
+      "filePath": "accounts/worker.mjs",
+      "lineRange": [
+        221,
+        235
+      ]
+    },
+    {
+      "id": "step:quan-tri-ban-hang:so-lieu",
+      "type": "step",
+      "name": "Tổng hợp số liệu theo ngày Việt Nam",
+      "summary": "Overview gộp trong một batch: đơn theo trạng thái và ngày đặt, doanh thu theo ngày duyệt, người dùng mới, gói theo trạng thái, thiết bị hoạt động 7 ngày; cửa sổ 7/30/90 ngày tính theo UTC+7.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "quan-tri-ban-hang"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/worker.mjs",
+      "lineRange": [
+        128,
+        154
+      ]
+    },
+    {
+      "id": "step:quan-tri-ban-hang:bieu-do",
+      "type": "step",
+      "name": "Biểu đồ và bảng số liệu",
+      "summary": "Ô số liệu (đơn chờ duyệt nổi bật), cột doanh thu, cột chồng đơn theo trạng thái, đường người dùng mới, thanh ngang gói theo trạng thái. SVG thuần theo CSP, màu theo bảng đã kiểm tra mù màu, tooltip khi rê chuột, chế độ sáng/tối và bảng số liệu dưới mỗi biểu đồ.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "quan-tri-ban-hang"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/admin.js",
+      "lineRange": [
+        93,
+        217
+      ]
+    },
+    {
+      "id": "step:quan-tri-ban-hang:nhat-ky",
+      "type": "step",
+      "name": "Nhật ký thao tác",
+      "summary": "Mọi thao tác cấp, thu hồi, cấp lại, duyệt, từ chối và lưu gói ghi người thao tác (danh tính hoặc cli) và chi tiết; tab Nhật ký xem 100 dòng gần nhất. Không ghi key, OTP hay token.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "quan-tri-ban-hang"
+      ],
+      "complexity": "simple",
+      "filePath": "accounts/worker.mjs",
+      "lineRange": [
+        237,
+        238
       ]
     }
   ],
@@ -3670,6 +3833,76 @@
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.7
+    },
+    {
+      "source": "domain:tai-khoan-ban-quyen",
+      "target": "flow:quan-tri-ban-hang",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:quan-tri-ban-hang",
+      "target": "step:quan-tri-ban-hang:du-lieu",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.1
+    },
+    {
+      "source": "flow:quan-tri-ban-hang",
+      "target": "step:quan-tri-ban-hang:dang-nhap",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:quan-tri-ban-hang",
+      "target": "step:quan-tri-ban-hang:dat-don",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:quan-tri-ban-hang",
+      "target": "step:quan-tri-ban-hang:duyet-don",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:quan-tri-ban-hang",
+      "target": "step:quan-tri-ban-hang:cap-goi",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:quan-tri-ban-hang",
+      "target": "step:quan-tri-ban-hang:goi-ban",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:quan-tri-ban-hang",
+      "target": "step:quan-tri-ban-hang:so-lieu",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "flow:quan-tri-ban-hang",
+      "target": "step:quan-tri-ban-hang:bieu-do",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "flow:quan-tri-ban-hang",
+      "target": "step:quan-tri-ban-hang:nhat-ky",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.9
     }
   ],
   "layers": [],

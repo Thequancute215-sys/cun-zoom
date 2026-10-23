@@ -2,6 +2,8 @@
 OTP_SECRET=
 ADMIN_TOKEN=
 RESEND_API_KEY=
+# Emails/E.164 numbers, comma separated, that may open /admin after their OTP sign-in.
+ADMIN_IDENTITIES=
 # Optional SMS; keep SMS_ENABLED=false until a sender and budget are configured.
 TWILIO_ACCOUNT_SID=
 TWILIO_AUTH_TOKEN=
