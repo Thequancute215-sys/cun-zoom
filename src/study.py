@@ -13,6 +13,7 @@ from pathlib import Path
 import re
 import threading
 import time
+import urllib.parse
 import uuid
 
 import ai_backend as ai
@@ -71,9 +72,10 @@ OUTLINE_SCHEMA = _object({
     'ke_hoach_on': {'type': 'array', 'items': _object({'buoc': _string(), 'noi_dung': _string()})}})
 EXAM_SCHEMA = _object({
     'tieu_de': _string(), 'thoi_gian_phut': {'type': 'integer'},
-    'trac_nghiem': {'type': 'array', 'items': _object({'cau': _string(), 'lua_chon': _strings(), 'dap_an': _enum('ABCD'),
+    # 'noi_dung_cau_hoi', not 'cau': local models read 'cau' as the question number and leave the question out.
+    'trac_nghiem': {'type': 'array', 'items': _object({'noi_dung_cau_hoi': _string(), 'lua_chon': _strings(), 'dap_an': _enum('ABCD'),
                                                         'giai_thich': _string(), 'do_kho': _enum(DIFFICULTY), 'chu_de': _string()})},
-    'tu_luan': {'type': 'array', 'items': _object({'cau': _string(), 'diem': {'type': 'number'}, 'do_kho': _enum(DIFFICULTY),
+    'tu_luan': {'type': 'array', 'items': _object({'noi_dung_cau_hoi': _string(), 'diem': {'type': 'number'}, 'do_kho': _enum(DIFFICULTY),
                                                     'chu_de': _string(), 'goi_y_cham': _strings()})}})
 MIX = {'can_bang': 'khoảng 40% cơ bản, 40% trung bình, 20% nâng cao',
        'co_ban': 'khoảng 60% cơ bản, 30% trung bình, 10% nâng cao',
@@ -168,6 +170,9 @@ def transcription_state(folder):
     newest = max(p.stat().st_mtime for p in media)
     if transcript and transcript.stat().st_mtime >= newest:
         return 'done'
+    if status.get('state') == 'completed' and (folder / '02_Tom_tat/trang_thai.json').stat().st_mtime >= newest:
+        # Silent media leaves an empty transcript; running it again would hear nothing again.
+        return 'done'
     if status.get('state') == 'processing':
         try:
             started = datetime.fromisoformat(status['time']).timestamp()
@@ -243,7 +248,7 @@ def analyze_session(subject, folder, config=None):
         raise ai.AIError('Buổi học chưa có bản chép lời, slide hay tài liệu để hệ thống hoá.')
     meta = _read_json(folder / 'buoi_hoc.json') or {}
     header = 'Môn: ' + subject.name + '\nBuổi: ' + str(meta.get('title') or folder.name) + '\nNgày: ' + str(meta.get('requested', ''))[:10]
-    warnings, files, extra = [], [], []
+    warnings, files, extra, documents_read = [], [], [], False
     transcription = transcription_state(folder)
     if transcription == 'failed':
         warnings.append('Chưa chép lời được âm thanh của buổi này; ghi chú chỉ dựa trên slide và tài liệu.')
@@ -256,6 +261,7 @@ def analyze_session(subject, folder, config=None):
         if parts:
             files.append(path.name)
             extra.extend(parts)
+            documents_read = documents_read or documents.kind(path) != 'image'
     slides = _slides(folder)
     if slides and config['provider'] == 'claude':
         step = max(1, len(slides) // SLIDE_IMAGES)
@@ -266,6 +272,10 @@ def analyze_session(subject, folder, config=None):
         warnings.append(str(len(slides)) + ' ảnh slide chưa được đọc vì mô hình Ollama dùng chữ; dùng Claude để đọc slide.')
     transcript = _transcript(folder)
     text = transcript.read_text(encoding='utf-8', errors='replace') if transcript else ''
+    # Never let the AI write notes from the lesson title alone: it would invent the whole lesson.
+    if not text.strip() and not extra:
+        raise ai.AIError('Không có nội dung đọc được để hệ thống hoá buổi này. ' + ' '.join(warnings))
+    images_only = not text.strip() and not documents_read
     task = ('Hệ thống hoá buổi học: tóm tắt, chia kiến thức thành các nhóm theo chủ đề, mỗi mục ghi loại, độ liên quan, '
             'độ khó và nguồn (chép lời, slide hoặc tên tài liệu). Liệt kê thuật ngữ, bài tập/hạn nộp được nhắc, câu hỏi ôn tập '
             'và chỗ cần kiểm tra lại.')
@@ -274,7 +284,7 @@ def analyze_session(subject, folder, config=None):
         parts = [{'kind': 'text', 'text': header + '\n\n' + task}] + extra
         if text:
             parts.append({'kind': 'text', 'text': 'Bản chép lời bài giảng:\n' + text})
-        result = ai.generate(SYSTEM, parts, SESSION_SCHEMA, 'medium', config)
+        result = ai.generate(SYSTEM, parts, SESSION_SCHEMA, 'medium', config, images_required=images_only)
     else:
         # Too long for one request (mostly local models): note each part, then merge the notes.
         pieces = list(_chunks(text, limit // 2)) + [p['text'] for p in extra if p['kind'] == 'text']
@@ -370,6 +380,22 @@ def make_outline(subject, config=None):
     return result
 
 
+def _exam_questions(result):
+    """Questions with real text; a multiple-choice stem that only names a topic becomes 'which statement is true about it'."""
+    for question in result.get('trac_nghiem', []) + result.get('tu_luan', []):
+        question['cau'] = str(question.pop('noi_dung_cau_hoi', '')).strip()
+    asked = lambda q: len(q['cau']) > 3 and not q['cau'].rstrip('.').isdigit()
+    choice = []
+    for question in result.get('trac_nghiem', []):
+        if not asked(question) or len(question.get('lua_chon', [])) != 4:
+            continue
+        stem = question['cau']
+        if not stem.endswith(('?', ':', '…', '...')) and len(stem.split()) <= 6:
+            question['cau'] = 'Phát biểu nào sau đây đúng về ' + (stem[0].lower() if stem[1:2].islower() else stem[0]) + stem[1:] + '?'
+        choice.append(question)
+    return choice, [q for q in result.get('tu_luan', []) if asked(q)]
+
+
 def make_exam(subject, multiple_choice=20, essays=3, mix='can_bang', config=None):
     config = config or ai.settings()
     multiple_choice = max(0, min(60, int(multiple_choice)))
@@ -377,13 +403,30 @@ def make_exam(subject, multiple_choice=20, essays=3, mix='can_bang', config=None
     if not multiple_choice and not essays:
         raise ai.AIError('Chọn ít nhất một câu trắc nghiệm hoặc tự luận.')
     data, knowledge = _knowledge_text(subject)
-    task = ('Soạn đề thi thử môn "' + subject.name + '" chỉ từ hệ thống kiến thức đã cho: ' + str(multiple_choice) + ' câu trắc nghiệm '
-            '(đúng 4 lựa chọn, ghi nội dung lựa chọn không kèm chữ A-D, một đáp án đúng, giải thích ngắn) và ' + str(essays) + ' câu tự luận '
-            '(thang điểm, gợi ý chấm theo ý). Độ khó ' + MIX.get(mix, MIX['can_bang']) + '. Ưu tiên mục cốt lõi và quan trọng, trải đều các '
-            'nhóm, không hỏi ngoài tài liệu. Ghi chủ đề (tên nhóm) và độ khó cho từng câu, ước lượng thời gian làm bài.')
-    # Knowledge first, task last: the knowledge block stays cached between the outline and repeated exams.
-    result = ai.generate(SYSTEM, [{'kind': 'text', 'text': knowledge}, {'kind': 'text', 'text': task}], EXAM_SCHEMA, 'high', config)
-    result['trac_nghiem'] = [q for q in result.get('trac_nghiem', []) if len(q.get('lua_chon', [])) == 4]
+
+    def ask(choices, essays_wanted, existing):
+        task = ('Soạn đề thi thử môn "' + subject.name + '" chỉ từ hệ thống kiến thức đã cho: ' + str(choices) + ' câu trắc nghiệm '
+                '(đúng 4 lựa chọn, ghi nội dung lựa chọn không kèm chữ A-D, một đáp án đúng, giải thích ngắn) và ' + str(essays_wanted) + ' câu tự luận '
+                '(thang điểm, gợi ý chấm theo ý). Mỗi câu ghi đề bài đầy đủ trong noi_dung_cau_hoi, là một câu hỏi hoàn chỉnh, không chỉ tên '
+                'chủ đề. Độ khó ' + MIX.get(mix, MIX['can_bang']) + '. Ưu tiên mục cốt lõi và quan trọng, trải đều các '
+                'nhóm, không hỏi ngoài tài liệu. Ghi chủ đề (tên nhóm) và độ khó cho từng câu, ước lượng thời gian làm bài.')
+        if existing:
+            task += ' Không lặp lại các câu đã có: ' + json.dumps(existing, ensure_ascii=False)
+        # Knowledge first, task last: the knowledge block stays cached between the outline and repeated exams.
+        return ai.generate(SYSTEM, [{'kind': 'text', 'text': knowledge}, {'kind': 'text', 'text': task}], EXAM_SCHEMA, 'high', config)
+
+    result = ask(multiple_choice, essays, [])
+    choice, written = _exam_questions(result)
+    missing = (multiple_choice - len(choice), essays - len(written))
+    if max(missing) > 0:
+        # Local models often stop short of the requested count; ask once more for the rest.
+        more_choice, more_written = _exam_questions(ask(max(missing[0], 0), max(missing[1], 0), [q['cau'] for q in choice + written]))
+        seen = {q['cau'] for q in choice + written}
+        choice += [q for q in more_choice if q['cau'] not in seen][:max(missing[0], 0)]
+        written += [q for q in more_written if q['cau'] not in seen][:max(missing[1], 0)]
+    result['trac_nghiem'], result['tu_luan'] = choice, written
+    if not result['trac_nghiem'] and not result['tu_luan']:
+        raise ai.AIError('AI không soạn được câu hỏi hợp lệ. Thử lại hoặc dùng mô hình lớn hơn.')
     stamp = datetime.now().strftime('%Y%m%d-%H%M%S')
     result['_meta'] = {'id': stamp, 'base': data.get('_meta', {}).get('fingerprint'), 'created': datetime.now().isoformat(timespec='seconds'),
                        'ai': _ai_label(config), 'mix': mix}
@@ -424,6 +467,16 @@ def _badge(item):
     return '[' + RELEVANCE.get(item.get('do_lien_quan'), '?') + ' · ' + DIFFICULTY.get(item.get('do_kho'), '?') + ' · ' + TYPES.get(item.get('loai'), '?') + ']'
 
 
+def _link(relative):
+    # Folder names hold spaces and Vietnamese; encode the target so Markdown viewers keep it a working link.
+    return '[' + relative + '](../' + urllib.parse.quote(relative) + ')'
+
+
+def _inert(markdown):
+    """Model text must not become an image or HTML that a Markdown viewer loads from the web without a click."""
+    return markdown.replace('<', '\\<').replace('![', '!\\[')
+
+
 def session_markdown(subject, data):
     lines = ['# ' + (data.get('tieu_de') or 'Hệ thống hoá buổi học'), '', 'Môn: ' + subject + ' · Tạo bởi ' + data['_meta']['ai'] + ' · ' + data['_meta']['created'], '',
              '## Tóm tắt', '', data.get('tom_tat', ''), '']
@@ -437,7 +490,7 @@ def session_markdown(subject, data):
         if values:
             lines += ['## ' + title, ''] + ['- ' + v for v in values] + ['']
     lines.append('_Bản do AI hệ thống hoá từ bài giảng; đối chiếu với slide và giáo trình trước khi học thuộc._')
-    return '\n'.join(lines) + '\n'
+    return _inert('\n'.join(lines) + '\n')
 
 
 def subject_markdown(subject, data):
@@ -451,8 +504,8 @@ def subject_markdown(subject, data):
     lines += ['## Ghi chú từng buổi', '']
     for item in sessions(subject):
         notes = item['folder'] / (SESSION_NOTES + '.md')
-        lines.append('- ' + item['label'] + (': [' + notes.relative_to(subject).as_posix() + '](../' + notes.relative_to(subject).as_posix() + ')' if notes.is_file() else ': chưa hệ thống hoá'))
-    return '\n'.join(lines) + '\n'
+        lines.append('- ' + item['label'] + (': ' + _link(notes.relative_to(subject).as_posix()) if notes.is_file() else ': chưa hệ thống hoá'))
+    return _inert('\n'.join(lines) + '\n')
 
 
 def outline_markdown(subject, data):
@@ -465,7 +518,7 @@ def outline_markdown(subject, data):
         lines.append('')
     lines += ['## Trọng tâm thi', ''] + ['- ' + v for v in data.get('trong_tam_thi', [])] + ['', '## Kế hoạch ôn', '']
     lines += [str(n) + '. **' + s['buoc'] + '**: ' + s['noi_dung'] for n, s in enumerate(data.get('ke_hoach_on', []), 1)]
-    return '\n'.join(lines) + '\n'
+    return _inert('\n'.join(lines) + '\n')
 
 
 def exam_markdown(subject, data):
@@ -481,7 +534,7 @@ def exam_markdown(subject, data):
     lines += ['- Câu ' + str(n) + ': **' + q['dap_an'] + '** — ' + q.get('giai_thich', '') for n, q in enumerate(data.get('trac_nghiem', []), 1)]
     for n, q in enumerate(data.get('tu_luan', []), 1):
         lines += ['', '**Tự luận câu ' + str(n) + ':**'] + ['- ' + v for v in q.get('goi_y_cham', [])]
-    return '\n'.join(lines) + '\n'
+    return _inert('\n'.join(lines) + '\n')
 
 
 def write_root_index():
@@ -494,7 +547,7 @@ def write_root_index():
         for label, name in (('Hệ thống kiến thức', 'he_thong_kien_thuc.md'), ('Đề cương', 'de_cuong.md')):
             path = subject / SUBJECT_DIR / name
             if path.is_file():
-                lines.append('- ' + label + ': [' + path.relative_to(base).as_posix() + '](../' + path.relative_to(base).as_posix() + ')')
+                lines.append('- ' + label + ': ' + _link(path.relative_to(base).as_posix()))
         count = len(exams(subject))
         if count:
             lines.append('- Đề thi thử: ' + str(count) + ' đề trong ' + subject.name + '/' + SUBJECT_DIR + '/de_thi_thu')
@@ -542,6 +595,7 @@ class Engine:
         self.current = None
         self.errors = {}
         self.failed = {}
+        self.reasons = {}
         self.message = ''
         self.thread = None
 
@@ -562,7 +616,9 @@ class Engine:
         folder = subject_dir(subject)
         job = (kind, folder, tuple(sorted(params.items())))
         with self.lock:
-            self.failed = {k: v for k, v in self.failed.items() if folder not in (k[1], k[1].parent)}
+            # A manual sync retries the subject's failed work; making an exam does not.
+            if kind != 'exam':
+                self.failed = {k: v for k, v in self.failed.items() if folder not in (k[1], k[1].parent)}
             if job not in self.jobs and self.current != job:
                 self.jobs.appendleft(job)
         self.kick()
@@ -595,17 +651,23 @@ class Engine:
         states = {folder: transcription_state(folder) for folder in lessons}
         # Transcription is CPU heavy: one lesson at a time, never during a recording. Uploaded media is always
         # transcribed; older recordings without a transcript only when the user turned on automatic sync.
-        if 'running' not in states.values() and transcribe.model_ready() and not runner.state().get('running'):
+        bot = runner.state()
+        if 'running' not in states.values() and transcribe.model_ready() and not bot.get('running'):
             waiting = next((folder for folder in lessons if states[folder] == 'needed' and (auto or _uploaded_media(folder))), None)
             if waiting:
                 runner.start_transcription(waiting)
+        recording = Path(bot['path']).resolve() if bot.get('running') and bot.get('path') else None
         for subject in subjects:
+            if recording and recording.parent == subject:
+                # Slides keep arriving until the recording ends; notes made now would be redone (and paid for) again.
+                continue
             subject_changed = False
             for item in sessions(subject):
                 folder = item['folder']
                 if auto and session_status(folder) == 'stale':
-                    self.queue(('session', folder, ()), fingerprint(folder)[0])
-                    subject_changed = True
+                    # A lesson that failed for its current files (e.g. only a broken document) must not hold back the
+                    # subject map and outline for every other lesson.
+                    subject_changed = self.queue(('session', folder, ()), fingerprint(folder)[0]) or subject_changed
             if not auto or subject_changed:
                 continue
             notes_ready = any(session_notes(i['folder']) for i in sessions(subject))
@@ -618,11 +680,26 @@ class Engine:
                     self.queue(('outline', subject, ()), data.get('_meta', {}).get('fingerprint'))
 
     def queue(self, job, version):
+        """Queue job unless it already failed for these exact inputs; True while it is waiting or running."""
         with self.lock:
             # A job that already failed for these exact inputs waits for new files or a manual retry.
-            if self.failed.get(job) == version or job in self.jobs or self.current == job:
-                return
-            self.jobs.append(job)
+            if self.failed.get(job) == version:
+                return False
+            if job not in self.jobs and self.current != job:
+                self.jobs.append(job)
+            return True
+
+    def _stale_lessons(self, subject):
+        with self.lock:
+            return [item['folder'] for item in sessions(subject) if session_status(item['folder']) == 'stale'
+                    and self.failed.get(('session', item['folder'], ())) != fingerprint(item['folder'])[0]]
+
+    def _lesson_problems(self, subject):
+        """Errors of lessons that still fail for their current files, so a later subject update does not hide them."""
+        with self.lock:
+            return [item['label'] + ': ' + self.reasons[job] for item in sessions(subject)
+                    for job in [('session', item['folder'], ())]
+                    if job in self.reasons and self.failed.get(job) == fingerprint(item['folder'])[0]]
 
     def run_jobs(self):
         worked = False
@@ -639,31 +716,43 @@ class Engine:
                 if kind == 'session':
                     analyze_session(subject, folder, config)
                 elif kind == 'subject':
-                    for item in sessions(subject):
-                        if session_status(item['folder']) == 'stale':
-                            analyze_session(subject, item['folder'], config)
+                    for lesson in self._stale_lessons(subject):
+                        try:
+                            analyze_session(subject, lesson, config)
+                        except Exception as error:
+                            # This lesson waits for new files; the others still make the subject map.
+                            with self.lock:
+                                self.failed[('session', lesson, ())] = fingerprint(lesson)[0]
+                                self.reasons[('session', lesson, ())] = _reason(error)
                     aggregate_subject(subject, config)
                 elif kind == 'outline':
-                    if not knowledge_map(subject) or session_status_any_stale(subject):
+                    if not knowledge_map(subject) or self._stale_lessons(subject):
                         aggregate_subject(subject, config)
                     make_outline(subject, config)
                 elif kind == 'exam':
                     make_exam(subject, config=config, **dict(params))
+                problems = self._lesson_problems(subject)
                 with self.lock:
-                    self.errors.pop(subject.name, None)
+                    if problems:
+                        self.errors[subject.name] = ' · '.join(problems)
+                    else:
+                        self.errors.pop(subject.name, None)
                     self.message = 'Đã cập nhật ' + _job_label(self.current)
-            except (ai.AIError, ValueError, OSError) as error:
+            except Exception as error:
+                # Any failure, not only expected ones, waits for new files or a manual retry instead of repeating every scan.
                 with self.lock:
-                    self.errors[subject.name] = str(error)
                     version = fingerprint(folder)[0] if kind == 'session' else subject_fingerprint(subject)
                     self.failed[self.current] = version
+                    self.reasons[self.current] = _reason(error)
+                    # A lesson's error names the lesson, together with any other lesson still failing.
+                    self.errors[subject.name] = ' · '.join(self._lesson_problems(subject)) if kind == 'session' else _reason(error)
             finally:
                 with self.lock:
                     self.current = None
 
 
-def session_status_any_stale(subject):
-    return any(session_status(item['folder']) == 'stale' for item in sessions(subject))
+def _reason(error):
+    return str(error) if isinstance(error, (ai.AIError, ValueError, OSError)) and str(error) else 'Lỗi xử lý (' + type(error).__name__ + ')'
 
 
 def _job_label(job):

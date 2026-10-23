@@ -2,6 +2,7 @@
 import base64
 import hashlib
 import hmac
+import http.cookies
 import json
 import mimetypes
 import os
@@ -28,6 +29,18 @@ from room_link import parse_room_link
 
 
 UPLOAD_LIMIT = 2 * 1024 ** 3
+# A client that sends nothing for this long loses its connection and thread.
+SOCKET_TIMEOUT = 60
+
+
+class Server(ThreadingHTTPServer):
+    # On Windows SO_REUSEADDR would let another socket bind the same port and take its connections; without it
+    # Windows still rebinds over TIME_WAIT and refuses other accounts (same choice as socket.create_server).
+    allow_reuse_address = os.name != 'nt'
+
+
+def same(value, expected):
+    return hmac.compare_digest(str(value or '').encode(), expected.encode())
 
 
 def pkce(verifier):
@@ -61,6 +74,9 @@ class Service:
     def __init__(self, port=18766, host='127.0.0.1'):
         self.lock = threading.RLock()
         self.token = secrets.token_urlsafe(32)
+        # Set by the desktop window: the page holding the token opens only with this key or its cookie,
+        # so another account's process on the same machine cannot read the token from loopback.
+        self.launch_key = None
         self.vault = DATA / 'zoom.vault'
         self.calendar = calendar_watch.Watcher()
         self.study = study.Engine()
@@ -71,7 +87,7 @@ class Service:
         self.quit_app = lambda: None
         self.message = ''
         self.model_state = 'idle'
-        self.http = ThreadingHTTPServer((host, port), self.handler())
+        self.http = Server((host, port), self.handler())
         self.port = self.http.server_port
         self.base = os.environ.get('PUBLIC_ORIGIN', f'http://127.0.0.1:{self.port}').rstrip('/')
         origin = urllib.parse.urlsplit(self.base)
@@ -121,7 +137,7 @@ class Service:
         if not config.get('client_secret') or not config.get('public_client_id'):
             raise ValueError('Lưu Client ID, Client Secret và Public client ID của ứng dụng Zoom trước.')
         state, verifier = secrets.token_urlsafe(32), secrets.token_urlsafe(64)
-        listener = None if CONTAINER else ThreadingHTTPServer(('127.0.0.1', 0), self.handler())
+        listener = None if CONTAINER else Server(('127.0.0.1', 0), self.handler())
         if listener:
             listener.oauth_listener = True
         redirect = self.base + '/oauth/callback' if CONTAINER else f'http://127.0.0.1:{listener.server_port}/oauth/callback'
@@ -321,6 +337,8 @@ class Service:
     def handler(self):
         service = self
         class Handler(BaseHTTPRequestHandler):
+            timeout = SOCKET_TIMEOUT
+
             def log_message(self, *args):
                 pass
 
@@ -416,12 +434,26 @@ class Service:
                     known['/fonts/'+font] = 'fonts/'+font
                 if route not in known:
                     return self.reply({'error': 'Không tìm thấy.'}, 404)
+                cookie = None
+                if route == '/' and service.launch_key:
+                    jar = http.cookies.SimpleCookie()
+                    try:
+                        jar.load(self.headers.get('Cookie', ''))
+                    except http.cookies.CookieError:
+                        pass
+                    launch = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query).get('launch', [''])[0]
+                    if same(launch, service.launch_key):
+                        cookie = 'cz_launch=' + service.launch_key + '; HttpOnly; SameSite=Strict; Path=/'
+                    elif not same(jar['cz_launch'].value if 'cz_launch' in jar else '', service.launch_key):
+                        return self.reply({'error': 'Mở Cún Zoom từ cửa sổ ứng dụng.'}, 403)
                 target = WEB / known[route]
                 raw = target.read_bytes()
                 if route == '/':
                     raw = raw.replace(b'__TOKEN__', service.token.encode())
                 self.send_response(200)
                 self.headers_common()
+                if cookie:
+                    self.send_header('Set-Cookie', cookie)
                 self.send_header('Content-Type', (mimetypes.guess_type(target.name)[0] or 'text/plain')+'; charset=utf-8')
                 self.send_header('Content-Length', str(len(raw)))
                 self.end_headers()
@@ -430,7 +462,7 @@ class Service:
             def do_POST(self):
                 if not self.authenticated():
                     return
-                if not self.valid_host() or self.headers.get('X-App-Token') != service.token:
+                if not self.valid_host() or not same(self.headers.get('X-App-Token'), service.token):
                     return self.reply({'error': 'Phiên ứng dụng không hợp lệ.'}, 403)
                 if self.headers.get('Origin') not in (None, service.base):
                     return self.reply({'error': 'Nguồn yêu cầu không hợp lệ.'}, 403)

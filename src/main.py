@@ -3,6 +3,7 @@ import argparse
 import ctypes
 import json
 import os
+import secrets
 from pathlib import Path
 import sys
 import threading
@@ -104,7 +105,8 @@ def main():
         ctypes.windll.user32.MessageBoxW(None,'Cổng ứng dụng đang được sử dụng. Đóng bản Cún Zoom cũ rồi mở lại.','Cún Zoom',0x40)
         return
     exiting=threading.Event()
-    window=webview.create_window('Cún Zoom · Không gian học tập',service.base,width=1380,height=940,
+    service.launch_key=secrets.token_urlsafe(32)
+    window=webview.create_window('Cún Zoom · Không gian học tập',service.base+'/?launch='+service.launch_key,width=1380,height=940,
                                 min_size=(960,680),background_color='#f7f8f5',text_select=True)
     def show(*_):
         window.show()

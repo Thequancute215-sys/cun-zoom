@@ -19,6 +19,7 @@ class RoomLinkTests(unittest.TestCase):
     def test_rejects_spoofed_and_unsupported_links(self):
         for url in ('https://zoom.us.evil.example/j/123456789',
                     'https://evilzoom.us/j/123456789',
+                    'https://evil.example\\.zoom.us/j/123456789',
                     'https://zoom.us@evil.example/j/123456789',
                     'http://zoom.us/j/123456789',
                     'https://zoom.us:8443/j/123456789',

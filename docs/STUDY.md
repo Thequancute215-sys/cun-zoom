@@ -14,7 +14,7 @@ AI chỉ dùng nội dung bạn cung cấp và có thể sai, nhất là khi b�
 Khi bật **Tự đồng bộ** (Cài đặt → AI), mỗi khi có buổi ghi mới hoặc tài liệu mới:
 
 1. Âm thanh/video được chép lời trên máy (mỗi lần một buổi, không chạy khi đang ghi). File bạn tải lên luôn được chép lời; các buổi ghi cũ chưa có bản chép lời chỉ được chép lời khi bật Tự đồng bộ, để máy không bận hàng giờ ngay sau khi nâng cấp.
-2. Buổi đó được hệ thống hoá lại.
+2. Buổi đó được hệ thống hoá lại. Môn có buổi đang ghi chờ buổi ghi kết thúc rồi mới hệ thống hoá, để slide mới không làm AI chạy lại liên tục.
 3. Hệ thống kiến thức của môn và đề cương được cập nhật.
 
 Ứng dụng nhận ra thay đổi theo nội dung file, nên chỉ chạy lại phần thật sự đổi. Nếu một bước lỗi (hết hạn mức, mất mạng…), lỗi hiện ở danh sách môn và bước đó không tự thử lại cho tới khi có file mới hoặc bạn bấm **Đồng bộ lại**. Đề thi thử chỉ tạo khi bạn bấm.
@@ -46,10 +46,10 @@ Bấm **Tải tài liệu lên** ở trang Ôn tập, chọn môn (gõ tên mớ
 | Loại | Đuôi | Cách xử lý |
 | --- | --- | --- |
 | PDF | .pdf | Claude đọc nguyên trang (cả hình, công thức); Ollama đọc phần chữ. PDF scan không có chữ cần Claude |
-| Word, PowerPoint | .docx, .pptx | Đọc chữ, kể cả ghi chú dưới slide. File .doc/.ppt đời cũ: lưu lại thành .docx/.pptx hoặc PDF |
+| Word, PowerPoint | .docx, .pptx | Đọc chữ, kể cả ghi chú dưới slide (tối đa 4 triệu ký tự mỗi file). File .doc/.ppt đời cũ: lưu lại thành .docx/.pptx hoặc PDF |
 | Ảnh slide, ảnh chụp vở | .jpg, .png, .webp, .gif | Claude đọc ảnh (tối đa 5 MB mỗi ảnh); mô hình Ollama chỉ chữ sẽ bỏ qua ảnh |
 | Chữ | .txt, .md | Đọc trực tiếp |
-| Âm thanh, video | .mp3, .m4a, .wav, .mp4, .mkv, .mov, .webm… | Chép lời trên máy rồi hệ thống hoá. Cần tải bộ chép lời một lần (Cài đặt → Lưu trữ) |
+| Âm thanh, video | .mp3, .m4a, .wav, .mp4, .mkv, .mov, .webm… | Chép lời trên máy rồi hệ thống hoá (tối đa 3 giờ đầu mỗi file). Cần tải bộ chép lời một lần (Cài đặt → Lưu trữ) |
 
 Tối đa 2 GB mỗi file. File được lưu nguyên vẹn trong `01_Tai_lieu_goc/tai_lieu/` của buổi; ứng dụng không chạy hay mở nội dung file.
 
@@ -81,7 +81,7 @@ Khóa được mã hóa trên máy, không bao giờ hiển thị lại. Nội d
 
 Với bản Docker, đặt địa chỉ `http://host.docker.internal:11434` (mặc định sẵn) và cho Ollama nhận kết nối từ container: đặt biến môi trường `OLLAMA_HOST=0.0.0.0` cho Ollama rồi khởi động lại nó. Chỉ làm vậy trên máy không mở cổng 11434 ra Internet.
 
-Mô hình chạy trên máy cho kết quả kém hơn Claude, không đọc được ảnh slide nếu không phải mô hình thị giác, và bài dài được chia nhỏ rồi gộp lại nên chậm hơn.
+Mô hình nhỏ dưới 7B (ví dụ `qwen2.5:3b`) chạy được nhưng hay gộp ý, ghi sai nguồn và hỏi lại chung chung; chỉ nên dùng để thử. Mô hình chạy trên máy cho kết quả kém hơn Claude, không đọc được ảnh slide nếu không phải mô hình thị giác, và bài dài được chia nhỏ rồi gộp lại nên chậm hơn.
 
 ## Xử lý lỗi
 

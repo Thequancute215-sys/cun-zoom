@@ -67,7 +67,8 @@ def fetch_feed(url):
 
 
 def clean_text(value):
-    return html.unescape(re.sub(r'<[^>]*>', ' ', str(value or '')))
+    # [^<>] keeps the scan linear: an unclosed '<' stops at the next '<' instead of rescanning to the end.
+    return html.unescape(re.sub(r'<[^<>]*>', ' ', str(value or '')))
 
 
 def events_from_ics(raw, keywords, now):

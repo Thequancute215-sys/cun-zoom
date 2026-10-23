@@ -1,7 +1,9 @@
 """Optional AI for study notes: the user's own Claude API key or a local Ollama model. Off until the user enables it."""
 import base64
+import http.client
 import json
 import threading
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -23,6 +25,9 @@ DEFAULT_OLLAMA_URL = 'http://host.docker.internal:11434' if CONTAINER else 'http
 CLAUDE_PAYLOAD_LIMIT = 24 * 1024 * 1024
 # Characters of plain text one request may carry before the caller must split it.
 INPUT_CHARS = {'claude': 600_000, 'ollama': 40_000}
+# A local model answer is a few hundred KB at most; a reply larger or slower than this is not one.
+OLLAMA_REPLY_LIMIT = 16 * 1024 * 1024
+OLLAMA_DEADLINE = 1800
 _lock = threading.RLock()
 
 
@@ -86,14 +91,15 @@ def input_chars(config=None):
     return INPUT_CHARS.get((config or settings())['provider'], INPUT_CHARS['ollama'])
 
 
-def generate(system, parts, schema, effort='medium', config=None):
-    """Return JSON matching schema. parts: {'kind': 'text'|'image'|'pdf', ...}; PDFs also carry extracted 'text'."""
+def generate(system, parts, schema, effort='medium', config=None, images_required=False):
+    """Return JSON matching schema. parts: {'kind': 'text'|'image'|'pdf', ...}; PDFs also carry extracted 'text'.
+    images_required: the images are the only source, so a model that cannot read them must fail rather than guess."""
     config = config or settings()
     if not enabled(config):
         raise AIError('Chưa bật AI. Vào Cài đặt → AI để chọn Claude hoặc Ollama.')
     if config['provider'] == 'claude':
         return _claude(config, system, parts, schema, effort)
-    return _ollama(config, system, parts, schema)
+    return _ollama(config, system, parts, schema, images_required)
 
 
 def test(config=None):
@@ -158,7 +164,7 @@ def _claude(config, system, parts, schema, effort):
         raise AIError('Claude trả về dữ liệu không đọc được. Thử lại.') from None
 
 
-def _ollama(config, system, parts, schema):
+def _ollama(config, system, parts, schema, images_required=False):
     texts, images = [], []
     for part in parts:
         if part['kind'] == 'image':
@@ -171,6 +177,9 @@ def _ollama(config, system, parts, schema):
     except AIError:
         if not images:
             raise
+        if images_required:
+            raise AIError('Mô hình Ollama ' + config['ollama_model'] + ' không đọc được ảnh, mà buổi này chỉ có ảnh. '
+                          'Dùng mô hình đọc ảnh (ví dụ qwen2.5vl) hoặc Claude.') from None
         # Text-only models reject images; keep the text so the notes still get made.
         return _ollama_call(config, system, message, schema)
 
@@ -179,17 +188,25 @@ def _ollama_call(config, system, message, schema):
     body = {'model': config['ollama_model'], 'stream': False, 'format': schema,
             'messages': [{'role': 'system', 'content': system}, message], 'options': {'num_ctx': 32768}}
     request = urllib.request.Request(config['ollama_url'] + '/api/chat', data=json.dumps(body).encode(), headers={'Content-Type': 'application/json'})
+    deadline = time.monotonic() + OLLAMA_DEADLINE
     try:
-        with urllib.request.urlopen(request, timeout=1800) as response:
-            reply = json.load(response)
+        with urllib.request.urlopen(request, timeout=OLLAMA_DEADLINE) as response:
+            raw = bytearray()
+            while chunk := response.read1(65536):
+                raw += chunk
+                if len(raw) > OLLAMA_REPLY_LIMIT or time.monotonic() > deadline:
+                    raise AIError('Ollama trả lời quá lớn hoặc quá lâu. Kiểm tra địa chỉ Ollama và mô hình đang dùng.')
     except urllib.error.HTTPError as error:
         detail = error.read(400).decode('utf-8', 'replace')
         if error.code == 404:
             raise AIError('Ollama chưa có mô hình ' + config['ollama_model'] + '. Chạy: ollama pull ' + config['ollama_model']) from None
         raise AIError('Ollama báo lỗi (HTTP ' + str(error.code) + '): ' + detail[:200]) from None
-    except (urllib.error.URLError, OSError):
+    except (urllib.error.URLError, OSError, http.client.HTTPException):
         raise AIError('Không kết nối được Ollama tại ' + config['ollama_url'] + '. Mở Ollama rồi thử lại.') from None
     try:
-        return json.loads(reply['message']['content'])
-    except (KeyError, TypeError, ValueError):
+        result = json.loads(json.loads(raw)['message']['content'])
+        if not isinstance(result, dict):
+            raise TypeError
+        return result
+    except (KeyError, TypeError, ValueError, RecursionError):
         raise AIError('Ollama trả về dữ liệu không đọc được. Thử mô hình lớn hơn.') from None

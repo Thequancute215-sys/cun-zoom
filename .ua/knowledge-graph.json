@@ -19,8 +19,8 @@
       "pywebview/WebView2"
     ],
     "description": "Bản đồ cấp file và import Python được trích từ AST; không phải graph toàn bộ hàm. Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn; chạy như ứng dụng Windows (CunZoom.exe) hoặc Docker Linux. Windows tự mở link lớp, Docker chỉ đưa link tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra trong 2.x; Trang Ôn tập hệ thống hoá bài giảng và tài liệu bằng Claude (khóa riêng) hoặc Ollama, tạo đề cương và đề thi thử. RTMS chưa triển khai.",
-    "analyzedAt": "2026-10-22T11:56:20.425510+00:00",
-    "gitCommitHash": "11a8e5e085e414026d9a01b7a2f62eff2eff7422"
+    "analyzedAt": "2026-10-23T15:58:12.116812+00:00",
+    "gitCommitHash": "ffa3fc5a0ef3143045ff6d09797ad774e7fdfe61"
   },
   "nodes": [
     {
@@ -245,7 +245,7 @@
       "filePath": "docs/RELEASE_NOTES.md",
       "lineRange": [
         1,
-        45
+        70
       ]
     },
     {
@@ -275,7 +275,7 @@
       "filePath": "docs/VALIDATION.md",
       "lineRange": [
         1,
-        47
+        58
       ]
     },
     {
@@ -575,7 +575,7 @@
       "filePath": "src/ai_backend.py",
       "lineRange": [
         1,
-        195
+        212
       ]
     },
     {
@@ -590,7 +590,7 @@
       "filePath": "src/calendar_watch.py",
       "lineRange": [
         1,
-        255
+        256
       ]
     },
     {
@@ -620,7 +620,7 @@
       "filePath": "src/documents.py",
       "lineRange": [
         1,
-        137
+        187
       ]
     },
     {
@@ -650,7 +650,7 @@
       "filePath": "src/main.py",
       "lineRange": [
         1,
-        168
+        170
       ]
     },
     {
@@ -695,7 +695,7 @@
       "filePath": "src/room_link.py",
       "lineRange": [
         1,
-        27
+        28
       ]
     },
     {
@@ -710,7 +710,7 @@
       "filePath": "src/runner.py",
       "lineRange": [
         1,
-        145
+        154
       ]
     },
     {
@@ -740,7 +740,7 @@
       "filePath": "src/server.py",
       "lineRange": [
         1,
-        498
+        530
       ]
     },
     {
@@ -755,7 +755,7 @@
       "filePath": "src/study.py",
       "lineRange": [
         1,
-        703
+        792
       ]
     },
     {
@@ -770,7 +770,7 @@
       "filePath": "src/transcribe.py",
       "lineRange": [
         1,
-        61
+        86
       ]
     },
     {
@@ -815,7 +815,7 @@
       "filePath": "tests/test_ai_backend.py",
       "lineRange": [
         1,
-        151
+        173
       ]
     },
     {
@@ -830,7 +830,7 @@
       "filePath": "tests/test_calendar_watch.py",
       "lineRange": [
         1,
-        80
+        88
       ]
     },
     {
@@ -875,7 +875,7 @@
       "filePath": "tests/test_room_link.py",
       "lineRange": [
         1,
-        37
+        38
       ]
     },
     {
@@ -905,7 +905,7 @@
       "filePath": "tests/test_server.py",
       "lineRange": [
         1,
-        68
+        87
       ]
     },
     {
@@ -920,7 +920,7 @@
       "filePath": "tests/test_study.py",
       "lineRange": [
         1,
-        285
+        432
       ]
     },
     {

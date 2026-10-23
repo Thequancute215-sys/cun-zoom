@@ -140,6 +140,28 @@ class OllamaTests(unittest.TestCase):
         self.assertIn('PDF text', second['body']['messages'][1]['content'])
         self.assertNotIn('images', second['body']['messages'][1])
 
+    def test_image_only_input_fails_on_text_models_instead_of_guessing(self):
+        server = FakeServer(lambda path, body: (500, 'application/json', b'{"error":"model does not support images"}'))
+        self.addCleanup(server.close)
+        config = {'provider': 'ollama', 'claude_key': '', 'claude_model': 'claude-opus-5-5', 'ollama_url': server.url, 'ollama_model': 'qwen2.5:3b', 'auto': True}
+        with self.assertRaises(ai.AIError) as result:
+            ai.generate('s', [{'kind': 'text', 'text': 'Ghi chú'}, {'kind': 'image', 'media_type': 'image/png', 'data': b'png'}], SCHEMA, 'low', config, images_required=True)
+        self.assertIn('không đọc được ảnh', str(result.exception))
+        self.assertEqual(len(server.requests), 1)
+
+    def test_oversized_or_malformed_replies_are_errors(self):
+        replies = iter([json.dumps({'message': {'content': 'x' * 300}}).encode(), json.dumps({'message': {'content': '[1, 2]'}}).encode(),
+                        json.dumps({'message': {'content': '[' * 100000}}).encode()])
+        server = FakeServer(lambda path, body: (200, 'application/json', next(replies)))
+        self.addCleanup(server.close)
+        config = {'provider': 'ollama', 'claude_key': '', 'claude_model': 'claude-opus-5-5', 'ollama_url': server.url, 'ollama_model': 'm', 'auto': True}
+        with patch.object(ai, 'OLLAMA_REPLY_LIMIT', 200), self.assertRaises(ai.AIError) as result:
+            ai.generate('s', [{'kind': 'text', 'text': 'x'}], SCHEMA, 'low', config)
+        self.assertIn('quá lớn', str(result.exception))
+        for _ in range(2):
+            with self.assertRaises(ai.AIError):
+                ai.generate('s', [{'kind': 'text', 'text': 'x'}], SCHEMA, 'low', config)
+
     def test_unreachable_server_is_explained(self):
         config = {'provider': 'ollama', 'claude_key': '', 'claude_model': 'claude-opus-5-5', 'ollama_url': 'http://127.0.0.1:9', 'ollama_model': 'm', 'auto': True}
         with self.assertRaises(ai.AIError) as result:

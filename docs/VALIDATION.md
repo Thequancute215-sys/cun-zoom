@@ -45,3 +45,14 @@ CI: [lần chạy kiểm tra](https://github.com/Thequancute215-sys/cun-zoom/act
 | Giao diện | Chạy thật trong Chromium: trang Ôn tập (hệ thống kiến thức, theo buổi, đề cương, đề thi có chấm trắc nghiệm), form tải lên, Cài đặt → AI, màn hình điện thoại |
 | Docker | Build và smoke HTTP thật đạt khi build cục bộ; container nạp được `anthropic`, `pypdf` và module ôn tập |
 | Gọi AI thật | **Chưa kiểm tra** với khóa Claude hay Ollama thật trong lần phát hành này; chất lượng ghi chú/đề phụ thuộc mô hình và bản chép lời |
+
+### Chạy thật với Ollama sau phát hành 2.2.0 — 22/10/2026
+
+Ollama 0.40.8 trên máy ảo Linux 4 nhân CPU, 15 GB RAM, không GPU; chạy qua HTTP API của ứng dụng (lưu cấu hình AI, Kiểm tra AI, tải tài liệu, đồng bộ tự động, tạo đề).
+
+| Mô hình | Kết quả |
+| --- | --- |
+| `qwen2.5:3b` | Đi hết luồng: Kiểm tra AI (24 giây), tải TXT + DOCX, ghi chú 2 buổi, hệ thống kiến thức, đề cương, đề thi, mục lục; khoảng 12 phút. Nội dung chung chung, nhãn và nguồn hay sai: chỉ hợp để thử |
+| `qwen2.5:7b` | Ghi chú buổi đúng và bám tài liệu (công thức, phân loại, ví dụ); 2 buổi + hệ thống kiến thức + đề cương khoảng 20 phút, đề thi khoảng 5–6 phút. Nhãn độ khó/loại ít phân biệt; đề thi có câu sai đáp án, cần đối chiếu |
+
+Lỗi tìm ra và đã sửa: buổi chỉ có file không đọc được bị AI bịa nội dung từ tên buổi; một buổi lỗi chặn cập nhật hệ thống kiến thức và đề cương của cả môn; câu hỏi đề thi chỉ ghi số hoặc tên chủ đề, mô hình nhỏ soạn thiếu câu; link mục lục hỏng khi tên thư mục có dấu cách/dấu tiếng Việt. Chưa thử Claude API với khóa thật.

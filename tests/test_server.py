@@ -1,5 +1,6 @@
 import bootstrap
 import json
+import os
 import threading
 import unittest
 import urllib.error
@@ -32,6 +33,24 @@ class ServerTests(unittest.TestCase):
             self.assertIn('Phòng Zoom',page)
             self.assertNotIn('__TOKEN__',page)
             self.assertIn("script-src 'self'",response.headers['Content-Security-Policy'])
+
+    def test_desktop_page_needs_the_launch_key_and_sockets_time_out(self):
+        self.assertEqual(self.service.http.RequestHandlerClass.timeout, 60)
+        self.assertEqual(bool(self.service.http.allow_reuse_address), os.name != 'nt')
+        self.service.launch_key = 'launch-test'
+        self.addCleanup(setattr, self.service, 'launch_key', None)
+        with self.assertRaises(urllib.error.HTTPError) as result:
+            self.request('/', token=False)
+        self.assertEqual(result.exception.code, 403)
+        with self.request('/?launch=launch-test', token=False) as response:
+            self.assertIn(self.service.token, response.read().decode())
+            cookie = response.headers['Set-Cookie']
+        self.assertIn('HttpOnly', cookie)
+        request = urllib.request.Request(self.service.base + '/', headers={'Cookie': cookie.split(';')[0]})
+        with urllib.request.urlopen(request, timeout=5) as response:
+            self.assertEqual(response.status, 200)
+        with self.assertRaises(urllib.error.HTTPError):
+            urllib.request.urlopen(urllib.request.Request(self.service.base + '/', headers={'Cookie': 'cz_launch=wrong'}), timeout=5)
 
     def test_state_requires_token_and_same_origin(self):
         with self.assertRaises(urllib.error.HTTPError) as result:self.request('/status',{},token=False)

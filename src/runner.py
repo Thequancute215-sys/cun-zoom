@@ -34,7 +34,16 @@ def start_transcription(directory):
     (directory/'02_Tom_tat/trang_thai.json').write_text(json.dumps({'state':'processing','time':datetime.now().isoformat()}),encoding='utf-8')
     command=[sys.executable,'--transcribe',str(directory)] if getattr(sys,'frozen',False) else [sys.executable,str(Path(__file__).parent/'transcribe.py'),str(directory)]
     with (directory/'02_Tom_tat/xu_ly.log').open('a',encoding='utf-8') as log:
-        subprocess.Popen(command,stdout=log,stderr=log,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+        worker=subprocess.Popen(command,stdout=log,stderr=log,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+    threading.Thread(target=watch_transcription,args=(worker,directory/'02_Tom_tat/trang_thai.json'),daemon=True).start()
+
+def watch_transcription(worker,status):
+    code=worker.wait()
+    try:
+        if json.loads(status.read_text(encoding='utf-8')).get('state')=='processing':
+            # Killed (for example out of memory) before it could say why: record the failure so sync does not relaunch it.
+            status.write_text(json.dumps({'state':'failed','time':datetime.now().isoformat(),'error':'Tiến trình chép lời dừng đột ngột (mã '+str(code)+').'},ensure_ascii=False),encoding='utf-8')
+    except (OSError,ValueError):pass
 
 def name(value):
     value=re.sub(r'[<>:"/\\|?*\x00-\x1f]','_',str(value)).strip(' .')[:100]
