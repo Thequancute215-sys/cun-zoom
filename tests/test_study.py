@@ -336,6 +336,61 @@ class StudyPipelineTests(unittest.TestCase):
         with_images = [i for i, c in enumerate(session_calls) if any(p['kind'] == 'image' for p in c['parts'])]
         self.assertEqual(with_images, [0])
 
+    def test_splitting_keeps_every_character_of_long_lines_and_documents(self):
+        text = 'đầu ' + 'x' * 23 + ' giữa ' + 'y' * 40 + ' cuối\nngắn\n' + 'z' * 25
+        pieces = list(study._chunks(text, 10))
+        self.assertTrue(all(len(piece) <= 10 for piece in pieces))
+        self.assertEqual(''.join(pieces).replace('\n', ''), text.replace('\n', ''))
+        # A single-line document longer than the budget reaches the AI whole, in labelled pieces.
+        folder = self.lesson(transcript='')
+        (folder / study.MATERIALS).mkdir(parents=True)
+        (folder / study.MATERIALS / 'dai.txt').write_text('ĐẦU ' + 'nội dung ' * 600 + 'CUỐI', encoding='utf-8')
+        with patch.object(study.ai, 'input_chars', lambda config=None: 2000):
+            study.analyze_session(folder.parent, folder)
+        sent = [p['text'] for c in self.calls if c['schema'] is study.SESSION_SCHEMA for p in c['parts'] if p['kind'] == 'text' and 'Tài liệu "dai.txt"' in p['text']]
+        self.assertGreater(len(sent), 2)
+        joined = ''.join(t.split('Tài liệu "dai.txt":\n', 1)[1] for t in sent)
+        self.assertEqual(joined, 'ĐẦU ' + 'nội dung ' * 600 + 'CUỐI')
+
+    def test_partial_notes_too_large_to_merge_at_once_are_merged_in_rounds(self):
+        folder = self.lesson(transcript='\n'.join('[00:%02d] câu %d' % (i % 60, i) for i in range(400)))
+        limit = 2000
+        with patch.object(study.ai, 'input_chars', lambda config=None: limit):
+            study.analyze_session(folder.parent, folder)
+        merges = [c for c in self.calls if c['schema'] is study.SESSION_SCHEMA and 'Gộp các ghi chú' in c['parts'][0]['text']]
+        self.assertGreater(len(merges), 1)
+        for call in merges:
+            notes = call['parts'][0]['text'].split('bỏ trùng lặp:\n', 1)[1]
+            self.assertLessEqual(len(notes), limit)
+
+    def test_notes_follow_content_not_only_size_and_mtime(self):
+        folder = self.lesson(transcript='AAAA')
+        study.analyze_session(folder.parent, folder)
+        transcript = folder / '02_Tom_tat/ban_chep_loi.txt'
+        stamp = transcript.stat().st_mtime_ns
+        self.assertEqual(study.session_status(folder), 'ready')
+        # Same bytes with a new mtime (copied or touched): nothing to redo.
+        os.utime(transcript, ns=(stamp + 10**9, stamp + 10**9))
+        self.assertEqual(study.session_status(folder), 'ready')
+        # New bytes with the same size and mtime: found once the files are read again (restart or manual resync).
+        transcript.write_text('BBBB', encoding='utf-8')
+        os.utime(transcript, ns=(stamp + 10**9, stamp + 10**9))
+        study.forget_digests(folder.parent)
+        self.assertEqual(study.session_status(folder), 'stale')
+        before = study.subject_fingerprint(folder.parent)
+        study.analyze_session(folder.parent, folder)
+        self.assertEqual(study.session_status(folder), 'ready')
+        self.assertNotEqual(study.subject_fingerprint(folder.parent), before)
+
+    def test_notes_from_before_content_digests_are_not_redone_after_upgrade(self):
+        folder = self.lesson()
+        notes = study.analyze_session(folder.parent, folder)
+        notes['_meta'].pop('content')
+        (folder / (study.SESSION_NOTES + '.json')).write_text(json.dumps(notes, ensure_ascii=False), encoding='utf-8')
+        self.assertEqual(study.session_status(folder), 'ready')
+        (folder / '02_Tom_tat/ban_chep_loi.txt').write_text('[00:00] Cung, cầu và giá', encoding='utf-8')
+        self.assertEqual(study.session_status(folder), 'stale')
+
     def test_unreadable_or_image_only_inputs_never_let_the_ai_guess(self):
         folder = self.lesson(transcript='')
         (folder / study.MATERIALS).mkdir(parents=True)

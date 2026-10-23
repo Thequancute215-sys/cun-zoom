@@ -1,6 +1,7 @@
 import {after, before, test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
 import {Miniflare} from 'miniflare';
 
 let mf, db, serial = 0, rejectDelivery = false;
@@ -31,7 +32,7 @@ async function active(identity, devices = 2) {
   return {token, id, key: issued.value.key};
 }
 before(async () => {
-  mf = new Miniflare({modules: true, scriptPath: new URL('../worker.mjs', import.meta.url).pathname,
+  mf = new Miniflare({modules: true, scriptPath: fileURLToPath(new URL('../worker.mjs', import.meta.url)),
     compatibilityDate: '2026-08-01', d1Databases: {DB: 'accounts-test'},
     bindings: {PUBLIC_ORIGIN: 'http://localhost', OTP_SECRET: 'synthetic-otp-secret-for-tests-only-000000', ADMIN_TOKEN: admin,
       RESEND_API_KEY: 'synthetic-provider-key', EMAIL_FROM: 'Cún Zoom <test@example.com>', OTP_DAILY_LIMIT: '100',
@@ -117,8 +118,26 @@ test('one-time key display and activation are atomic; raw key is not stored', as
   const key = issued.find(r => r.status === 200).value.key; assert.match(key, /^CZ-[A-F0-9]{40}$/);
   const row = await db.prepare('SELECT * FROM licenses WHERE id=?').bind(id).first(); assert.ok(!JSON.stringify(row).includes(key));
   const redeemed = await Promise.all([call('licenses/redeem', {key}, token), call('licenses/redeem', {key}, token)]);
-  assert.deepEqual(redeemed.map(r => r.status).sort(), [200, 409]);
+  // Both requests come from the owner: one activates, the other gets that same activation back.
+  assert.deepEqual(redeemed.map(r => r.status), [200, 200]);
+  assert.deepEqual(redeemed[0].value, redeemed[1].value);
+  const retried = await call('licenses/redeem', {key}, token);
+  assert.equal(retried.status, 200); assert.equal(retried.value.expires, redeemed[0].value.expires);
   const me = await call('me', {}, token); assert.equal(me.value.licenses[0].status, 'active'); assert.ok(!JSON.stringify(me.value).includes(key));
+});
+test('admin reissue replaces a lost unredeemed key with audit; redeemed keys stay', async () => {
+  const {token} = await login('lost@example.com'), id = await grant('lost@example.com');
+  assert.equal((await call('admin/reissue', {license_id: id}, admin)).status, 409);
+  const lost = (await call('licenses/key', {license_id: id}, token)).value.key;
+  assert.equal((await call('admin/reissue', {license_id: id}, token)).status, 403);
+  assert.equal((await call('admin/reissue', {license_id: id}, admin)).status, 200);
+  assert.equal((await call('licenses/redeem', {key: lost}, token)).status, 409);
+  const fresh = await call('licenses/key', {license_id: id}, token);
+  assert.equal(fresh.status, 200); assert.notEqual(fresh.value.key, lost);
+  assert.equal((await call('licenses/redeem', {key: fresh.value.key}, token)).status, 200);
+  assert.equal((await call('admin/reissue', {license_id: id}, admin)).status, 409);
+  const audit = await db.prepare("SELECT count(*) AS n FROM audit WHERE action='reissue' AND license_id=?").bind(id).first();
+  assert.equal(audit.n, 1);
 });
 test('other accounts cannot take keys, redeem, remove devices or use another license', async () => {
   const a = await active('owner@example.com'), b = await login('other@example.com');

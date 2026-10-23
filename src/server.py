@@ -30,6 +30,9 @@ from room_link import parse_room_link
 
 
 UPLOAD_LIMIT = 2 * 1024 ** 3
+# Actions that start new paid work need an active licence (plus /study/upload and turning calendar watching on).
+PAID_ROUTES = {'/calendar/configure', '/calendar/sync', '/sdk-test', '/start-bot', '/zoom/connect', '/model/download',
+               '/sdk/install', '/ai/test', '/study/exam', '/study/run'}
 # A client that sends nothing for this long loses its connection and thread.
 SOCKET_TIMEOUT = 60
 
@@ -75,7 +78,6 @@ class Service:
     def __init__(self, port=18766, host='127.0.0.1'):
         self.lock = threading.RLock()
         self.account = account_client.Client()
-        self.license_stop = threading.Event()
         self.token = secrets.token_urlsafe(32)
         # Set by the desktop window: the page holding the token opens only with this key or its cookie,
         # so another account's process on the same machine cannot read the token from loopback.
@@ -183,7 +185,8 @@ class Service:
     def action(self, route, data):
         if route.startswith('/account/'):
             return self.account.action(route[len('/account/'):], data)
-        if route not in ('/stop-bot', '/app/quit', '/app/show'):
+        # Without an active licence the owner still reads, exports, configures, disconnects and stops; only new paid work waits.
+        if route in PAID_ROUTES or route == '/calendar/toggle' and data.get('enabled') is True:
             self.account.require()
         if route == '/status':
             return self.status()
@@ -388,8 +391,6 @@ class Service:
                     return self.reply({'product': 'CunZoom', 'version': VERSION})
                 if not self.authenticated():
                     return
-                if route in ('/library/download', '/study/download', '/oauth/callback') and not service.account.authorized():
-                    return self.reply({'error': 'Vui lòng kích hoạt bản quyền.'}, 402)
                 if route == '/library/download' and CONTAINER:
                     try:
                         identifier = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query).get('id', [''])[0]
@@ -441,8 +442,6 @@ class Service:
                 known = {'/': 'index.html', '/app.js': 'app.js', '/study.js': 'study.js', '/style.css': 'style.css', '/logo.svg': 'logo.svg',
                          '/tokens.css': 'tokens.css', '/fonts.css': 'fonts.css'}
                 known.update({'/account': 'account.html', '/account.js': 'account.js', '/account.css': 'account.css'})
-                if route == '/' and service.account.enabled and not service.account.authorized():
-                    known['/'] = 'account.html'
                 for font in ('inter-400.ttf', 'inter-500.ttf', 'inter-600.ttf', 'inter-700.ttf',
                              'space-grotesk-500.ttf', 'space-grotesk-700.ttf', 'jetbrains-mono-400.ttf'):
                     known['/fonts/'+font] = 'fonts/'+font
@@ -481,8 +480,8 @@ class Service:
                 if self.headers.get('Origin') not in (None, service.base):
                     return self.reply({'error': 'Nguồn yêu cầu không hợp lệ.'}, 403)
                 if urllib.parse.urlsplit(self.path).path == '/study/upload':
-                    if not service.account.authorized():
-                        return self.reply({'error': 'Vui lòng kích hoạt bản quyền.'}, 402)
+                    if not service.account.authorized(wait=True):
+                        return self.reply({'error': service.account.message or 'Vui lòng kích hoạt bản quyền.'}, 402)
                     return self.upload()
                 try:
                     size = int(self.headers.get('Content-Length', '0'))
@@ -539,15 +538,10 @@ class Service:
         threading.Thread(target=self.http.serve_forever, daemon=True).start()
         self.calendar.start()
         self.study.start()
-        if self.account.enabled:
-            def watch_license():
-                while not self.license_stop.wait(15):
-                    if not self.account.authorized() and runner.state().get('running'):
-                        runner.shutdown()
-            threading.Thread(target=watch_license, daemon=True).start()
+        # A recording already running is never cut when the licence lapses or the network drops; only new starts wait.
+        self.account.authorized()
 
     def stop(self):
-        self.license_stop.set()
         self.calendar.stop_event.set()
         self.study.stop()
         runner.shutdown()

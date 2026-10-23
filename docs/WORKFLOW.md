@@ -47,7 +47,7 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Gắn dữ liệu và SDK riêng | Compose chỉ công bố cổng loopback, volume dữ liệu bền vững và SDK mount chỉ đọc; bỏ capabilities. | [compose.yaml](../compose.yaml#L4) |
+| 1. Gắn dữ liệu và SDK riêng | Compose chỉ công bố cổng loopback, volume dữ liệu bền vững và SDK mount chỉ đọc; bỏ capabilities. | [compose.yaml](../compose.yaml#L5) |
 | 2. Chạy image không kèm SDK | Image chứa runtime/compiler và nguồn ứng dụng, chạy UID 10001; dữ liệu ở /data. | [Dockerfile](../Dockerfile#L11) |
 | 3. Chuẩn bị màn hình và âm thanh nội bộ | Supervisor tạo Xvfb/PulseAudio và nguồn âm ảo trong container. | [scripts/container_entry.py](../scripts/container_entry.py#L10) |
 | 4. Build hoặc dùng lại worker | Băm SDK/header/nguồn worker; build lỗi hoặc thiếu SDK xóa worker để tránh dùng sai nhưng vẫn chạy UI. | [scripts/container_entry.py](../scripts/container_entry.py#L46) |
@@ -81,9 +81,9 @@ flowchart LR
 | --- | --- | --- |
 | 1. Chọn dữ liệu và bài giảng phù hợp | Chọn thư mục theo nền tảng, tái dùng vị trí bản 1.x; container cố định theo mount cấu hình. | [src/paths.py](../src/paths.py#L11) |
 | 2. Sao chép vault cũ trước khởi động | Bản desktop chỉ sao chép vault 1.x khi đích chưa tồn tại; điểm vào có --no-migrate cho kiểm thử. | [src/paths.py](../src/paths.py#L44) |
-| 3. Giữ một phiên ứng dụng | Điểm vào nâng cấp trước dịch vụ; mutex Windows yêu cầu bản đang chạy hiện lại cửa sổ. | [src/main.py](../src/main.py#L71) |
-| 4. Mở WebView2 và tray | Cửa sổ local, chọn thư mục/SDK, thông báo và tray; đóng chỉ ẩn, Thoát dừng dịch vụ. | [src/main.py](../src/main.py#L97) |
-| 5. Cài runtime SDK riêng | Kiểm tra thư mục do app quản lý và bot đã dừng trước chọn ZIP; staging thay SDK có phục hồi. | [src/server.py](../src/server.py#L276) |
+| 3. Giữ một phiên ứng dụng | Điểm vào nâng cấp trước dịch vụ; mutex Windows yêu cầu bản đang chạy hiện lại cửa sổ. | [src/main.py](../src/main.py#L72) |
+| 4. Mở WebView2 và tray | Cửa sổ local mở trang bằng khóa khởi chạy riêng (tài khoản khác trên máy không lấy được token từ loopback), chọn thư mục/SDK, thông báo và tray; đóng chỉ ẩn, Thoát dừng dịch vụ. | [src/main.py](../src/main.py#L98) |
+| 5. Cài runtime SDK riêng | Kiểm tra thư mục do app quản lý và bot đã dừng trước chọn ZIP; staging thay SDK có phục hồi. | [src/server.py](../src/server.py#L295) |
 | 6. Chỉ giải nén SDK Windows x64 | ZIP cần x64/bin/sdk.dll; chặn đường dẫn vượt đích, không thực thi nội dung. | [src/sdk_setup.py](../src/sdk_setup.py#L12) |
 
 </details>
@@ -220,7 +220,7 @@ flowchart LR
 | --- | --- | --- |
 | 1. Điền D1 và origin của portal | wrangler dùng assets run_worker_first; D1 ID đang là placeholder, localhost origin và SMS tắt. Đây chưa phải production đã cấu hình. | [accounts/wrangler.jsonc](../accounts/wrangler.jsonc#L1) |
 | 2. Kiểm tra bí mật và origin trước phục vụ | Worker yêu cầu OTP_SECRET/ADMIN_TOKEN đủ dài, origin HTTPS ngoài local và Host khớp; lỗi cấu hình trả 503. | [accounts/worker.mjs](../accounts/worker.mjs#L26) |
-| 3. Giới hạn assets cho tài khoản | Worker chỉ cho trang tài khoản/account.js/account.css/logo và health; không mở giao diện app đầy đủ trên website. | [accounts/worker.mjs](../accounts/worker.mjs#L212) |
+| 3. Giới hạn assets cho tài khoản | Worker chỉ cho trang tài khoản/account.js/account.css/logo và health; không mở giao diện app đầy đủ trên website. | [accounts/worker.mjs](../accounts/worker.mjs#L223) |
 | 4. Áp dụng schema và chạy triển khai riêng | package cung cấp migration local/remote và deploy; workflow riêng tổ chức việc chạy chúng khi được dispatch. Chưa xác nhận các lệnh đã chạy production. | [accounts/package.json](../accounts/package.json#L5) |
 | 5. Đóng gói origin công khai trong exe | Chỉ --accounts-url hợp lệ mới tạo accounts-config.json và thêm vào bundle; CI hiện gọi build.py không truyền tùy chọn này. | [scripts/build.py](../scripts/build.py#L12) |
 | 6. Chọn dịch vụ khi mở ứng dụng | Exe frozen dùng origin đóng gói; source/Docker có thể dùng biến môi trường. Không có cấu hình thì bản cộng đồng không bật chốt license. | [src/account_client.py](../src/account_client.py#L27) |
@@ -256,13 +256,13 @@ flowchart LR
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
 | 1. Nhập danh tính ở website hoặc app | Một UI dùng API portal/cookie hoặc proxy local desktop; email/SĐT chuẩn hóa, không có đăng nhập Google OAuth. | [web/account.js](../web/account.js#L3) |
-| 2. Giới hạn gửi OTP và ngân sách | Tối đa 1/phút, 5/giờ/danh tính, 15/giờ/IP và hạn mức global/ngày; yêu cầu vẫn tính ngân sách khi gửi lỗi. | [accounts/worker.mjs](../accounts/worker.mjs#L125) |
-| 3. Tạo OTP có hạn và vô hiệu mã cũ | OTP sáu số rejection sampling, HMAC gắn challenge, hết hạn 300 giây; vô hiệu challenge cũ và dọn dữ liệu hết hạn. | [accounts/worker.mjs](../accounts/worker.mjs#L134) |
+| 2. Giới hạn gửi OTP và ngân sách | Tối đa 1/phút, 5/giờ/danh tính, 15/giờ/IP và hạn mức global/ngày; yêu cầu vẫn tính ngân sách khi gửi lỗi. | [accounts/worker.mjs](../accounts/worker.mjs#L132) |
+| 3. Tạo OTP có hạn và vô hiệu mã cũ | OTP sáu số rejection sampling, HMAC gắn challenge, hết hạn 300 giây; vô hiệu challenge cũ và dọn dữ liệu hết hạn. | [accounts/worker.mjs](../accounts/worker.mjs#L141) |
 | 4. Gửi qua nhà cung cấp khi đã cấu hình | Email dùng Resend, SMS Twilio chỉ khi bật/có secret; timeout 10 giây. Gửi lỗi vô hiệu challenge và báo lỗi, không trả OTP. | [accounts/worker.mjs](../accounts/worker.mjs#L60) |
-| 5. Giới hạn thử và tiêu thụ OTP nguyên tử | Tăng attempts trước kiểm HMAC, tối đa năm lần; conditional update chỉ cho một yêu cầu claim được mã. | [accounts/worker.mjs](../accounts/worker.mjs#L147) |
-| 6. Tạo user và phiên bảy ngày | DB chỉ giữ digest session; web nhận cookie HttpOnly/SameSite Strict/Secure trên HTTPS, desktop nhận token riêng. | [accounts/worker.mjs](../accounts/worker.mjs#L155) |
-| 7. Giữ token desktop trong vault mã hóa | Proxy local yêu cầu client desktop, xác minh token, giữ device_id và license cũ khi cùng danh tính rồi mã hóa account.vault. | [src/account_client.py](../src/account_client.py#L123) |
-| 8. Thu hồi phiên và xóa đăng nhập local | Worker xóa session hiện tại; client cuối cùng xóa credentials/cache và giữ device_id kể cả khi logout mạng lỗi. | [src/account_client.py](../src/account_client.py#L144) |
+| 5. Giới hạn thử và tiêu thụ OTP nguyên tử | Tăng attempts trước kiểm HMAC, tối đa năm lần; conditional update chỉ cho một yêu cầu claim được mã. | [accounts/worker.mjs](../accounts/worker.mjs#L154) |
+| 6. Tạo user và phiên bảy ngày | DB chỉ giữ digest session; web nhận cookie HttpOnly/SameSite Strict/Secure trên HTTPS, desktop nhận token riêng. | [accounts/worker.mjs](../accounts/worker.mjs#L162) |
+| 7. Giữ token desktop trong vault mã hóa | Proxy local yêu cầu client desktop, xác minh token, giữ device_id và license cũ khi cùng danh tính rồi mã hóa account.vault. | [src/account_client.py](../src/account_client.py#L150) |
+| 8. Thu hồi phiên và xóa đăng nhập local | Worker xóa session hiện tại; client cuối cùng xóa credentials/cache và giữ device_id kể cả khi logout mạng lỗi. | [src/account_client.py](../src/account_client.py#L171) |
 
 </details>
 
@@ -290,12 +290,12 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Người bán dùng token quản trị ngoài argv | CLI đọc ADMIN_TOKEN từ môi trường, kiểm origin HTTPS ngoài local và chỉ nhận grant/revoke. | [accounts/admin.mjs](../accounts/admin.mjs#L1) |
+| 1. Người bán dùng token quản trị ngoài argv | CLI đọc ADMIN_TOKEN từ môi trường, kiểm origin HTTPS ngoài local và nhận grant/revoke/reissue. | [accounts/admin.mjs](../accounts/admin.mjs#L1) |
 | 2. Cấp thời hạn và số thiết bị | Worker kiểm Bearer quản trị, danh tính, 1–3650 ngày, 1–10 máy; tạo license chưa owner/chưa expires và audit grant. | [accounts/worker.mjs](../accounts/worker.mjs#L102) |
 | 3. Lưu trạng thái gói trong D1 | Schema tách identity, key_digest duy nhất, owner, số ngày, số máy, hạn và revoked; không có bảng thanh toán tự động. | [accounts/migrations/0001_accounts.sql](../accounts/migrations/0001_accounts.sql#L11) |
-| 4. Liệt kê gói và trạng thái | /me trả pending/issued/active/expired/revoked, thiết bị và download_url HTTPS; tài khoản mới không tự có gói. | [accounts/worker.mjs](../accounts/worker.mjs#L166) |
-| 5. Cấp key bản rõ duy nhất một lần | UPDATE có điều kiện chỉ khi đúng identity, chưa key/owner, chưa revoked; key 160 bit CZ- chỉ có trong response, DB giữ SHA-256. | [accounts/worker.mjs](../accounts/worker.mjs#L175) |
-| 6. Hiển thị và xóa key khỏi giao diện | UI cho sao chép, ẩn hoặc redeem; không lưu key/token vào localStorage, pagehide/logout xóa key. Mất key cần người bán thu hồi/cấp lại. | [web/account.js](../web/account.js#L34) |
+| 4. Liệt kê gói và trạng thái | /me trả pending/issued/active/expired/revoked, thiết bị và download_url HTTPS; tài khoản mới không tự có gói. | [accounts/worker.mjs](../accounts/worker.mjs#L173) |
+| 5. Cấp key bản rõ duy nhất một lần | UPDATE có điều kiện chỉ khi đúng identity, chưa key/owner, chưa revoked; key 160 bit CZ- chỉ có trong response, DB giữ SHA-256. | [accounts/worker.mjs](../accounts/worker.mjs#L182) |
+| 6. Hiển thị và xóa key khỏi giao diện | UI cho sao chép, ẩn hoặc redeem; không lưu key/token vào localStorage, pagehide/logout xóa key. Mất key trước khi kích hoạt: người bán chạy reissue (có audit) để key cũ hết hiệu lực và khách lấy key mới. | [web/account.js](../web/account.js#L34) |
 
 </details>
 
@@ -323,19 +323,19 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Dùng key đúng danh tính một lần | Kiểm format/key hash và owner trống bằng UPDATE có điều kiện; expires tính từ now + days, request tranh chấp sau bị từ chối. | [accounts/worker.mjs](../accounts/worker.mjs#L182) |
-| 2. Đăng ký thiết bị của user đang có gói | Kiểm gói còn hạn/chưa revoke, device_id và tên; INSERT/UPDATE thiết bị thuộc license của user. | [accounts/worker.mjs](../accounts/worker.mjs#L190) |
+| 1. Dùng key đúng danh tính một lần | Kiểm format/key hash và owner trống bằng UPDATE có điều kiện; expires tính từ now + days. Cùng chủ sở hữu gửi lại (mất phản hồi, hai yêu cầu song song) nhận lại đúng kết quả cũ, không cộng hạn; tài khoản khác bị từ chối. | [accounts/worker.mjs](../accounts/worker.mjs#L189) |
+| 2. Đăng ký thiết bị của user đang có gói | Kiểm gói còn hạn/chưa revoke, device_id và tên; INSERT/UPDATE thiết bị thuộc license của user. | [accounts/worker.mjs](../accounts/worker.mjs#L201) |
 | 3. Khóa giới hạn máy tại cơ sở dữ liệu | Trigger BEFORE INSERT đếm theo license, bỏ qua máy đã tồn tại; giữ giới hạn khi hai kích hoạt đồng thời. | [accounts/migrations/0001_accounts.sql](../accounts/migrations/0001_accounts.sql#L19) |
-| 4. Lưu gói đang dùng trên máy | Client lưu license_id nhận từ server, bỏ cache và xác minh trực tuyến trước trả thành công. | [src/account_client.py](../src/account_client.py#L153) |
-| 5. Gỡ máy thuộc gói của mình | Worker chỉ xóa device trong license user sở hữu; UI cho danh sách từng máy và xác nhận gỡ. | [accounts/worker.mjs](../accounts/worker.mjs#L199) |
-| 6. Mở ứng dụng sau chọn dùng trên máy | Chỉ desktop có nút Dùng trên máy này; portal cung cấp tải app/gói/thiết bị, không chạy bot từ website. | [web/account.js](../web/account.js#L19) |
+| 4. Lưu gói đang dùng trên máy | Client lưu license_id nhận từ server, bỏ cache và xác minh trực tuyến trước trả thành công. | [src/account_client.py](../src/account_client.py#L180) |
+| 5. Gỡ máy thuộc gói của mình | Worker chỉ xóa device trong license user sở hữu; UI cho danh sách từng máy và xác nhận gỡ. | [accounts/worker.mjs](../accounts/worker.mjs#L210) |
+| 6. Mở ứng dụng sau chọn dùng trên máy | Chỉ desktop có nút Dùng trên máy này và luôn có nút Vào Cún Zoom; portal cung cấp tải app/gói/thiết bị, không chạy bot từ website. | [web/account.js](../web/account.js#L19) |
 
 </details>
 
 <details>
 <summary>Kiểm tra quyền trực tuyến và thu hồi</summary>
 
-Client bật account cần session/gói/thiết bị còn hiệu lực, cache tối đa 60 giây. Mất mạng sau cache hết hạn khóa thao tác và watchdog dừng bot; chính sách này còn chờ quyết định sản phẩm với đề xuất mới.
+Client bật account cần session/gói/thiết bị còn hiệu lực, cache tối đa 60 giây và làm mới ngầm. Khi chưa có quyền hoặc mất mạng sau cache, ứng dụng vẫn mở để xem, đọc, xuất, cấu hình và dừng; chỉ chặn việc trả phí mới và không cắt buổi đang ghi. Lease offline còn chờ quyết định sản phẩm.
 
 **Bắt đầu:** POST /api/licenses/check; admin revoke; watchdog 15 giây
 
@@ -348,7 +348,7 @@ flowchart LR
   s2 --> s3
   s4["4 · Tạm dừng watcher khi mất quyền"]
   s3 --> s4
-  s5["5 · Dừng bot đang chạy khi mất quyền"]
+  s5["5 · Không cắt buổi đang ghi"]
   s4 --> s5
   s6["6 · Người bán thu hồi gói và ghi audit"]
   s5 --> s6
@@ -356,12 +356,12 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Kiểm tra gói, owner và máy trực tuyến | Worker yêu cầu session hợp lệ, owner đúng, revoked=0, expires còn hạn và device hiện diện; cập nhật last_seen, trả recheck_after 60. | [accounts/worker.mjs](../accounts/worker.mjs#L204) |
-| 2. Chỉ cache quyền tối đa sáu mươi giây | Client cache theo monotonic và hạn gói; thiếu credentials, phản hồi sai, mạng lỗi hoặc hết hạn phải fail closed. | [src/account_client.py](../src/account_client.py#L91) |
-| 3. Chốt UI/API ứng dụng | Account actions được truy cập trước license; phần còn lại require trừ stop/quit/show. Root đưa về account khi chưa active; download và upload cũng chốt quyền. | [src/server.py](../src/server.py#L167) |
-| 4. Tạm dừng watcher khi mất quyền | Service gắn account.authorized cho watcher lịch và engine ôn tập; chúng kiểm lại mỗi vòng/job, không hủy yêu cầu AI đã gửi. | [src/server.py](../src/server.py#L61) |
-| 5. Dừng bot đang chạy khi mất quyền | Watchdog mỗi 15 giây gọi authorized; khi cache hết hạn và không xác minh được sẽ shutdown worker. Thời gian dừng còn phụ thuộc worker. | [src/server.py](../src/server.py#L506) |
-| 6. Người bán thu hồi gói và ghi audit | Admin revoke cập nhật revoked=1 và audit cùng batch; key chưa dùng và gói đã active đều không qua kiểm tra tiếp theo. | [accounts/worker.mjs](../accounts/worker.mjs#L115) |
+| 1. Kiểm tra gói, owner và máy trực tuyến | Worker yêu cầu session hợp lệ, owner đúng, revoked=0, expires còn hạn và device hiện diện; cập nhật last_seen, trả recheck_after 60. | [accounts/worker.mjs](../accounts/worker.mjs#L215) |
+| 2. Chỉ cache quyền tối đa sáu mươi giây | Client cache theo monotonic và hạn gói; giao diện, status và vòng nền chỉ đọc cache, kiểm tra mạng chạy nền một lần mỗi lúc, lỗi thì thử lại sau 15 giây. Chỉ thao tác trả phí (require) chờ server; thiếu credentials, phản hồi sai, mạng lỗi hoặc hết hạn là chưa có quyền. | [src/account_client.py](../src/account_client.py#L94) |
+| 3. Chốt UI/API ứng dụng | Account actions được truy cập trước license. Chỉ PAID_ROUTES (ghi Zoom, kiểm tra SDK, kết nối Zoom, lịch, tải model/SDK, kiểm tra AI, đồng bộ Ôn tập, tạo đề), bật theo dõi lịch và tải tài liệu lên cần bản quyền; xem, đọc, tải/xuất, cấu hình, ngắt kết nối và dừng luôn được. Trang chính luôn mở, kèm thông báo và link /account. | [src/server.py](../src/server.py#L185) |
+| 4. Tạm dừng watcher khi mất quyền | Service gắn account.authorized (chỉ đọc cache) cho watcher lịch và engine ôn tập; chúng kiểm lại mỗi vòng/job, tạm dừng chép lời và AI khi chưa có quyền, không hủy yêu cầu AI đã gửi. | [src/server.py](../src/server.py#L77) |
+| 5. Không cắt buổi đang ghi | Không còn watchdog: buổi đang ghi chạy tiếp đến khi người dùng dừng hoặc buổi kết thúc, kể cả khi bản quyền hết hạn hoặc mất mạng; bản chép lời của buổi đó vẫn được tạo. Khi khởi động, dịch vụ chỉ bắt đầu kiểm tra bản quyền ngầm. | [src/server.py](../src/server.py#L536) |
+| 6. Người bán thu hồi gói và ghi audit | Admin revoke cập nhật revoked=1 và audit cùng batch; key chưa dùng và gói đã active đều không qua kiểm tra tiếp theo. Admin reissue chỉ xóa digest của key đã phát chưa kích hoạt và ghi audit. | [accounts/worker.mjs](../accounts/worker.mjs#L115) |
 
 </details>
 
@@ -396,12 +396,12 @@ flowchart LR
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
 | 1. Kiểm mật khẩu giao diện Docker | Tạo mật khẩu local ngẫu nhiên bền qua restart; Docker kiểm Basic Auth username cunzoom trước nội dung riêng. | [src/access_control.py](../src/access_control.py#L12) |
-| 2. Kiểm phiên và nguồn POST | Host, X-App-Token, Origin và JSON object dưới 65536 byte bắt buộc trước điều phối; upload có luồng stream riêng. | [src/server.py](../src/server.py#L444) |
-| 3. Lưu cấu hình và vô hiệu quyền cũ khi cần | Kiểm ID/secret, giữ secret khi ô trống; đổi Client ID bỏ OAuth, đổi SDK credentials bỏ auth-test. | [src/server.py](../src/server.py#L195) |
+| 2. Kiểm phiên và nguồn POST | Host, X-App-Token (so sánh thời gian hằng), Origin và JSON object dưới 65536 byte bắt buộc trước điều phối; upload có luồng stream riêng. Kết nối bỏ ngỏ tự đóng sau 60 giây; Windows không bật SO_REUSEADDR. | [src/server.py](../src/server.py#L475) |
+| 3. Lưu cấu hình và vô hiệu quyền cũ khi cần | Kiểm ID/secret, giữ secret khi ô trống; đổi Client ID bỏ OAuth, đổi SDK credentials bỏ auth-test. | [src/server.py](../src/server.py#L214) |
 | 4. Lưu vault mã hóa và từ chối khóa sai | Windows dùng DPAPI, Linux Fernet; ghi thay thế nguyên tử, không fallback bản rõ khi mất/sai khóa. | [src/vault.py](../src/vault.py#L11) |
-| 5. Bắt đầu OAuth state và PKCE S256 | Desktop dùng listener loopback cổng ngẫu nhiên, Docker callback theo PUBLIC_ORIGIN; phiên 600 giây và thay phiên cũ. | [src/server.py](../src/server.py#L124) |
-| 6. Đổi code sau kiểm state và hạn | Callback kiểm state/hết hạn/lỗi từ Zoom và chỉ mã hóa khi đủ access/refresh token. | [src/server.py](../src/server.py#L150) |
-| 7. Làm mới access token trước dùng | Runner dùng token còn hạn hoặc refresh và lưu; thiếu quyền báo cần kết nối lại. | [src/runner.py](../src/runner.py#L44) |
+| 5. Bắt đầu OAuth state và PKCE S256 | Desktop dùng listener loopback cổng ngẫu nhiên, Docker callback theo PUBLIC_ORIGIN; phiên 600 giây và thay phiên cũ. | [src/server.py](../src/server.py#L142) |
+| 6. Đổi code sau kiểm state và hạn | Callback kiểm state/hết hạn/lỗi từ Zoom và chỉ mã hóa khi đủ access/refresh token. | [src/server.py](../src/server.py#L168) |
+| 7. Làm mới access token trước dùng | Runner dùng token còn hạn hoặc refresh và lưu; thiếu quyền báo cần kết nối lại. | [src/runner.py](../src/runner.py#L53) |
 
 </details>
 
@@ -429,10 +429,10 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Xác nhận đúng lịch và từ khóa | Chỉ lưu khi có feed Google hợp lệ, từ khóa và account_confirmed; mã hóa rồi xóa events cũ. | [src/calendar_watch.py](../src/calendar_watch.py#L143) |
+| 1. Xác nhận đúng lịch và từ khóa | Chỉ lưu khi có feed Google hợp lệ, từ khóa và account_confirmed; mã hóa rồi xóa events cũ. | [src/calendar_watch.py](../src/calendar_watch.py#L144) |
 | 2. Tải iCal có giới hạn | Chỉ calendar.google.com/basic.ics HTTPS không redirect, tối đa 10 MB; lỗi chỉ giữ loại/mã, không lộ URL bí mật. | [src/calendar_watch.py](../src/calendar_watch.py#L28) |
-| 3. Mở rộng lịch và chọn một phòng duy nhất | Mở rộng 14 ngày, chuẩn giờ Asia/Bangkok, bỏ cả ngày/hủy/quá hạn, lọc tiêu đề; chỉ nhận đúng một meeting_id và khử trùng. | [src/calendar_watch.py](../src/calendar_watch.py#L73) |
-| 4. Cập nhật lịch hoặc xóa khi lỗi | Nếu config đổi giữa lúc tải thì bỏ kết quả; lỗi xóa events và ghi lỗi an toàn, thành công cập nhật last_sync. | [src/calendar_watch.py](../src/calendar_watch.py#L174) |
+| 3. Mở rộng lịch và chọn một phòng duy nhất | Mở rộng 14 ngày, chuẩn giờ Asia/Bangkok, bỏ cả ngày/hủy/quá hạn, lọc tiêu đề; chỉ nhận đúng một meeting_id và khử trùng. | [src/calendar_watch.py](../src/calendar_watch.py#L74) |
+| 4. Cập nhật lịch hoặc xóa khi lỗi | Nếu config đổi giữa lúc tải thì bỏ kết quả; lỗi xóa events và ghi lỗi an toàn, thành công cập nhật last_sync. | [src/calendar_watch.py](../src/calendar_watch.py#L175) |
 
 </details>
 
@@ -458,11 +458,11 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Đồng bộ nền khi đang được phép | Mỗi vòng kiểm quyền; lịch bật được tải lại sau 300 giây, tick mỗi 15 giây; lỗi báo tạm dừng. | [src/calendar_watch.py](../src/calendar_watch.py#L241) |
-| 2. Chọn thời điểm nhắc và mở link | Nhắc khi còn 0–1800 giây, auto_open trong khoảng từ trước 120 tới sau 600 giây, bỏ buổi đã hết. | [src/calendar_watch.py](../src/calendar_watch.py#L206) |
-| 3. Ghi dấu trước hành động | Lưu dấu remind/open vào vault trước side effect, dọn dấu cũ để restart không liên tục mở lại lớp. | [src/calendar_watch.py](../src/calendar_watch.py#L222) |
+| 1. Đồng bộ nền khi đang được phép | Mỗi vòng kiểm quyền; lịch bật được tải lại sau 300 giây, tick mỗi 15 giây; lỗi báo tạm dừng. | [src/calendar_watch.py](../src/calendar_watch.py#L242) |
+| 2. Chọn thời điểm nhắc và mở link | Nhắc khi còn 0–1800 giây, auto_open trong khoảng từ trước 120 tới sau 600 giây, bỏ buổi đã hết. | [src/calendar_watch.py](../src/calendar_watch.py#L207) |
+| 3. Ghi dấu trước hành động | Lưu dấu remind/open vào vault trước side effect, dọn dấu cũ để restart không liên tục mở lại lớp. | [src/calendar_watch.py](../src/calendar_watch.py#L223) |
 | 4. Mở trên Windows hoặc phát sự kiện Docker | platform_actions dùng os.startfile Windows; Linux phát open_url/notice cho giao diện, không mở trình duyệt ẩn trên host. | [src/platform_actions.py](../src/platform_actions.py#L11) |
-| 5. Cho người dùng mở buổi đã chọn | API chỉ lấy event còn hiện hữu; Docker trả URL cho UI, desktop mở link; bắt đầu bot là thao tác xác nhận riêng. | [src/server.py](../src/server.py#L190) |
+| 5. Cho người dùng mở buổi đã chọn | API chỉ lấy event còn hiện hữu; Docker trả URL cho UI, desktop mở link; bắt đầu bot là thao tác xác nhận riêng. | [src/server.py](../src/server.py#L209) |
 
 </details>
 
@@ -496,20 +496,20 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Kiểm SDK riêng trước join | /sdk-test chạy auth-test; join cần consent và auth_test_passed. Auth-test không tham gia phòng. | [src/server.py](../src/server.py#L224) |
+| 1. Kiểm SDK riêng trước join | /sdk-test chạy auth-test; join cần consent và auth_test_passed. Auth-test không tham gia phòng. | [src/server.py](../src/server.py#L243) |
 | 2. Đọc link phòng tại máy | Chỉ HTTPS zoom.us/zoom.com, numeric 9–11 số với đường dẫn được hỗ trợ; báo link có pwd nhưng không coi pwd nhúng là mật khẩu thật. | [src/room_link.py](../src/room_link.py#L6) |
-| 3. Kiểm ID và làm mới quyền Zoom | Nếu ID/link khác nhau thì từ chối; refresh OAuth trước gọi runner với subject/title và xác nhận. | [src/server.py](../src/server.py#L233) |
-| 4. Lấy OBF cho đúng meeting | Gọi Zoom users/me/token type=onbehalf theo meeting_id; thiếu/từ chối token báo lỗi, không gửi access token cho native. | [src/runner.py](../src/runner.py#L53) |
-| 5. Tạo buổi học và một worker qua stdin riêng | Kiểm SDK/worker, bot duy nhất, consent, ID, tên và password; tạo metadata joining chưa recording_confirmed; secrets gửi base64 qua stdin. | [src/runner.py](../src/runner.py#L80) |
+| 3. Kiểm ID và làm mới quyền Zoom | Nếu ID/link khác nhau thì từ chối; refresh OAuth trước gọi runner với subject/title và xác nhận. | [src/server.py](../src/server.py#L252) |
+| 4. Lấy OBF cho đúng meeting | Gọi Zoom users/me/token type=onbehalf theo meeting_id; thiếu/từ chối token báo lỗi, không gửi access token cho native. | [src/runner.py](../src/runner.py#L62) |
+| 5. Tạo buổi học và một worker qua stdin riêng | Kiểm SDK/worker, bot duy nhất, consent, ID, tên và password; tạo metadata joining chưa recording_confirmed; secrets gửi base64 qua stdin. | [src/runner.py](../src/runner.py#L89) |
 | 6. SDK auth thành công rồi yêu cầu join | Native Windows init/auth và join bằng OBF, video/audio off, external mic im lặng; lỗi hoặc timeout có event riêng. | [native/bot.cpp](../native/bot.cpp#L98) |
-| 7. Chỉ đánh dấu auth-test đạt khi đủ điều kiện | Runner cần SDK init, SDK auth code=0 và process exit=0; join_requested không tự thành ghi thành công. | [src/runner.py](../src/runner.py#L106) |
+| 7. Chỉ đánh dấu auth-test đạt khi đủ điều kiện | Runner cần SDK init, SDK auth code=0 và process exit=0; join_requested không tự thành ghi thành công. | [src/runner.py](../src/runner.py#L115) |
 
 </details>
 
 <details>
 <summary>Xin quyền ghi, lưu dữ liệu và dừng</summary>
 
-Native chỉ mở raw recording khi Zoom cho phép; giữ WAV/slide local và đóng an toàn khi user STOP, mất quyền/room ended hoặc license watchdog.
+Native chỉ mở raw recording khi Zoom cho phép; giữ WAV/slide local và đóng an toàn khi user STOP, mất quyền ghi hoặc room ended. Bản quyền hết hạn không cắt buổi đang ghi.
 
 **Bắt đầu:** Meeting SDK callbacks; POST /stop-bot; Service.stop
 
@@ -539,9 +539,9 @@ flowchart LR
 | 3. Lưu âm thanh hỗn hợp WAV | Chỉ khi rawStarted và dữ liệu hợp lệ; ghi PCM, sửa header định kỳ, đếm byte thực và dừng khi format/ghi lỗi; không ghi mic host. | [native/bot.cpp](../native/bot.cpp#L45) |
 | 4. Lấy ảnh luồng chia sẻ có giới hạn | Windows chụp tối đa một lần/30 giây, giới hạn kích thước, đổi YUV sang JPEG và xoay theo frame. | [native/bot.cpp](../native/bot.cpp#L63) |
 | 5. Lưu ảnh chia sẻ trên Linux | Linux chuyển YUV, giới hạn 1600px và 30 giây, xoay khung và nén JPEG; polling nguồn share khi rawStarted. | [native/linux_bot.cpp](../native/linux_bot.cpp#L72) |
-| 6. Gửi STOP và cưỡng dừng khi cần | Runner gửi STOP qua stdin, shutdown đợi 20 giây rồi terminate/kill nếu chưa thoát; UI vẫn cho dừng khi license mất. | [src/runner.py](../src/runner.py#L62) |
+| 6. Gửi STOP và cưỡng dừng khi cần | Runner gửi STOP qua stdin, shutdown đợi 20 giây rồi terminate/kill nếu chưa thoát; UI vẫn cho dừng khi license mất. | [src/runner.py](../src/runner.py#L71) |
 | 7. Đóng raw, WAV và SDK | Native thoát khi STOP, kết thúc phòng, lỗi hoặc hạn phiên; stop raw, leave, hoàn chỉnh WAV và cleanup SDK. | [native/linux_bot.cpp](../native/linux_bot.cpp#L135) |
-| 8. Ghi kết quả thật và chép lời khi có audio | Runner cập nhật ended/state/audio_bytes/slides/error; recording_confirmed chỉ khi byte>0 và chỉ khi đó tự mở transcription. | [src/runner.py](../src/runner.py#L127) |
+| 8. Ghi kết quả thật và chép lời khi có audio | Runner cập nhật ended/state/audio_bytes/slides/error; recording_confirmed chỉ khi byte>0 và chỉ khi đó tự mở transcription. | [src/runner.py](../src/runner.py#L136) |
 
 </details>
 
@@ -573,12 +573,12 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Tải mô hình khi người dùng yêu cầu | Service tải riêng các file faster-whisper-base từ Hugging Face vào cache; trạng thái downloading/ready/failed. | [src/server.py](../src/server.py#L106) |
-| 2. Xếp chép lời tránh trùng | Engine chỉ chép một buổi khi có model và không đang ghi; media upload luôn chép, audio cũ cần auto; trạng thái processing có hạn stale. | [src/study.py](../src/study.py#L593) |
-| 3. Đánh dấu busy trước mở tiến trình | Runner ghi trạng thái processing trước Popen; frozen dùng --transcribe, source chạy module riêng và lưu log local. | [src/runner.py](../src/runner.py#L30) |
-| 4. Chép audio/video trên CPU local | Chọn audio ghi hoặc upload media, faster-whisper base int8, local_files_only và hai CPU threads; ngôn ngữ vi với timestamp. | [src/transcribe.py](../src/transcribe.py#L17) |
+| 1. Tải mô hình khi người dùng yêu cầu | Service tải riêng các file faster-whisper-base từ Hugging Face vào cache; trạng thái downloading/ready/failed. | [src/server.py](../src/server.py#L124) |
+| 2. Xếp chép lời tránh trùng | Engine chỉ chép một buổi khi có model và không đang ghi; media upload luôn chép, audio cũ cần auto; trạng thái processing có hạn stale. | [src/study.py](../src/study.py#L725) |
+| 3. Đánh dấu busy trước mở tiến trình | Runner ghi trạng thái processing trước Popen; frozen dùng --transcribe, source chạy module riêng và lưu log local. Một luồng theo dõi ghi failed nếu tiến trình chép lời chết trước khi tự ghi trạng thái. | [src/runner.py](../src/runner.py#L30) |
+| 4. Chép audio/video trên CPU local | Chọn audio ghi hoặc upload media, faster-whisper base int8, local_files_only và hai CPU threads; ngôn ngữ vi với timestamp. Mỗi file chỉ giải mã tối đa 3 giờ âm thanh (load_audio). | [src/transcribe.py](../src/transcribe.py#L17) |
 | 5. Tạo nháp và báo hoàn tất/lỗi | Trích câu theo tần suất thành tom_tat_nhap, đánh dấu cần rà; tạo hướng dẫn đối chiếu và completed hoặc failed. | [src/transcribe.py](../src/transcribe.py#L5) |
-| 6. Giữ trạng thái chép lời riêng với ghi chú | Transcript mới hơn media là done; processing dưới sáu giờ là running; lỗi cùng nguồn là failed; model chưa có có thể dùng tài liệu khác trước. | [src/study.py](../src/study.py#L161) |
+| 6. Giữ trạng thái chép lời riêng với ghi chú | Transcript mới hơn media hoặc trạng thái completed (kể cả bản chép lời rỗng của file im lặng) là done; processing dưới sáu giờ là running; lỗi cùng nguồn là failed; model chưa có có thể dùng tài liệu khác trước. | [src/study.py](../src/study.py#L163) |
 
 </details>
 
@@ -607,7 +607,7 @@ flowchart LR
 | 1. Liệt kê thư mục buổi có metadata | Chỉ lấy buổi trong root, chặn symlink/vượt root và metadata sai; trả ID băm, số ảnh/byte, có transcript/nháp hay không. | [src/library.py](../src/library.py#L11) |
 | 2. Đọc đúng loại tài liệu qua ID | Chỉ transcript/summary được ánh xạ, kiểm đường dẫn trong buổi và giới hạn 160000 ký tự. | [src/library.py](../src/library.py#L49) |
 | 3. Hiển thị tài liệu như dữ liệu | UI hiển thị âm thanh/ảnh hoặc reader, dựng Markdown hạn chế và textContent; không chạy nội dung bài giảng. | [web/app.js](../web/app.js#L28) |
-| 4. Mở thư mục hoặc trả ZIP có kiểm quyền | Desktop mở local; Docker GET tải đã qua Basic Auth và license, stream zip tạm. | [src/server.py](../src/server.py#L365) |
+| 4. Mở thư mục hoặc trả ZIP có kiểm quyền | Desktop mở local; Docker GET tải đã qua Basic Auth, stream zip tạm. Tải/xuất không cần bản quyền. | [src/server.py](../src/server.py#L386) |
 | 5. Chỉ đóng gói file trong phạm vi | Archive không theo symlink/vượt folder, trả TemporaryFile và đóng khi lỗi. | [src/library.py](../src/library.py#L71) |
 
 </details>
@@ -637,11 +637,11 @@ flowchart LR
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
 | 1. Chọn môn/buổi và nhiều file | Giao diện gửi từng file theo thứ tự; file đầu tạo lesson, file sau tái dùng lesson; hiện tiến độ và lỗi. | [web/study.js](../web/study.js#L112) |
-| 2. Kiểm quyền trước nhận stream | POST upload cần Basic Auth/Host/app-token/Origin và license như các thao tác ứng dụng. | [src/server.py](../src/server.py#L444) |
-| 3. Tạo buổi tài liệu local | Dùng tên đã làm sạch, chặn root/nhóm đặc biệt, tạo cấu trúc thư mục và metadata source=upload. | [src/study.py](../src/study.py#L507) |
-| 4. Chọn tên và loại tài liệu | Chỉ PDF/DOCX/PPTX/ảnh/TXT/MD/media được chấp nhận, bỏ đường dẫn tên gửi vào và tránh ghi đè bằng hậu tố. | [src/study.py](../src/study.py#L522) |
-| 5. Stream tối đa hai GB rồi thay nguyên tử | Dùng Content-Length, đọc mỗi chunk tối đa 1MB vào .part; rename khi hoàn tất, xóa part khi ngắt/lỗi và đánh thức engine. | [src/server.py](../src/server.py#L469) |
-| 6. Đọc file thành đầu vào AI | Đọc TXT/Office XML/PDF có giới hạn và cảnh báo file lỗi; Claude có ảnh/PDF, Ollama dùng text hoặc thử ảnh rồi fallback. | [src/documents.py](../src/documents.py#L31) |
+| 2. Kiểm quyền trước nhận stream | POST upload cần Basic Auth/Host/app-token/Origin và license như các thao tác ứng dụng. | [src/server.py](../src/server.py#L475) |
+| 3. Tạo buổi tài liệu local | Dùng tên đã làm sạch, chặn root/nhóm đặc biệt, tạo cấu trúc thư mục và metadata source=upload. | [src/study.py](../src/study.py#L634) |
+| 4. Chọn tên và loại tài liệu | Chỉ PDF/DOCX/PPTX/ảnh/TXT/MD/media được chấp nhận, bỏ đường dẫn tên gửi vào và tránh ghi đè bằng hậu tố. | [src/study.py](../src/study.py#L649) |
+| 5. Stream tối đa hai GB rồi thay nguyên tử | Dùng Content-Length, đọc mỗi chunk tối đa 1MB vào .part; rename khi hoàn tất, xóa part khi ngắt/lỗi và đánh thức engine. | [src/server.py](../src/server.py#L500) |
+| 6. Đọc file thành đầu vào AI | Đọc TXT/Office/PDF có giới hạn: XML Office đọc theo luồng, không nhận DTD, tối đa 200 MB XML và 4 triệu ký tự mỗi file; file lỗi hoặc không có chữ thành cảnh báo. Claude có ảnh/PDF, Ollama dùng text hoặc thử ảnh rồi fallback. | [src/documents.py](../src/documents.py#L34) |
 
 </details>
 
@@ -671,13 +671,13 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Chọn provider và mã hóa cấu hình | Kiểm provider/model/key Claude hoặc URL/model Ollama, giữ key khi ô trống; public_settings chỉ trả cờ key_saved. | [src/ai_backend.py](../src/ai_backend.py#L33) |
-| 2. Kiểm thử kết nối bằng JSON nhỏ | generate chọn backend khi đã enabled; test chỉ đạt khi kết quả có ok=true. | [src/ai_backend.py](../src/ai_backend.py#L89) |
-| 3. Gửi nội dung bằng SDK Claude | Giới hạn tài liệu 24MB, stream với schema/effort/cache, fallback chỉ model được cấu hình; lỗi API được dịch. Chưa xác minh model/account thật bằng mã này. | [src/ai_backend.py](../src/ai_backend.py#L107) |
-| 4. Gửi yêu cầu tới Ollama đã chọn | POST /api/chat với schema và num_ctx 32768; model từ chối ảnh thử lại text; lỗi HTTP/mạng/JSON được báo. | [src/ai_backend.py](../src/ai_backend.py#L161) |
-| 5. Ưu tiên yêu cầu thủ công và chống trùng | Request kiểm AI enabled/môn hợp lệ, xóa failed của môn và appendleft nếu chưa có; status trả current/queued/errors. | [src/study.py](../src/study.py#L560) |
-| 6. Scan theo fingerprint và quyền | Loop chờ nếu không authorized; auto xếp session, môn rồi outline theo fingerprint; không tự tạo đề thử. | [src/study.py](../src/study.py#L576) |
-| 7. Chạy một job và giữ dấu lỗi nguồn | run_jobs kiểm authorized giữa job, thực hiện session/subject/outline/exam tuần tự; lỗi lưu phiên bản để không retry vô hạn. | [src/study.py](../src/study.py#L631) |
+| 1. Chọn provider và mã hóa cấu hình | Kiểm provider/model/key Claude hoặc URL/model Ollama, giữ key khi ô trống; public_settings chỉ trả cờ key_saved. | [src/ai_backend.py](../src/ai_backend.py#L38) |
+| 2. Kiểm thử kết nối bằng JSON nhỏ | generate chọn backend khi đã enabled; test chỉ đạt khi kết quả có ok=true. | [src/ai_backend.py](../src/ai_backend.py#L97) |
+| 3. Gửi nội dung bằng SDK Claude | Giới hạn tài liệu 24MB, stream với schema/effort/cache, fallback chỉ model được cấu hình; lỗi API được dịch. Chưa xác minh model/account thật bằng mã này. | [src/ai_backend.py](../src/ai_backend.py#L113) |
+| 4. Gửi yêu cầu tới Ollama đã chọn | POST /api/chat với schema và num_ctx 32768; model từ chối ảnh thử lại text, trừ khi buổi chỉ có ảnh thì báo lỗi thay vì đoán. Câu trả lời giới hạn 16 MB và 1800 giây; dữ liệu sai dạng thành lỗi AI. | [src/ai_backend.py](../src/ai_backend.py#L168) |
+| 5. Ưu tiên yêu cầu thủ công và chống trùng | Request kiểm AI enabled/môn hợp lệ và appendleft nếu chưa có. Đồng bộ lại xóa failed của môn và đọc lại bytes tài liệu; tạo đề thì không thử lại buổi đang lỗi. Status trả current/queued/errors. | [src/study.py](../src/study.py#L688) |
+| 6. Scan theo fingerprint và quyền | Loop chờ nếu không authorized; auto xếp session, môn rồi outline theo fingerprint; môn có buổi bot đang ghi được bỏ qua tới khi ghi xong; không tự tạo đề thử. | [src/study.py](../src/study.py#L708) |
+| 7. Chạy một job và giữ dấu lỗi nguồn | run_jobs kiểm authorized giữa job, thực hiện session/subject/outline/exam tuần tự. Mọi loại lỗi được nhớ theo phiên bản đầu vào để không retry vô hạn; buổi lỗi không chặn hệ thống kiến thức và đề cương của các buổi khác. | [src/study.py](../src/study.py#L784) |
 
 </details>
 
@@ -703,10 +703,10 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Chọn nguồn và cảnh báo phần thiếu | Fingerprint bao gồm transcript, tài liệu, slide; báo chép lời lỗi/thiếu, đọc upload, Claude chọn tối đa 20 slide; Ollama báo bỏ slide ghi. | [src/study.py](../src/study.py#L239) |
-| 2. Sinh và lưu ghi chú từng buổi | Nếu quá giới hạn thì chia đoạn rồi hợp nhất; tổ chức theo liên quan/độ khó, lưu JSON/MD với fingerprint, model, file và cảnh báo. | [src/study.py](../src/study.py#L269) |
-| 3. Tổng hợp kiến thức theo môn | Dùng các buổi đã có notes, gộp trùng theo chủ đề/quan hệ; chia lô khi cần rồi lưu hệ thống JSON/MD có fingerprint nguồn. | [src/study.py](../src/study.py#L316) |
-| 4. Tạo mục lục tổng khi dữ liệu đổi | Liệt kê môn/buổi/ghi chú, liên kết hệ thống/đề cương và số đề thử; chỉ ghi khi nội dung mới. | [src/study.py](../src/study.py#L487) |
+| 1. Chọn nguồn và cảnh báo phần thiếu | Dấu vân tay nhanh theo tên/kích thước/mtime; ghi chú mới lưu thêm digest nội dung của bản chép lời và tài liệu (slide và media theo metadata), đọc lại bytes khi khởi động hoặc Đồng bộ lại. Báo chép lời lỗi/thiếu; không có nội dung đọc được thì báo lỗi, không gọi AI; Claude chọn tối đa 20 slide, Ollama báo bỏ slide. | [src/study.py](../src/study.py#L295) |
+| 2. Sinh và lưu ghi chú từng buổi | Nếu quá giới hạn thì chia bản chép lời và từng tài liệu thành đoạn giữ đủ ký tự (mỗi đoạn tài liệu mang tên tài liệu), ảnh/PDF đi cùng phần đầu, rồi gộp theo tầng cho tới khi vừa một yêu cầu. Tổ chức theo liên quan/độ khó, lưu JSON/MD (chặn ảnh và HTML do AI chèn) với fingerprint, digest nội dung, model, file và cảnh báo. | [src/study.py](../src/study.py#L331) |
+| 3. Tổng hợp kiến thức theo môn | Dùng các buổi đã có notes (theo digest nội dung khi có), gộp trùng theo chủ đề/quan hệ; chia lô khi cần rồi lưu hệ thống JSON/MD có fingerprint nguồn. | [src/study.py](../src/study.py#L400) |
+| 4. Tạo mục lục tổng khi dữ liệu đổi | Liệt kê môn/buổi/ghi chú, liên kết hệ thống/đề cương và số đề thử; chỉ ghi khi nội dung mới. | [src/study.py](../src/study.py#L614) |
 | 5. Đọc trạng thái và các tầng kiến thức | API overview/subject trả trạng thái nguồn, map/outline/exam và từng buổi; UI lọc độ liên quan/độ khó/từ khóa bằng text. | [web/study.js](../web/study.js#L28) |
 
 </details>
@@ -733,11 +733,11 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Kiểm yêu cầu tạo nội dung ôn tập | API kiểm loại và mức mix rồi xếp job; thư mục/tải ôn tập qua luồng riêng theo nền tảng. | [src/server.py](../src/server.py#L298) |
-| 2. Sinh đề cương từ hệ thống môn | Cần knowledge_map, yêu cầu mục tiêu/chương/trọng tâm/kế hoạch, lưu base fingerprint và JSON/Markdown. | [src/study.py](../src/study.py#L352) |
-| 3. Sinh đề thử theo số câu và độ khó | Giới hạn 0–60 trắc nghiệm, 0–10 tự luận, ít nhất một câu; dùng nguồn môn, chỉ giữ MC có bốn lựa chọn; lưu ID timestamp. | [src/study.py](../src/study.py#L373) |
+| 1. Kiểm yêu cầu tạo nội dung ôn tập | API kiểm loại và mức mix rồi xếp job; thư mục/tải ôn tập qua luồng riêng theo nền tảng. | [src/server.py](../src/server.py#L317) |
+| 2. Sinh đề cương từ hệ thống môn | Cần knowledge_map, yêu cầu mục tiêu/chương/trọng tâm/kế hoạch, lưu base fingerprint và JSON/Markdown. | [src/study.py](../src/study.py#L436) |
+| 3. Sinh đề thử theo số câu và độ khó | Giới hạn 0–60 trắc nghiệm, 0–10 tự luận, ít nhất một câu; câu chỉ ghi tên chủ đề được đổi thành câu hỏi, loại câu chỉ ghi số hoặc thiếu bốn lựa chọn, thiếu câu thì hỏi thêm một lần; lưu ID timestamp. | [src/study.py](../src/study.py#L473) |
 | 4. Làm bài và chấm trắc nghiệm ở UI | Lưu lựa chọn trong trạng thái JS, nộp hiện đúng/sai/giải thích và số câu đúng; tự luận chỉ textarea/gợi ý, chưa lưu kết quả server. | [web/study.js](../web/study.js#L86) |
-| 5. Đọc bản tổng hợp hoặc tải ZIP | Desktop mở thư mục ôn tập; Docker trả URL tải, GET có auth/license và chỉ đóng gói dữ liệu trong môn. | [src/server.py](../src/server.py#L391) |
+| 5. Đọc bản tổng hợp hoặc tải ZIP | Desktop mở thư mục ôn tập; Docker trả URL tải, GET có Basic Auth và chỉ đóng gói dữ liệu trong môn; không cần bản quyền. | [src/server.py](../src/server.py#L410) |
 
 </details>
 

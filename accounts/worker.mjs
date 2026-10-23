@@ -120,6 +120,13 @@ async function api(request, env, url, origin) {
       if (!results[0].results.length) fail('Không tìm thấy bản quyền.', 404);
       return json({ok: true});
     }
+    if (path === '/api/admin/reissue') {
+      // A key lost before activation is replaced, never shown again: clearing the digest lets the buyer fetch a new one.
+      const row = await env.DB.prepare('UPDATE licenses SET key_digest=NULL WHERE id=? AND key_digest IS NOT NULL AND owner_id IS NULL AND revoked=0 RETURNING id').bind(String(data.license_id || '')).first();
+      if (!row) fail('Chỉ cấp lại được mã đã phát nhưng chưa kích hoạt.', 409);
+      await env.DB.prepare('INSERT INTO audit(action,license_id,created) VALUES (?,?,?)').bind('reissue', row.id, now()).run();
+      return json({ok: true});
+    }
     fail('Không tìm thấy.', 404);
   }
   if (path === '/api/otp/request') {
@@ -183,9 +190,13 @@ async function api(request, env, url, origin) {
     await limit(env, 'redeem', user.id, 10, 600);
     const key = String(data.key || '').trim().toUpperCase();
     if (!/^CZ-[A-F0-9]{40}$/.test(key)) fail('Mã bản quyền không hợp lệ.');
-    const row = await env.DB.prepare('UPDATE licenses SET owner_id=?,expires=?+days*86400 WHERE key_digest=? AND identity=? AND owner_id IS NULL AND revoked=0 RETURNING id,expires,device_limit').bind(user.id, now(), await hash(key), user.identity).first();
-    if (!row) fail('Mã không hợp lệ, đã dùng hoặc không thuộc tài khoản này.', 409);
-    return json(row);
+    const digest = await hash(key);
+    const row = await env.DB.prepare('UPDATE licenses SET owner_id=?,expires=?+days*86400 WHERE key_digest=? AND identity=? AND owner_id IS NULL AND revoked=0 RETURNING id,expires,device_limit').bind(user.id, now(), digest, user.identity).first();
+    if (row) return json(row);
+    // A retry by the same owner (the first response was lost) gets the same activation back; the term is not extended.
+    const own = await env.DB.prepare('SELECT id,expires,device_limit FROM licenses WHERE key_digest=? AND owner_id=? AND revoked=0').bind(digest, user.id).first();
+    if (!own) fail('Mã không hợp lệ, đã dùng hoặc không thuộc tài khoản này.', 409);
+    return json(own);
   }
   if (path === '/api/devices/activate') {
     const id = device(data), license = await licenseFor(env, user, data.license_id);

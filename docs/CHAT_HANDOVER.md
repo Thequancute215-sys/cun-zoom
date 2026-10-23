@@ -4,6 +4,20 @@
 >
 > Repository: `Thequancute215-sys/cun-zoom`. Nền phiên làm việc: `53decc9d4b95fc032f132c375f05960eb5e824a2` (v2.2.0). Mã, tài liệu và graph của phiên này đã commit và push lên nhánh `codex/accounts-handover` (commit triển khai ban đầu `4e08263`); chưa merge vào `main`. Thời điểm bàn giao: tháng 10/2026.
 
+## 0. Tiến độ sau bàn giao (24/10/2026, Claude Code, nhánh `claude/accounts-on-2.2.1`)
+
+- **Đưa lên 2.2.1:** nhánh này gộp `codex/accounts-handover` vào `main` 2.2.1 (các sửa lỗi Ôn tập và bảo mật). Code gộp không xung đột; graph và `docs/WORKFLOW.md` được sinh lại. Các mục bên dưới mô tả nền 2.2.0, trừ khi được ghi là đã làm ở đây.
+- **Đã làm:**
+  - Kích hoạt lại cùng key của cùng chủ sở hữu trả lại kết quả cũ, không cộng hạn.
+  - Thêm lệnh admin `reissue` cấp key mới, có audit, cho key đã phát nhưng chưa kích hoạt.
+  - Khi chưa có hoặc hết bản quyền, ứng dụng vẫn mở để xem, đọc, xuất, cấu hình và dừng; chỉ chặn việc trả phí mới (`PAID_ROUTES`).
+  - Bỏ watchdog dừng bot: buổi đang ghi không bị cắt.
+  - Kiểm tra bản quyền không còn chặn giao diện khi mất mạng.
+  - P0 trong Word: `_chunks` giữ đủ ký tự, tài liệu dài được chia như bản chép lời, gộp theo tầng khi vượt ngân sách; dấu vân tay theo nội dung cho bản chép lời và tài liệu (đọc lại bytes khi khởi động hoặc Đồng bộ lại). P0 "tài liệu rỗng gọi AI" đã được 2.2.1 sửa.
+  - Test Worker chạy được trên Windows.
+- **Vẫn chờ chủ sản phẩm chốt:** OTP không mật khẩu hay thêm Google/mật khẩu; lease offline; hạn gói tính từ lúc cấp hay lúc kích hoạt; chính sách chuyển máy và khôi phục; danh sách thao tác tính là trả phí; đổi model AI có tự hệ thống hoá lại toàn bộ hay không (đang **không**, vì tốn phí).
+- **Chưa làm:** staging/production thật, gửi OTP thật, build EXE với `--accounts-url`, thanh toán, và các mục P1/P2 còn lại ở mục 8.
+
 ## 1. Yêu cầu của chủ sản phẩm
 
 - Bán Cún Zoom cho khách; đăng nhập bằng Gmail/email hoặc số điện thoại, xác minh OTP.
@@ -105,11 +119,11 @@ GET `/health` phục vụ kiểm tra dịch vụ; portal dùng tài nguyên acco
 ### Việc phải hoàn tất trước khi bán
 
 - [ ] Chốt OTP không mật khẩu hay cần Google OAuth/mật khẩu; không phát mật khẩu chung cho mọi khách.
-- [ ] Xử lý mất phản hồi lúc nhận key; thiết kế cấp lại/audit và retry kích hoạt idempotent cho cùng chủ sở hữu.
+- [x] Xử lý mất phản hồi lúc nhận key; thiết kế cấp lại/audit và retry kích hoạt idempotent cho cùng chủ sở hữu. *(đã làm: retry kích hoạt idempotent + `reissue` có audit)*
 - [ ] Chốt chuyển máy, cooldown, khôi phục tài khoản và hỗ trợ khách mất thiết bị.
 - [ ] Có quy trình gia hạn, hủy/hoàn tiền, chống cấp trùng giao dịch; hiện chỉ grant/revoke thủ công.
 - [ ] Chốt hạn gói bắt đầu lúc cấp hay kích hoạt; mã hiện bắt đầu khi redeem.
-- [ ] Chốt quyền đọc/xuất khi hết hạn và xử lý phiên Zoom đang ghi; sửa gate/watchdog cho đúng.
+- [x] Chốt quyền đọc/xuất khi hết hạn và xử lý phiên Zoom đang ghi; sửa gate/watchdog cho đúng. *(đã làm: giữ đọc/xuất, không cắt buổi đang ghi)*
 - [ ] Quyết định offline lease có chữ ký hay giữ online; nếu làm offline phải thiết kế khóa ký, xoay khóa, đồng hồ và thu hồi.
 - [ ] Chạy nghiệm thu key với mạng chập chờn, nhiều máy, retry, thu hồi và nâng cấp phiên bản trên Windows thật.
 - [ ] Xây quản trị có xác thực mạnh/audit nếu nhiều người cấp quyền; chưa tự động hóa bán hàng.
@@ -177,11 +191,11 @@ File Word là đánh giá và phương án phát triển ở commit nền. Nhữ
 
 ### P0 — độ tin cậy và điều kiện phát hành
 
-- [ ] Tái hiện/sửa `_chunks` cắt mất phần còn lại của dòng dài; test giữ đầy đủ nội dung trong budget.
-- [ ] Không gọi AI khi TXT/tài liệu không có nội dung đọc được.
-- [ ] Fingerprint theo byte nội dung và model/cấu hình, tránh chỉ dựa tên/kích thước/mtime.
+- [x] Tái hiện/sửa `_chunks` cắt mất phần còn lại của dòng dài; test giữ đầy đủ nội dung trong budget. *(đã sửa)*
+- [x] Không gọi AI khi TXT/tài liệu không có nội dung đọc được. *(đã sửa trong 2.2.1)*
+- [ ] Fingerprint theo byte nội dung và model/cấu hình, tránh chỉ dựa tên/kích thước/mtime. *(đã làm phần nội dung; model chưa đưa vào vì đổi model sẽ tự chạy lại AI cho mọi buổi — chờ chủ sản phẩm chốt)*
 - [ ] Kiểm chứng Zoom thực tế, quyền SDK/OBF và hướng RTMS phù hợp trước khi cam kết bán.
-- [ ] Giải quyết chính sách đọc/xuất, ghi đang chạy và mất mạng của phần license như mục 7.
+- [x] Giải quyết chính sách đọc/xuất, ghi đang chạy và mất mạng của phần license như mục 7. *(đã làm phần đọc/xuất và ghi đang chạy; offline còn chờ chốt)*
 
 ### P1 — đợt thương mại đầu
 

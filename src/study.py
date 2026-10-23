@@ -194,6 +194,48 @@ def fingerprint(folder):
     return digest.hexdigest()[:32], bool(inputs)
 
 
+# SHA-256 of a file's bytes by (path, size, mtime): read once per version, again after restart or a manual resync.
+_DIGESTS = {}
+
+
+def _file_digest(path):
+    stat = path.stat()
+    key = (str(path), stat.st_size, stat.st_mtime_ns)
+    if key not in _DIGESTS:
+        digest = hashlib.sha256()
+        with path.open('rb') as stream:
+            for block in iter(lambda: stream.read(1 << 20), b''):
+                digest.update(block)
+        _DIGESTS[key] = digest.hexdigest()
+    return _DIGESTS[key]
+
+
+def forget_digests(folder):
+    prefix = str(folder)
+    for key in [k for k in _DIGESTS if k[0].startswith(prefix)]:
+        _DIGESTS.pop(key, None)
+
+
+def content_fingerprint(folder):
+    """Like fingerprint, but by content for what the owner writes (transcript, documents): same bytes, same notes.
+    Slides the bot captures and media (read through the transcript) keep size and mtime."""
+    digest, slides = hashlib.sha256(PROMPT_VERSION.encode()), _slides(folder)[:500]
+    captured = set(slides)
+    for path in [p for p in [_transcript(folder)] if p] + _materials(folder) + slides:
+        stat = path.stat()
+        by_bytes = path not in captured and documents.kind(path) != 'media'
+        digest.update(f'{path.relative_to(folder).as_posix()}|{_file_digest(path) if by_bytes else str(stat.st_size) + "|" + str(stat.st_mtime_ns)}\n'.encode())
+    return digest.hexdigest()[:32]
+
+
+def notes_current(folder, notes, current=None):
+    meta = notes.get('_meta', {})
+    # Notes written before content digests compare as they always did, so an upgrade reruns nothing.
+    if 'content' in meta:
+        return meta['content'] == content_fingerprint(folder)
+    return meta.get('fingerprint') == (current or fingerprint(folder)[0])
+
+
 def session_notes(folder):
     return _read_json(folder / (SESSION_NOTES + '.json'))
 
@@ -211,7 +253,7 @@ def session_status(folder):
     if not has_inputs:
         return 'empty'
     notes = session_notes(folder)
-    return 'ready' if notes and notes.get('_meta', {}).get('fingerprint') == current else 'stale'
+    return 'ready' if notes and notes_current(folder, notes, current) else 'stale'
 
 
 def _sorted_items(items):
@@ -230,12 +272,21 @@ def _organize(data):
 
 
 def _chunks(text, size):
-    lines, current, length = text.splitlines(), [], 0
-    for line in lines:
+    """Pieces of at most size characters, in order, that together keep every character of every line."""
+    current, length = [], 0
+    for line in text.splitlines():
+        while len(line) > size:
+            # Split an over-long line at a space in its second half when there is one, else exactly at size.
+            cut = line.rfind(' ', size // 2, size) + 1 or size
+            if current:
+                yield '\n'.join(current)
+                current, length = [], 0
+            yield line[:cut]
+            line = line[cut:]
         if length + len(line) > size and current:
             yield '\n'.join(current)
             current, length = [], 0
-        current.append(line[:size])
+        current.append(line)
         length += len(line) + 1
     if current:
         yield '\n'.join(current)
@@ -246,6 +297,7 @@ def analyze_session(subject, folder, config=None):
     current, has_inputs = fingerprint(folder)
     if not has_inputs:
         raise ai.AIError('Buổi học chưa có bản chép lời, slide hay tài liệu để hệ thống hoá.')
+    content = content_fingerprint(folder)
     meta = _read_json(folder / 'buoi_hoc.json') or {}
     header = 'Môn: ' + subject.name + '\nBuổi: ' + str(meta.get('title') or folder.name) + '\nNgày: ' + str(meta.get('requested', ''))[:10]
     warnings, files, extra, documents_read = [], [], [], False
@@ -287,18 +339,38 @@ def analyze_session(subject, folder, config=None):
         result = ai.generate(SYSTEM, parts, SESSION_SCHEMA, 'medium', config, images_required=images_only)
     else:
         # Too long for one request (mostly local models): note each part, then merge the notes.
-        pieces = list(_chunks(text, limit // 2)) + [p['text'] for p in extra if p['kind'] == 'text']
-        attachments = [p for p in extra if p['kind'] != 'text']
+        pieces, attachments = list(_chunks(text, limit // 2)), []
+        for item in extra:
+            label, _, body = item.get('text', '').partition('\n')
+            if item['kind'] != 'text' or not body:
+                # Images, PDFs and their one-line labels.
+                attachments.append(item)
+            else:
+                # A long document is split like the transcript; each piece keeps the document's name for citing.
+                pieces += [label + '\n' + piece for piece in _chunks(body, limit // 2)]
         partial = []
         for index, piece in enumerate(pieces, 1):
             parts = [{'kind': 'text', 'text': header + '\nPhần ' + str(index) + '/' + str(len(pieces)) + '\n\n' + task + '\n\n' + piece}]
             # Slides and PDFs ride with the first part so no input is dropped.
             partial.append(ai.generate(SYSTEM, parts + (attachments if index == 1 else []), SESSION_SCHEMA, 'medium', config))
-        merged = json.dumps(partial, ensure_ascii=False)
-        result = ai.generate(SYSTEM, [{'kind': 'text', 'text': header + '\n\nGộp các ghi chú từng phần của cùng buổi học thành một bản hệ thống hoá, bỏ trùng lặp:\n' + merged}],
-                             SESSION_SCHEMA, 'medium', config)
+        def merge(notes):
+            return ai.generate(SYSTEM, [{'kind': 'text', 'text': header + '\n\nGộp các ghi chú từng phần của cùng buổi học thành một bản hệ thống hoá, bỏ trùng lặp:\n'
+                                         + json.dumps(notes, ensure_ascii=False)}], SESSION_SCHEMA, 'medium', config)
+        # Merge in rounds that each fit one request until a single request can hold every part.
+        while len(json.dumps(partial, ensure_ascii=False)) > limit:
+            rounds, batch = [], []
+            for note in partial:
+                if batch and len(json.dumps(batch + [note], ensure_ascii=False)) > limit:
+                    rounds.append(batch)
+                    batch = []
+                batch.append(note)
+            rounds.append(batch)
+            if len(rounds) == len(partial):
+                break  # every note alone is over the budget; another round cannot shrink them
+            partial = [merge(batch) if len(batch) > 1 else batch[0] for batch in rounds]
+        result = merge(partial)
     result = _organize(result)
-    result['_meta'] = {'fingerprint': current, 'version': PROMPT_VERSION, 'created': datetime.now().isoformat(timespec='seconds'),
+    result['_meta'] = {'fingerprint': current, 'content': content, 'version': PROMPT_VERSION, 'created': datetime.now().isoformat(timespec='seconds'),
                        'ai': _ai_label(config), 'files': files, 'warnings': warnings, 'transcript': bool(text)}
     _write_json(folder / (SESSION_NOTES + '.json'), result)
     _write(folder / (SESSION_NOTES + '.md'), session_markdown(subject.name, result))
@@ -310,7 +382,9 @@ def subject_fingerprint(subject):
     for item in sessions(subject):
         notes = session_notes(item['folder'])
         if notes:
-            digest.update((item['folder'].name + '|' + notes.get('_meta', {}).get('fingerprint', '') + '\n').encode())
+            meta = notes.get('_meta', {})
+            # Notes redone for new content under the same size and mtime still refresh the subject map.
+            digest.update((item['folder'].name + '|' + (meta.get('content') or meta.get('fingerprint', '')) + '\n').encode())
     return digest.hexdigest()[:32]
 
 
@@ -620,6 +694,8 @@ class Engine:
             # A manual sync retries the subject's failed work; making an exam does not.
             if kind != 'exam':
                 self.failed = {k: v for k, v in self.failed.items() if folder not in (k[1], k[1].parent)}
+                # ...and reads the subject's files again, so an edit that kept size and mtime is noticed.
+                forget_digests(folder)
             if job not in self.jobs and self.current != job:
                 self.jobs.appendleft(job)
         self.kick()

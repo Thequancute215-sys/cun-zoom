@@ -21,8 +21,8 @@ async function refresh() {
   el('login').hidden = true; el('dashboard').hidden = false; el('account-identity').textContent = account.identity;
   el('download').hidden = !account.download_url;
   if (account.download_url) { const u = new URL(account.download_url); if (u.protocol === 'https:') el('download').href = u.href; }
-  el('open-app').hidden = true;
-  if (desktop) { const state = await api('status'); el('open-app').hidden = !state.active; }
+  // The desktop app opens without a licence too: lessons stay readable and exportable.
+  el('open-app').hidden = !desktop;
   el('licenses').replaceChildren();
   if (!account.licenses.length) el('licenses').append(text('p', 'Bạn chưa được cấp bản quyền. Sau khi mua, người bán sẽ cấp gói vào đúng email/SĐT này.'));
   const labels = {pending: 'Chờ lấy mã', issued: 'Đã cấp mã', active: 'Đang sử dụng', expired: 'Đã hết hạn', revoked: 'Đã thu hồi'};
@@ -36,7 +36,7 @@ async function refresh() {
       el('one-time-key').value = result.key; el('key-result').hidden = false;
       await refresh(); el('key-result').scrollIntoView({behavior: 'smooth', block: 'center'}); el('one-time-key').focus();
     }));
-    if (license.status === 'issued') card.append(text('p', 'Mã đã hiển thị một lần. Nhập mã đã lưu bên dưới. Nếu mất mã, liên hệ người bán để thu hồi và cấp lại.', 'help'));
+    if (license.status === 'issued') card.append(text('p', 'Mã đã hiển thị một lần. Nhập mã đã lưu bên dưới. Nếu mất mã, liên hệ người bán để cấp mã mới; mã cũ sẽ hết hiệu lực.', 'help'));
     if (license.status === 'active' && desktop) card.append(button('Dùng trên máy này', async () => { await api('devices/activate', {license_id: license.id}); location.assign('/'); }));
     for (const device of license.devices) {
       const row = text('div', '', 'device'); row.append(text('span', device.name));

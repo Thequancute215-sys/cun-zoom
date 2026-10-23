@@ -10,7 +10,11 @@ Website tài khoản dùng Cloudflare Workers + D1 và tài nguyên tĩnh trong 
 4. Khách lưu key và kích hoạt. Chỉ tài khoản sở hữu email/SĐT được cấp gói mới dùng được; một key chỉ kích hoạt một lần. Thời hạn gói bắt đầu từ thời điểm kích hoạt, không phải lúc người bán cấp gói.
 5. Khách đăng nhập trong bản ứng dụng thương mại, chọn **Dùng trên máy này**. Các lần đăng nhập sau dùng bản quyền đã gắn với tài khoản; không tiêu thụ lại key. Khách có thể gỡ thiết bị trên website để chuyển máy.
 
-Email và số điện thoại là hai danh tính riêng ở bản đầu, chưa có luồng liên kết tài khoản. Cấp gói đúng danh tính khách dùng để đăng nhập. Nếu mất key trước khi kích hoạt, người bán thu hồi gói cũ rồi cấp lại; không có chức năng đọc lại key cũ. Việc tải trang lại sau khi nhận key cũng không hiển thị lại key.
+Email và số điện thoại là hai danh tính riêng ở bản đầu, chưa có luồng liên kết tài khoản. Cấp gói đúng danh tính khách dùng để đăng nhập.
+
+Nếu mất key trước khi kích hoạt (ví dụ mất mạng ngay lúc nhận), người bán chạy `reissue` cho gói đó. Lệnh này xóa digest của key cũ (key cũ không còn dùng được) và ghi audit; khách đăng nhập rồi lấy key mới như lần đầu. Không có chức năng đọc lại key cũ, và tải lại trang cũng không hiển thị lại key. `reissue` từ chối gói đã kích hoạt.
+
+Nếu mất phản hồi lúc kích hoạt, khách nhập lại đúng key đó: cùng chủ sở hữu nhận lại kết quả kích hoạt cũ, hạn dùng không được cộng thêm. Tài khoản khác vẫn nhận lỗi như key không hợp lệ.
 
 ## Chi phí và giới hạn mặc định
 
@@ -20,7 +24,10 @@ Email và số điện thoại là hai danh tính riêng ở bản đầu, chưa
 - Mặc định tối đa 100 yêu cầu gửi OTP/ngày cho toàn hệ thống, 5/giờ cho một danh tính và 15/giờ cho một IP; có giới hạn theo phút. Cả lần nhà cung cấp báo lỗi vẫn tính vào ngân sách để tránh thử lại vô hạn. Cửa sổ rate limit là cửa sổ thời gian cố định.
 - OTP hết hạn sau 5 phút, tối đa 5 lần nhập; mã mới vô hiệu mã cũ. Mã OTP được HMAC với secret riêng, không lưu bản rõ hoặc trả trong API.
 - Phiên web dùng cookie HttpOnly, SameSite=Strict và Secure trên HTTPS; desktop lưu bearer token trong vault DPAPI/Fernet. Không lưu token/OTP/key vào localStorage.
-- Kiểm tra bản quyền trên ứng dụng cache tối đa 60 giây, giới hạn bởi hạn gói. Mất mạng sau khi cache hết hạn sẽ khóa thao tác; chưa có gói dùng offline. Watchdog dừng bot đang chạy sau khi phát hiện mất quyền (chu kỳ 15 giây, cộng thời gian dừng worker). Việc AI đã gửi đi có thể hoàn thành; không xóa kết quả/bài giảng đã có.
+- Kiểm tra bản quyền trên ứng dụng cache tối đa 60 giây, giới hạn bởi hạn gói, và được làm mới ngầm trước khi hết hạn. Giao diện, `/status` và các vòng nền chỉ đọc kết quả đã cache, không chờ mạng. Khi kiểm tra thất bại, lần thử nền tiếp theo sau 15 giây. Chỉ thao tác trả phí người dùng vừa bấm mới chờ server trả lời (tối đa 10 giây).
+- Khi chưa đăng nhập, chưa kích hoạt, hết hạn hoặc mất mạng sau khi cache hết hạn, ứng dụng **vẫn mở**. Người dùng vẫn xem lịch đã đồng bộ, đọc, tải/xuất bài giảng và ghi chú, mở thư mục, sửa hoặc xóa cấu hình, ngắt kết nối Zoom, tắt theo dõi lịch, dừng bot và thoát ứng dụng. Chỉ việc bắt đầu xử lý mới phải chờ bản quyền: ghi Zoom và kiểm tra SDK, kết nối Zoom, cấu hình/đồng bộ/bật theo dõi lịch, tải bộ chép lời hoặc SDK, kiểm tra AI, đồng bộ Ôn tập, tạo đề, tải tài liệu lên; cả chép lời và hệ thống hoá AI chạy nền cũng tạm dừng. Danh sách nằm ở `PAID_ROUTES` trong `src/server.py`.
+- **Không cắt buổi đang ghi:** bot đã chạy thì ghi tiếp đến khi người dùng dừng hoặc buổi kết thúc, kể cả khi bản quyền hết hạn hoặc mất mạng giữa chừng; bản chép lời của buổi đó vẫn được tạo. Việc AI đã gửi đi có thể hoàn thành; không xóa kết quả/bài giảng đã có.
+- Chưa có gói dùng offline (lease có chữ ký): mất mạng lâu hơn thời gian cache thì không bắt đầu được việc trả phí mới. Đây là điểm chủ sản phẩm cần chốt.
 
 ## Triển khai website
 
@@ -54,9 +61,10 @@ Trong shell riêng của người vận hành, nạp `ADMIN_TOKEN` bằng passwo
 cd accounts
 node admin.mjs grant --url https://accounts.example.com --identity khach@example.com --days 30 --devices 2
 node admin.mjs revoke --url https://accounts.example.com --license ID_TRA_VE_KHI_CAP
+node admin.mjs reissue --url https://accounts.example.com --license ID_TRA_VE_KHI_CAP
 ```
 
-Lệnh `grant` trả ID gói và thông tin gói, không in key. Khách tự lấy key trong phiên đăng nhập của họ. `revoke` vô hiệu cả key chưa dùng và gói đã kích hoạt. Có audit cho cấp/thu hồi, không ghi key/OTP/token.
+Lệnh `grant` trả ID gói và thông tin gói, không in key. Khách tự lấy key trong phiên đăng nhập của họ. `revoke` vô hiệu cả key chưa dùng và gói đã kích hoạt. `reissue` chỉ dành cho key đã phát nhưng chưa kích hoạt: key cũ mất hiệu lực, khách lấy key mới. Có audit cho cấp, thu hồi và cấp lại; không ghi key/OTP/token.
 
 D1 lưu email/SĐT, gói và tên thiết bị: giới hạn người có quyền truy cập, bật phương án sao lưu/khôi phục phù hợp và có hướng dẫn bảo mật dữ liệu cho khách. Không đưa bản sao DB chứa dữ liệu khách vào repo. Xoay `ADMIN_TOKEN` khi cần; xoay `OTP_SECRET` làm OTP đang chờ không dùng được nhưng không tự thu hồi các phiên đã cấp.
 
@@ -77,5 +85,5 @@ Mã nguồn cộng đồng đã có giấy phép MIT. Kiểm tra bản quyền t
 ## Kiểm chứng
 
 - `npm ci && npm test` trong `accounts/`: OTP, phiên, rate limit, quyền quản trị, key hiển thị/kích hoạt một lần kể cả đồng thời, cô lập tài khoản, giới hạn thiết bị, hết hạn, thu hồi, Host/Origin và assets.
-- `python -m unittest discover -s tests -v`: giữ tests cũ và kiểm tra vault tài khoản, cache, khóa/mở UI/API, cấu hình bản thương mại.
+- `python -m unittest discover -s tests -v`: giữ tests cũ và kiểm tra vault tài khoản, cache không chặn, chỉ chặn thao tác trả phí khi chưa có quyền, không dừng buổi đang ghi, cấu hình bản thương mại.
 - Chạy thử UI bằng trình duyệt trên desktop/mobile và dịch vụ account giả lập. Gửi OTP thật, Cloudflare production và đóng gói exe Windows cần cấu hình/tài khoản riêng; chỉ ghi đạt khi thực sự đã chạy.

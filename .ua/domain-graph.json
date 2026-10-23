@@ -18,8 +18,8 @@
       "Docker"
     ],
     "description": "Ứng dụng học tập local trên Windows/Docker: đọc lịch, ghi Zoom khi có quyền, chép lời và ôn tập tùy chọn AI; portal tài khoản/OTP/key/thiết bị riêng đang ở mức nguồn và kiểm thử local, chưa xác nhận triển khai production.",
-    "analyzedAt": "2026-10-23T20:55:43.163593+00:00",
-    "gitCommitHash": "4e08263d72b4342fd55a1d5954bd64467f279f44"
+    "analyzedAt": "2026-10-23T21:29:12.988976+00:00",
+    "gitCommitHash": "9b663d8e093fc475e8ccb363287a77832226fbb8"
   },
   "nodes": [
     {
@@ -232,7 +232,7 @@
       "complexity": "moderate",
       "filePath": "compose.yaml",
       "lineRange": [
-        4,
+        5,
         26
       ]
     },
@@ -359,15 +359,15 @@
       "complexity": "moderate",
       "filePath": "src/main.py",
       "lineRange": [
-        71,
-        95
+        72,
+        96
       ]
     },
     {
       "id": "step:mo-windows:window",
       "type": "step",
       "name": "Mở WebView2 và tray",
-      "summary": "Cửa sổ local, chọn thư mục/SDK, thông báo và tray; đóng chỉ ẩn, Thoát dừng dịch vụ.",
+      "summary": "Cửa sổ local mở trang bằng khóa khởi chạy riêng (tài khoản khác trên máy không lấy được token từ loopback), chọn thư mục/SDK, thông báo và tray; đóng chỉ ẩn, Thoát dừng dịch vụ.",
       "tags": [
         "van-hanh",
         "mo-windows"
@@ -375,8 +375,8 @@
       "complexity": "moderate",
       "filePath": "src/main.py",
       "lineRange": [
-        97,
-        154
+        98,
+        156
       ]
     },
     {
@@ -391,8 +391,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        276,
-        288
+        295,
+        307
       ]
     },
     {
@@ -692,8 +692,8 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        212,
-        230
+        223,
+        241
       ]
     },
     {
@@ -741,7 +741,7 @@
       "filePath": "src/account_client.py",
       "lineRange": [
         27,
-        56
+        59
       ]
     },
     {
@@ -787,8 +787,8 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        125,
-        134
+        132,
+        141
       ]
     },
     {
@@ -803,8 +803,8 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        134,
-        142
+        141,
+        149
       ]
     },
     {
@@ -835,8 +835,8 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        147,
-        155
+        154,
+        162
       ]
     },
     {
@@ -851,8 +851,8 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        155,
-        164
+        162,
+        171
       ]
     },
     {
@@ -867,8 +867,8 @@
       "complexity": "moderate",
       "filePath": "src/account_client.py",
       "lineRange": [
-        123,
-        143
+        150,
+        170
       ]
     },
     {
@@ -883,8 +883,8 @@
       "complexity": "moderate",
       "filePath": "src/account_client.py",
       "lineRange": [
-        144,
-        152
+        171,
+        179
       ]
     },
     {
@@ -906,7 +906,7 @@
       "id": "step:cap-goi-va-key:operator",
       "type": "step",
       "name": "Người bán dùng token quản trị ngoài argv",
-      "summary": "CLI đọc ADMIN_TOKEN từ môi trường, kiểm origin HTTPS ngoài local và chỉ nhận grant/revoke.",
+      "summary": "CLI đọc ADMIN_TOKEN từ môi trường, kiểm origin HTTPS ngoài local và nhận grant/revoke/reissue.",
       "tags": [
         "tai-khoan-ban-quyen",
         "cap-goi-va-key"
@@ -962,8 +962,8 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        166,
-        174
+        173,
+        181
       ]
     },
     {
@@ -978,15 +978,15 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        175,
-        181
+        182,
+        188
       ]
     },
     {
       "id": "step:cap-goi-va-key:display",
       "type": "step",
       "name": "Hiển thị và xóa key khỏi giao diện",
-      "summary": "UI cho sao chép, ẩn hoặc redeem; không lưu key/token vào localStorage, pagehide/logout xóa key. Mất key cần người bán thu hồi/cấp lại.",
+      "summary": "UI cho sao chép, ẩn hoặc redeem; không lưu key/token vào localStorage, pagehide/logout xóa key. Mất key trước khi kích hoạt: người bán chạy reissue (có audit) để key cũ hết hiệu lực và khách lấy key mới.",
       "tags": [
         "tai-khoan-ban-quyen",
         "cap-goi-va-key"
@@ -1017,7 +1017,7 @@
       "id": "step:kich-hoat-thiet-bi:redeem",
       "type": "step",
       "name": "Dùng key đúng danh tính một lần",
-      "summary": "Kiểm format/key hash và owner trống bằng UPDATE có điều kiện; expires tính từ now + days, request tranh chấp sau bị từ chối.",
+      "summary": "Kiểm format/key hash và owner trống bằng UPDATE có điều kiện; expires tính từ now + days. Cùng chủ sở hữu gửi lại (mất phản hồi, hai yêu cầu song song) nhận lại đúng kết quả cũ, không cộng hạn; tài khoản khác bị từ chối.",
       "tags": [
         "tai-khoan-ban-quyen",
         "kich-hoat-thiet-bi"
@@ -1025,8 +1025,8 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        182,
-        189
+        189,
+        200
       ]
     },
     {
@@ -1041,8 +1041,8 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        190,
-        198
+        201,
+        209
       ]
     },
     {
@@ -1073,8 +1073,8 @@
       "complexity": "moderate",
       "filePath": "src/account_client.py",
       "lineRange": [
-        153,
-        161
+        180,
+        188
       ]
     },
     {
@@ -1089,15 +1089,15 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        199,
-        203
+        210,
+        214
       ]
     },
     {
       "id": "step:kich-hoat-thiet-bi:interface",
       "type": "step",
       "name": "Mở ứng dụng sau chọn dùng trên máy",
-      "summary": "Chỉ desktop có nút Dùng trên máy này; portal cung cấp tải app/gói/thiết bị, không chạy bot từ website.",
+      "summary": "Chỉ desktop có nút Dùng trên máy này và luôn có nút Vào Cún Zoom; portal cung cấp tải app/gói/thiết bị, không chạy bot từ website.",
       "tags": [
         "tai-khoan-ban-quyen",
         "kich-hoat-thiet-bi"
@@ -1113,7 +1113,7 @@
       "id": "flow:kiem-tra-thu-hoi",
       "type": "flow",
       "name": "Kiểm tra quyền trực tuyến và thu hồi",
-      "summary": "Client bật account cần session/gói/thiết bị còn hiệu lực, cache tối đa 60 giây. Mất mạng sau cache hết hạn khóa thao tác và watchdog dừng bot; chính sách này còn chờ quyết định sản phẩm với đề xuất mới.",
+      "summary": "Client bật account cần session/gói/thiết bị còn hiệu lực, cache tối đa 60 giây và làm mới ngầm. Khi chưa có quyền hoặc mất mạng sau cache, ứng dụng vẫn mở để xem, đọc, xuất, cấu hình và dừng; chỉ chặn việc trả phí mới và không cắt buổi đang ghi. Lease offline còn chờ quyết định sản phẩm.",
       "tags": [
         "tai-khoan-ban-quyen",
         "kiem-tra-thu-hoi"
@@ -1136,15 +1136,15 @@
       "complexity": "moderate",
       "filePath": "accounts/worker.mjs",
       "lineRange": [
-        204,
-        209
+        215,
+        220
       ]
     },
     {
       "id": "step:kiem-tra-thu-hoi:cache",
       "type": "step",
       "name": "Chỉ cache quyền tối đa sáu mươi giây",
-      "summary": "Client cache theo monotonic và hạn gói; thiếu credentials, phản hồi sai, mạng lỗi hoặc hết hạn phải fail closed.",
+      "summary": "Client cache theo monotonic và hạn gói; giao diện, status và vòng nền chỉ đọc cache, kiểm tra mạng chạy nền một lần mỗi lúc, lỗi thì thử lại sau 15 giây. Chỉ thao tác trả phí (require) chờ server; thiếu credentials, phản hồi sai, mạng lỗi hoặc hết hạn là chưa có quyền.",
       "tags": [
         "tai-khoan-ban-quyen",
         "kiem-tra-thu-hoi"
@@ -1152,15 +1152,15 @@
       "complexity": "moderate",
       "filePath": "src/account_client.py",
       "lineRange": [
-        91,
-        116
+        94,
+        148
       ]
     },
     {
       "id": "step:kiem-tra-thu-hoi:gate",
       "type": "step",
       "name": "Chốt UI/API ứng dụng",
-      "summary": "Account actions được truy cập trước license; phần còn lại require trừ stop/quit/show. Root đưa về account khi chưa active; download và upload cũng chốt quyền.",
+      "summary": "Account actions được truy cập trước license. Chỉ PAID_ROUTES (ghi Zoom, kiểm tra SDK, kết nối Zoom, lịch, tải model/SDK, kiểm tra AI, đồng bộ Ôn tập, tạo đề), bật theo dõi lịch và tải tài liệu lên cần bản quyền; xem, đọc, tải/xuất, cấu hình, ngắt kết nối và dừng luôn được. Trang chính luôn mở, kèm thông báo và link /account.",
       "tags": [
         "tai-khoan-ban-quyen",
         "kiem-tra-thu-hoi"
@@ -1168,15 +1168,15 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        167,
-        173
+        185,
+        190
       ]
     },
     {
       "id": "step:kiem-tra-thu-hoi:background",
       "type": "step",
       "name": "Tạm dừng watcher khi mất quyền",
-      "summary": "Service gắn account.authorized cho watcher lịch và engine ôn tập; chúng kiểm lại mỗi vòng/job, không hủy yêu cầu AI đã gửi.",
+      "summary": "Service gắn account.authorized (chỉ đọc cache) cho watcher lịch và engine ôn tập; chúng kiểm lại mỗi vòng/job, tạm dừng chép lời và AI khi chưa có quyền, không hủy yêu cầu AI đã gửi.",
       "tags": [
         "tai-khoan-ban-quyen",
         "kiem-tra-thu-hoi"
@@ -1184,15 +1184,15 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        61,
-        72
+        77,
+        90
       ]
     },
     {
-      "id": "step:kiem-tra-thu-hoi:watchdog",
+      "id": "step:kiem-tra-thu-hoi:khong-cat-ghi",
       "type": "step",
-      "name": "Dừng bot đang chạy khi mất quyền",
-      "summary": "Watchdog mỗi 15 giây gọi authorized; khi cache hết hạn và không xác minh được sẽ shutdown worker. Thời gian dừng còn phụ thuộc worker.",
+      "name": "Không cắt buổi đang ghi",
+      "summary": "Không còn watchdog: buổi đang ghi chạy tiếp đến khi người dùng dừng hoặc buổi kết thúc, kể cả khi bản quyền hết hạn hoặc mất mạng; bản chép lời của buổi đó vẫn được tạo. Khi khởi động, dịch vụ chỉ bắt đầu kiểm tra bản quyền ngầm.",
       "tags": [
         "tai-khoan-ban-quyen",
         "kiem-tra-thu-hoi"
@@ -1200,15 +1200,15 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        506,
-        515
+        536,
+        541
       ]
     },
     {
       "id": "step:kiem-tra-thu-hoi:revoke",
       "type": "step",
       "name": "Người bán thu hồi gói và ghi audit",
-      "summary": "Admin revoke cập nhật revoked=1 và audit cùng batch; key chưa dùng và gói đã active đều không qua kiểm tra tiếp theo.",
+      "summary": "Admin revoke cập nhật revoked=1 và audit cùng batch; key chưa dùng và gói đã active đều không qua kiểm tra tiếp theo. Admin reissue chỉ xóa digest của key đã phát chưa kích hoạt và ghi audit.",
       "tags": [
         "tai-khoan-ban-quyen",
         "kiem-tra-thu-hoi"
@@ -1255,7 +1255,7 @@
       "id": "step:ket-noi-quyen-zoom:request",
       "type": "step",
       "name": "Kiểm phiên và nguồn POST",
-      "summary": "Host, X-App-Token, Origin và JSON object dưới 65536 byte bắt buộc trước điều phối; upload có luồng stream riêng.",
+      "summary": "Host, X-App-Token (so sánh thời gian hằng), Origin và JSON object dưới 65536 byte bắt buộc trước điều phối; upload có luồng stream riêng. Kết nối bỏ ngỏ tự đóng sau 60 giây; Windows không bật SO_REUSEADDR.",
       "tags": [
         "quyen-truy-cap",
         "ket-noi-quyen-zoom"
@@ -1263,8 +1263,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        444,
-        468
+        475,
+        499
       ]
     },
     {
@@ -1279,8 +1279,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        195,
-        212
+        214,
+        231
       ]
     },
     {
@@ -1311,8 +1311,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        124,
-        148
+        142,
+        166
       ]
     },
     {
@@ -1327,8 +1327,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        150,
-        165
+        168,
+        183
       ]
     },
     {
@@ -1343,8 +1343,8 @@
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        44,
-        51
+        53,
+        60
       ]
     },
     {
@@ -1374,8 +1374,8 @@
       "complexity": "moderate",
       "filePath": "src/calendar_watch.py",
       "lineRange": [
-        143,
-        159
+        144,
+        160
       ]
     },
     {
@@ -1406,8 +1406,8 @@
       "complexity": "moderate",
       "filePath": "src/calendar_watch.py",
       "lineRange": [
-        73,
-        117
+        74,
+        118
       ]
     },
     {
@@ -1422,8 +1422,8 @@
       "complexity": "moderate",
       "filePath": "src/calendar_watch.py",
       "lineRange": [
-        174,
-        192
+        175,
+        193
       ]
     },
     {
@@ -1453,8 +1453,8 @@
       "complexity": "moderate",
       "filePath": "src/calendar_watch.py",
       "lineRange": [
-        241,
-        259
+        242,
+        260
       ]
     },
     {
@@ -1469,8 +1469,8 @@
       "complexity": "moderate",
       "filePath": "src/calendar_watch.py",
       "lineRange": [
-        206,
-        221
+        207,
+        222
       ]
     },
     {
@@ -1485,8 +1485,8 @@
       "complexity": "moderate",
       "filePath": "src/calendar_watch.py",
       "lineRange": [
-        222,
-        239
+        223,
+        240
       ]
     },
     {
@@ -1517,8 +1517,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        190,
-        194
+        209,
+        213
       ]
     },
     {
@@ -1548,8 +1548,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        224,
-        232
+        243,
+        251
       ]
     },
     {
@@ -1565,7 +1565,7 @@
       "filePath": "src/room_link.py",
       "lineRange": [
         6,
-        27
+        28
       ]
     },
     {
@@ -1580,8 +1580,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        233,
-        242
+        252,
+        261
       ]
     },
     {
@@ -1596,8 +1596,8 @@
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        53,
-        60
+        62,
+        69
       ]
     },
     {
@@ -1612,8 +1612,8 @@
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        80,
-        104
+        89,
+        113
       ]
     },
     {
@@ -1644,15 +1644,15 @@
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        106,
-        136
+        115,
+        145
       ]
     },
     {
       "id": "flow:ghi-va-dung",
       "type": "flow",
       "name": "Xin quyền ghi, lưu dữ liệu và dừng",
-      "summary": "Native chỉ mở raw recording khi Zoom cho phép; giữ WAV/slide local và đóng an toàn khi user STOP, mất quyền/room ended hoặc license watchdog.",
+      "summary": "Native chỉ mở raw recording khi Zoom cho phép; giữ WAV/slide local và đóng an toàn khi user STOP, mất quyền ghi hoặc room ended. Bản quyền hết hạn không cắt buổi đang ghi.",
       "tags": [
         "ghi-buoi-hoc",
         "ghi-va-dung"
@@ -1755,8 +1755,8 @@
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        62,
-        77
+        71,
+        86
       ]
     },
     {
@@ -1787,8 +1787,8 @@
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        127,
-        145
+        136,
+        154
       ]
     },
     {
@@ -1818,8 +1818,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        106,
-        122
+        124,
+        140
       ]
     },
     {
@@ -1834,15 +1834,15 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        593,
-        605
+        725,
+        738
       ]
     },
     {
       "id": "step:chep-loi-local:process",
       "type": "step",
       "name": "Đánh dấu busy trước mở tiến trình",
-      "summary": "Runner ghi trạng thái processing trước Popen; frozen dùng --transcribe, source chạy module riêng và lưu log local.",
+      "summary": "Runner ghi trạng thái processing trước Popen; frozen dùng --transcribe, source chạy module riêng và lưu log local. Một luồng theo dõi ghi failed nếu tiến trình chép lời chết trước khi tự ghi trạng thái.",
       "tags": [
         "tai-lieu-bai-giang",
         "chep-loi-local"
@@ -1851,14 +1851,14 @@
       "filePath": "src/runner.py",
       "lineRange": [
         30,
-        37
+        36
       ]
     },
     {
       "id": "step:chep-loi-local:whisper",
       "type": "step",
       "name": "Chép audio/video trên CPU local",
-      "summary": "Chọn audio ghi hoặc upload media, faster-whisper base int8, local_files_only và hai CPU threads; ngôn ngữ vi với timestamp.",
+      "summary": "Chọn audio ghi hoặc upload media, faster-whisper base int8, local_files_only và hai CPU threads; ngôn ngữ vi với timestamp. Mỗi file chỉ giải mã tối đa 3 giờ âm thanh (load_audio).",
       "tags": [
         "tai-lieu-bai-giang",
         "chep-loi-local"
@@ -1867,7 +1867,7 @@
       "filePath": "src/transcribe.py",
       "lineRange": [
         17,
-        54
+        79
       ]
     },
     {
@@ -1890,7 +1890,7 @@
       "id": "step:chep-loi-local:status",
       "type": "step",
       "name": "Giữ trạng thái chép lời riêng với ghi chú",
-      "summary": "Transcript mới hơn media là done; processing dưới sáu giờ là running; lỗi cùng nguồn là failed; model chưa có có thể dùng tài liệu khác trước.",
+      "summary": "Transcript mới hơn media hoặc trạng thái completed (kể cả bản chép lời rỗng của file im lặng) là done; processing dưới sáu giờ là running; lỗi cùng nguồn là failed; model chưa có có thể dùng tài liệu khác trước.",
       "tags": [
         "tai-lieu-bai-giang",
         "chep-loi-local"
@@ -1898,8 +1898,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        161,
-        209
+        163,
+        255
       ]
     },
     {
@@ -1969,7 +1969,7 @@
       "id": "step:xem-va-tai-buoi:download",
       "type": "step",
       "name": "Mở thư mục hoặc trả ZIP có kiểm quyền",
-      "summary": "Desktop mở local; Docker GET tải đã qua Basic Auth và license, stream zip tạm.",
+      "summary": "Desktop mở local; Docker GET tải đã qua Basic Auth, stream zip tạm. Tải/xuất không cần bản quyền.",
       "tags": [
         "tai-lieu-bai-giang",
         "xem-va-tai-buoi"
@@ -1977,8 +1977,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        365,
-        390
+        386,
+        409
       ]
     },
     {
@@ -2040,8 +2040,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        444,
-        454
+        475,
+        485
       ]
     },
     {
@@ -2056,8 +2056,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        507,
-        519
+        634,
+        646
       ]
     },
     {
@@ -2072,8 +2072,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        522,
-        531
+        649,
+        658
       ]
     },
     {
@@ -2088,15 +2088,15 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        469,
-        502
+        500,
+        533
       ]
     },
     {
       "id": "step:tai-tai-lieu:extract",
       "type": "step",
       "name": "Đọc file thành đầu vào AI",
-      "summary": "Đọc TXT/Office XML/PDF có giới hạn và cảnh báo file lỗi; Claude có ảnh/PDF, Ollama dùng text hoặc thử ảnh rồi fallback.",
+      "summary": "Đọc TXT/Office/PDF có giới hạn: XML Office đọc theo luồng, không nhận DTD, tối đa 200 MB XML và 4 triệu ký tự mỗi file; file lỗi hoặc không có chữ thành cảnh báo. Claude có ảnh/PDF, Ollama dùng text hoặc thử ảnh rồi fallback.",
       "tags": [
         "tai-lieu-bai-giang",
         "tai-tai-lieu"
@@ -2104,8 +2104,8 @@
       "complexity": "moderate",
       "filePath": "src/documents.py",
       "lineRange": [
-        31,
-        96
+        34,
+        95
       ]
     },
     {
@@ -2135,8 +2135,8 @@
       "complexity": "moderate",
       "filePath": "src/ai_backend.py",
       "lineRange": [
-        33,
-        82
+        38,
+        87
       ]
     },
     {
@@ -2151,8 +2151,8 @@
       "complexity": "moderate",
       "filePath": "src/ai_backend.py",
       "lineRange": [
-        89,
-        104
+        97,
+        110
       ]
     },
     {
@@ -2167,15 +2167,15 @@
       "complexity": "moderate",
       "filePath": "src/ai_backend.py",
       "lineRange": [
-        107,
-        158
+        113,
+        164
       ]
     },
     {
       "id": "step:ai-va-dong-bo:ollama",
       "type": "step",
       "name": "Gửi yêu cầu tới Ollama đã chọn",
-      "summary": "POST /api/chat với schema và num_ctx 32768; model từ chối ảnh thử lại text; lỗi HTTP/mạng/JSON được báo.",
+      "summary": "POST /api/chat với schema và num_ctx 32768; model từ chối ảnh thử lại text, trừ khi buổi chỉ có ảnh thì báo lỗi thay vì đoán. Câu trả lời giới hạn 16 MB và 1800 giây; dữ liệu sai dạng thành lỗi AI.",
       "tags": [
         "tai-lieu-bai-giang",
         "ai-va-dong-bo"
@@ -2183,15 +2183,15 @@
       "complexity": "moderate",
       "filePath": "src/ai_backend.py",
       "lineRange": [
-        161,
-        195
+        168,
+        212
       ]
     },
     {
       "id": "step:ai-va-dong-bo:queue",
       "type": "step",
       "name": "Ưu tiên yêu cầu thủ công và chống trùng",
-      "summary": "Request kiểm AI enabled/môn hợp lệ, xóa failed của môn và appendleft nếu chưa có; status trả current/queued/errors.",
+      "summary": "Request kiểm AI enabled/môn hợp lệ và appendleft nếu chưa có. Đồng bộ lại xóa failed của môn và đọc lại bytes tài liệu; tạo đề thì không thử lại buổi đang lỗi. Status trả current/queued/errors.",
       "tags": [
         "tai-lieu-bai-giang",
         "ai-va-dong-bo"
@@ -2199,15 +2199,15 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        560,
-        574
+        688,
+        706
       ]
     },
     {
       "id": "step:ai-va-dong-bo:sync",
       "type": "step",
       "name": "Scan theo fingerprint và quyền",
-      "summary": "Loop chờ nếu không authorized; auto xếp session, môn rồi outline theo fingerprint; không tự tạo đề thử.",
+      "summary": "Loop chờ nếu không authorized; auto xếp session, môn rồi outline theo fingerprint; môn có buổi bot đang ghi được bỏ qua tới khi ghi xong; không tự tạo đề thử.",
       "tags": [
         "tai-lieu-bai-giang",
         "ai-va-dong-bo"
@@ -2215,15 +2215,15 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        576,
-        629
+        708,
+        765
       ]
     },
     {
       "id": "step:ai-va-dong-bo:run",
       "type": "step",
       "name": "Chạy một job và giữ dấu lỗi nguồn",
-      "summary": "run_jobs kiểm authorized giữa job, thực hiện session/subject/outline/exam tuần tự; lỗi lưu phiên bản để không retry vô hạn.",
+      "summary": "run_jobs kiểm authorized giữa job, thực hiện session/subject/outline/exam tuần tự. Mọi loại lỗi được nhớ theo phiên bản đầu vào để không retry vô hạn; buổi lỗi không chặn hệ thống kiến thức và đề cương của các buổi khác.",
       "tags": [
         "tai-lieu-bai-giang",
         "ai-va-dong-bo"
@@ -2231,8 +2231,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        631,
-        666
+        784,
+        831
       ]
     },
     {
@@ -2254,7 +2254,7 @@
       "id": "step:he-thong-kien-thuc:inputs",
       "type": "step",
       "name": "Chọn nguồn và cảnh báo phần thiếu",
-      "summary": "Fingerprint bao gồm transcript, tài liệu, slide; báo chép lời lỗi/thiếu, đọc upload, Claude chọn tối đa 20 slide; Ollama báo bỏ slide ghi.",
+      "summary": "Dấu vân tay nhanh theo tên/kích thước/mtime; ghi chú mới lưu thêm digest nội dung của bản chép lời và tài liệu (slide và media theo metadata), đọc lại bytes khi khởi động hoặc Đồng bộ lại. Báo chép lời lỗi/thiếu; không có nội dung đọc được thì báo lỗi, không gọi AI; Claude chọn tối đa 20 slide, Ollama báo bỏ slide.",
       "tags": [
         "tai-lieu-bai-giang",
         "he-thong-kien-thuc"
@@ -2262,15 +2262,15 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        239,
-        268
+        295,
+        326
       ]
     },
     {
       "id": "step:he-thong-kien-thuc:notes",
       "type": "step",
       "name": "Sinh và lưu ghi chú từng buổi",
-      "summary": "Nếu quá giới hạn thì chia đoạn rồi hợp nhất; tổ chức theo liên quan/độ khó, lưu JSON/MD với fingerprint, model, file và cảnh báo.",
+      "summary": "Nếu quá giới hạn thì chia bản chép lời và từng tài liệu thành đoạn giữ đủ ký tự (mỗi đoạn tài liệu mang tên tài liệu), ảnh/PDF đi cùng phần đầu, rồi gộp theo tầng cho tới khi vừa một yêu cầu. Tổ chức theo liên quan/độ khó, lưu JSON/MD (chặn ảnh và HTML do AI chèn) với fingerprint, digest nội dung, model, file và cảnh báo.",
       "tags": [
         "tai-lieu-bai-giang",
         "he-thong-kien-thuc"
@@ -2278,15 +2278,15 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        269,
-        295
+        331,
+        377
       ]
     },
     {
       "id": "step:he-thong-kien-thuc:subject",
       "type": "step",
       "name": "Tổng hợp kiến thức theo môn",
-      "summary": "Dùng các buổi đã có notes, gộp trùng theo chủ đề/quan hệ; chia lô khi cần rồi lưu hệ thống JSON/MD có fingerprint nguồn.",
+      "summary": "Dùng các buổi đã có notes (theo digest nội dung khi có), gộp trùng theo chủ đề/quan hệ; chia lô khi cần rồi lưu hệ thống JSON/MD có fingerprint nguồn.",
       "tags": [
         "tai-lieu-bai-giang",
         "he-thong-kien-thuc"
@@ -2294,8 +2294,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        316,
-        349
+        400,
+        433
       ]
     },
     {
@@ -2310,8 +2310,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        487,
-        504
+        614,
+        631
       ]
     },
     {
@@ -2357,8 +2357,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        298,
-        324
+        317,
+        343
       ]
     },
     {
@@ -2373,15 +2373,15 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        352,
-        370
+        436,
+        454
       ]
     },
     {
       "id": "step:de-cuong-va-de-thu:exam",
       "type": "step",
       "name": "Sinh đề thử theo số câu và độ khó",
-      "summary": "Giới hạn 0–60 trắc nghiệm, 0–10 tự luận, ít nhất một câu; dùng nguồn môn, chỉ giữ MC có bốn lựa chọn; lưu ID timestamp.",
+      "summary": "Giới hạn 0–60 trắc nghiệm, 0–10 tự luận, ít nhất một câu; câu chỉ ghi tên chủ đề được đổi thành câu hỏi, loại câu chỉ ghi số hoặc thiếu bốn lựa chọn, thiếu câu thì hỏi thêm một lần; lưu ID timestamp.",
       "tags": [
         "tai-lieu-bai-giang",
         "de-cuong-va-de-thu"
@@ -2389,8 +2389,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        373,
-        416
+        473,
+        533
       ]
     },
     {
@@ -2413,7 +2413,7 @@
       "id": "step:de-cuong-va-de-thu:export",
       "type": "step",
       "name": "Đọc bản tổng hợp hoặc tải ZIP",
-      "summary": "Desktop mở thư mục ôn tập; Docker trả URL tải, GET có auth/license và chỉ đóng gói dữ liệu trong môn.",
+      "summary": "Desktop mở thư mục ôn tập; Docker trả URL tải, GET có Basic Auth và chỉ đóng gói dữ liệu trong môn; không cần bản quyền.",
       "tags": [
         "tai-lieu-bai-giang",
         "de-cuong-va-de-thu"
@@ -2421,8 +2421,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        391,
-        406
+        410,
+        425
       ]
     },
     {
@@ -2991,7 +2991,7 @@
     },
     {
       "source": "flow:kiem-tra-thu-hoi",
-      "target": "step:kiem-tra-thu-hoi:watchdog",
+      "target": "step:kiem-tra-thu-hoi:khong-cat-ghi",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.5

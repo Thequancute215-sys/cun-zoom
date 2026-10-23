@@ -19,8 +19,8 @@
       "Docker"
     ],
     "description": "Bản đồ cấp file và import Python được trích từ AST; không phải graph toàn bộ hàm. Ứng dụng học tập local trên Windows/Docker: đọc lịch, ghi Zoom khi có quyền, chép lời và ôn tập tùy chọn AI; portal tài khoản/OTP/key/thiết bị riêng đang ở mức nguồn và kiểm thử local, chưa xác nhận triển khai production.",
-    "analyzedAt": "2026-10-23T20:55:43.163593+00:00",
-    "gitCommitHash": "4e08263d72b4342fd55a1d5954bd64467f279f44"
+    "analyzedAt": "2026-10-23T21:29:12.988976+00:00",
+    "gitCommitHash": "9b663d8e093fc475e8ccb363287a77832226fbb8"
   },
   "nodes": [
     {
@@ -260,7 +260,7 @@
       "filePath": "accounts/test/accounts.test.mjs",
       "lineRange": [
         1,
-        166
+        185
       ]
     },
     {
@@ -275,7 +275,7 @@
       "filePath": "accounts/worker.mjs",
       "lineRange": [
         1,
-        230
+        241
       ]
     },
     {
@@ -335,7 +335,7 @@
       "filePath": "docs/ACCOUNTS.md",
       "lineRange": [
         1,
-        81
+        89
       ]
     },
     {
@@ -350,7 +350,7 @@
       "filePath": "docs/CHAT_HANDOVER.md",
       "lineRange": [
         1,
-        731
+        745
       ]
     },
     {
@@ -425,7 +425,7 @@
       "filePath": "docs/RELEASE_NOTES.md",
       "lineRange": [
         1,
-        45
+        70
       ]
     },
     {
@@ -455,7 +455,7 @@
       "filePath": "docs/VALIDATION.md",
       "lineRange": [
         1,
-        47
+        58
       ]
     },
     {
@@ -755,7 +755,7 @@
       "filePath": "src/account_client.py",
       "lineRange": [
         1,
-        167
+        194
       ]
     },
     {
@@ -770,7 +770,7 @@
       "filePath": "src/ai_backend.py",
       "lineRange": [
         1,
-        195
+        212
       ]
     },
     {
@@ -785,7 +785,7 @@
       "filePath": "src/calendar_watch.py",
       "lineRange": [
         1,
-        259
+        260
       ]
     },
     {
@@ -815,7 +815,7 @@
       "filePath": "src/documents.py",
       "lineRange": [
         1,
-        137
+        187
       ]
     },
     {
@@ -845,7 +845,7 @@
       "filePath": "src/main.py",
       "lineRange": [
         1,
-        168
+        170
       ]
     },
     {
@@ -890,7 +890,7 @@
       "filePath": "src/room_link.py",
       "lineRange": [
         1,
-        27
+        28
       ]
     },
     {
@@ -905,7 +905,7 @@
       "filePath": "src/runner.py",
       "lineRange": [
         1,
-        145
+        154
       ]
     },
     {
@@ -935,7 +935,7 @@
       "filePath": "src/server.py",
       "lineRange": [
         1,
-        523
+        549
       ]
     },
     {
@@ -950,7 +950,7 @@
       "filePath": "src/study.py",
       "lineRange": [
         1,
-        707
+        872
       ]
     },
     {
@@ -965,7 +965,7 @@
       "filePath": "src/transcribe.py",
       "lineRange": [
         1,
-        61
+        86
       ]
     },
     {
@@ -1010,7 +1010,7 @@
       "filePath": "tests/test_accounts.py",
       "lineRange": [
         1,
-        117
+        157
       ]
     },
     {
@@ -1025,7 +1025,7 @@
       "filePath": "tests/test_ai_backend.py",
       "lineRange": [
         1,
-        151
+        173
       ]
     },
     {
@@ -1040,7 +1040,7 @@
       "filePath": "tests/test_calendar_watch.py",
       "lineRange": [
         1,
-        80
+        88
       ]
     },
     {
@@ -1085,7 +1085,7 @@
       "filePath": "tests/test_room_link.py",
       "lineRange": [
         1,
-        37
+        38
       ]
     },
     {
@@ -1115,7 +1115,7 @@
       "filePath": "tests/test_server.py",
       "lineRange": [
         1,
-        68
+        87
       ]
     },
     {
@@ -1130,7 +1130,7 @@
       "filePath": "tests/test_study.py",
       "lineRange": [
         1,
-        285
+        487
       ]
     },
     {
@@ -1235,7 +1235,7 @@
       "filePath": "web/app.js",
       "lineRange": [
         1,
-        100
+        105
       ]
     },
     {
@@ -1310,7 +1310,7 @@
       "filePath": "web/index.html",
       "lineRange": [
         1,
-        49
+        50
       ]
     },
     {

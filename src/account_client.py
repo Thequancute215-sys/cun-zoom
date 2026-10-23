@@ -46,6 +46,9 @@ class Client:
         self.path = DATA / 'account.vault'
         self.lock = threading.RLock()
         self.checked_until = 0
+        # Background checks: at most one at a time, and a failed one is not repeated before retry_at.
+        self.checking = threading.Lock()
+        self.retry_at = 0
         self.message = ''
         self.credentials = vault.load(self.path) if self.url else {}
         if self.credentials.get('origin') != self.url:
@@ -76,7 +79,7 @@ class Client:
         except urllib.error.HTTPError as error:
             if error.code == 401:
                 self.credentials.pop('token', None)
-                self.checked_until = 0
+                self.checked_until = self.retry_at = 0
                 self.save()
             try:
                 value = json.loads(error.read(8192)).get('error')
@@ -88,9 +91,33 @@ class Client:
                 raise
             raise AccountError('Không kết nối được dịch vụ bản quyền. Kiểm tra mạng rồi thử lại.') from None
 
-    def authorized(self):
+    def authorized(self, wait=False):
+        """The cached licence state. Pages, status polls and background loops never wait on the network;
+        only `wait` (a paid action the owner just asked for) checks the server before answering."""
         if not self.enabled:
             return True
+        remaining = self.checked_until - time.monotonic()
+        if remaining > 0:
+            if remaining < 20:
+                self.check_later()
+            return True
+        if wait:
+            return self.check()
+        self.check_later()
+        return False
+
+    def check_later(self):
+        if time.monotonic() < self.retry_at or not self.checking.acquire(blocking=False):
+            return
+        def run():
+            try:
+                if not self.check():
+                    self.retry_at = time.monotonic() + 15
+            finally:
+                self.checking.release()
+        threading.Thread(target=run, daemon=True).start()
+
+    def check(self):
         with self.lock:
             if time.monotonic() < self.checked_until:
                 return True
@@ -112,7 +139,7 @@ class Client:
                 return False
 
     def require(self):
-        if not self.authorized():
+        if not self.authorized(wait=True):
             raise AccountError(self.message or 'Đăng nhập và kích hoạt bản quyền trước khi sử dụng.')
 
     def status(self):
@@ -138,7 +165,7 @@ class Client:
                                     'device_id': previous.get('device_id') or uuid.uuid4().hex}
                 if previous.get('identity') == result['identity'] and previous.get('license_id'):
                     self.credentials['license_id'] = previous['license_id']
-                self.checked_until = 0
+                self.checked_until = self.retry_at = 0
                 self.save()
                 return {'identity': result['identity']}
             if route == 'logout':
@@ -155,13 +182,13 @@ class Client:
                                              'device_id': self.credentials.get('device_id'),
                                              'name': str(data.get('name') or socket.gethostname())[:80]})
                 self.credentials['license_id'] = result['license_id']
-                self.checked_until = 0
+                self.checked_until = self.retry_at = 0
                 self.save()
                 self.require()
                 return {'ok': True}
             if route in ('me', 'licenses/key', 'licenses/redeem', 'devices/remove'):
                 result = self.request(route, data)
                 if route == 'devices/remove':
-                    self.checked_until = 0
+                    self.checked_until = self.retry_at = 0
                 return result
             raise AccountError('Không tìm thấy thao tác tài khoản.')
