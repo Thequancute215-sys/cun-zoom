@@ -7,6 +7,8 @@ Repo hiện hành: [Thequancute215-sys/cun-zoom](https://github.com/Thequancute2
 | Cần làm gì | Nguồn |
 | --- | --- |
 | Hiểu chức năng và giới hạn | [README](../README.md) |
+| Tiếp tục đúng trạng thái cuộc chat này | [CHAT_HANDOVER](CHAT_HANDOVER.md), [CLAUDE.md](../CLAUDE.md) |
+| Bán bản thương mại: OTP, key một lần, quản lý thiết bị và triển khai website | [ACCOUNTS](ACCOUNTS.md) |
 | Ôn tập bằng AI, tải tài liệu, cấu trúc thư mục tổng hợp | [STUDY](STUDY.md) |
 | Dùng, nâng cấp từ 1.x hoặc build `CunZoom.exe` | [WINDOWS](WINDOWS.md) |
 | Cài Docker, SDK và mở giao diện | [INSTALL](INSTALL.md) |

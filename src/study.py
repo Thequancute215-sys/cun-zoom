@@ -544,6 +544,7 @@ class Engine:
         self.failed = {}
         self.message = ''
         self.thread = None
+        self.authorized = lambda: True
 
     def start(self):
         self.thread = threading.Thread(target=self.loop, daemon=True)
@@ -574,6 +575,9 @@ class Engine:
 
     def loop(self):
         while not self.stop_event.is_set():
+            if not self.authorized():
+                self.stop_event.wait(15)
+                continue
             worked = False
             try:
                 self.scan()
@@ -626,7 +630,7 @@ class Engine:
 
     def run_jobs(self):
         worked = False
-        while not self.stop_event.is_set():
+        while not self.stop_event.is_set() and self.authorized():
             with self.lock:
                 if not self.jobs:
                     return worked

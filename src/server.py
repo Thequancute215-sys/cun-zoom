@@ -15,6 +15,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 import calendar_watch
+import account_client
 import library
 import runner
 import vault
@@ -60,10 +61,14 @@ def token_request(config, parameters):
 class Service:
     def __init__(self, port=18766, host='127.0.0.1'):
         self.lock = threading.RLock()
+        self.account = account_client.Client()
+        self.license_stop = threading.Event()
         self.token = secrets.token_urlsafe(32)
         self.vault = DATA / 'zoom.vault'
         self.calendar = calendar_watch.Watcher()
         self.study = study.Engine()
+        self.calendar.authorized = self.account.authorized
+        self.study.authorized = self.account.authorized
         self.pending = {}
         self.show_window = lambda: None
         self.choose_folder = lambda: None
@@ -85,7 +90,7 @@ class Service:
     def status(self):
         config = vault.load(self.vault)
         recordings = library.listing()
-        return {'version': VERSION, 'calendar': self.calendar.status(), 'native': runner.state(),
+        return {'version': VERSION, 'account': self.account.status(), 'calendar': self.calendar.status(), 'native': runner.state(),
                 'zoom': {'configured': bool(config.get('client_secret')), 'authorized': bool(config.get('oauth', {}).get('refresh_token')),
                          'client_id': config.get('client_id', ''), 'public_client_id': config.get('public_client_id', ''),
                          'default_passcode': config.get('default_meeting_passcode', ''),
@@ -160,6 +165,10 @@ class Service:
             self.message = 'Đã kết nối quyền Zoom trên máy này.'
 
     def action(self, route, data):
+        if route.startswith('/account/'):
+            return self.account.action(route[len('/account/'):], data)
+        if route not in ('/stop-bot', '/app/quit', '/app/show'):
+            self.account.require()
         if route == '/status':
             return self.status()
         if route == '/parse-room':
@@ -361,6 +370,8 @@ class Service:
                     return self.reply({'product': 'CunZoom', 'version': VERSION})
                 if not self.authenticated():
                     return
+                if route in ('/library/download', '/study/download', '/oauth/callback') and not service.account.authorized():
+                    return self.reply({'error': 'Vui lòng kích hoạt bản quyền.'}, 402)
                 if route == '/library/download' and CONTAINER:
                     try:
                         identifier = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query).get('id', [''])[0]
@@ -411,6 +422,9 @@ class Service:
                     return
                 known = {'/': 'index.html', '/app.js': 'app.js', '/study.js': 'study.js', '/style.css': 'style.css', '/logo.svg': 'logo.svg',
                          '/tokens.css': 'tokens.css', '/fonts.css': 'fonts.css'}
+                known.update({'/account': 'account.html', '/account.js': 'account.js', '/account.css': 'account.css'})
+                if route == '/' and service.account.enabled and not service.account.authorized():
+                    known['/'] = 'account.html'
                 for font in ('inter-400.ttf', 'inter-500.ttf', 'inter-600.ttf', 'inter-700.ttf',
                              'space-grotesk-500.ttf', 'space-grotesk-700.ttf', 'jetbrains-mono-400.ttf'):
                     known['/fonts/'+font] = 'fonts/'+font
@@ -418,8 +432,8 @@ class Service:
                     return self.reply({'error': 'Không tìm thấy.'}, 404)
                 target = WEB / known[route]
                 raw = target.read_bytes()
-                if route == '/':
-                    raw = raw.replace(b'__TOKEN__', service.token.encode())
+                if route in ('/', '/account'):
+                    raw = raw.replace(b'__TOKEN__', service.token.encode()).replace(b'__MODE__', b'desktop')
                 self.send_response(200)
                 self.headers_common()
                 self.send_header('Content-Type', (mimetypes.guess_type(target.name)[0] or 'text/plain')+'; charset=utf-8')
@@ -435,6 +449,8 @@ class Service:
                 if self.headers.get('Origin') not in (None, service.base):
                     return self.reply({'error': 'Nguồn yêu cầu không hợp lệ.'}, 403)
                 if urllib.parse.urlsplit(self.path).path == '/study/upload':
+                    if not service.account.authorized():
+                        return self.reply({'error': 'Vui lòng kích hoạt bản quyền.'}, 402)
                     return self.upload()
                 try:
                     size = int(self.headers.get('Content-Length', '0'))
@@ -444,6 +460,8 @@ class Service:
                     if not isinstance(data, dict):
                         raise ValueError('Nội dung yêu cầu không hợp lệ.')
                     return self.reply(service.action(urllib.parse.urlsplit(self.path).path, data))
+                except account_client.AccountError as error:
+                    self.reply({'error': str(error)}, 402)
                 except ValueError as error:
                     self.reply({'error': str(error)}, 400)
                 except Exception:
@@ -489,8 +507,15 @@ class Service:
         threading.Thread(target=self.http.serve_forever, daemon=True).start()
         self.calendar.start()
         self.study.start()
+        if self.account.enabled:
+            def watch_license():
+                while not self.license_stop.wait(15):
+                    if not self.account.authorized() and runner.state().get('running'):
+                        runner.shutdown()
+            threading.Thread(target=watch_license, daemon=True).start()
 
     def stop(self):
+        self.license_stop.set()
         self.calendar.stop_event.set()
         self.study.stop()
         runner.shutdown()

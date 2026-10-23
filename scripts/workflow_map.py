@@ -17,9 +17,28 @@ ARTIFACTS = ('.ua/domain-graph.json', '.ua/knowledge-graph.json',
              '.ua/config.json', '.ua/tooling.json', 'docs/WORKFLOW.md')
 SNAPSHOT = '.ua/source-snapshot.json'
 SKIP_PARTS = {'.git', '.venv', '__pycache__', 'build', 'dist', '.local', 'data'}
-TEXT_SUFFIXES = {'.py', '.mjs', '.js', '.html', '.css', '.md', '.json', '.yml', '.yaml', '.txt', '.svg'}
+TEXT_SUFFIXES = {'.py', '.mjs', '.js', '.html', '.css', '.md', '.json', '.jsonc', '.sql', '.yml', '.yaml', '.txt', '.svg'}
 
 DESCRIPTIONS = {
+    'CLAUDE.md': 'Điểm bắt đầu cho Claude Code, quy tắc và liên kết đặc tả/bàn giao hiện trạng.',
+    'docs/CHAT_HANDOVER.md': 'Đặc tả cuộc chat, bằng chứng đã làm, việc còn thiếu và tài liệu Word đối chiếu.',
+    'accounts/configure-production.mjs': 'Sinh cấu hình Workers/D1 production từ thông tin công khai đã kiểm tra, không lưu secret.',
+    '.github/workflows/accounts-deploy.yml': 'Workflow thủ công kiểm thử, migration, deploy website tài khoản, nạp secret và kiểm tra health.',
+    'src/account_client.py': 'Phiên tài khoản mã hóa và kiểm tra bản quyền trực tuyến của bản ứng dụng thương mại.',
+    'accounts/worker.mjs': 'Website tài khoản: OTP, phiên đăng nhập, cấp key một lần và kiểm soát bản quyền/thiết bị trên D1.',
+    'accounts/admin.mjs': 'CLI của người bán để cấp/thu hồi gói; đọc token quản trị từ biến môi trường.',
+    'accounts/migrations/0001_accounts.sql': 'Lược đồ D1 và ràng buộc số thiết bị khi kích hoạt đồng thời.',
+    'accounts/wrangler.jsonc': 'Cấu hình triển khai Workers/D1 và assets; không chứa khóa bí mật.',
+    'accounts/package.json': 'Lệnh phát triển, kiểm thử, migration và triển khai website tài khoản.',
+    'accounts/package-lock.json': 'Khóa phiên bản và integrity của công cụ Workers/D1.',
+    'accounts/.gitignore': 'Loại dependency, dữ liệu D1 local và secrets phát triển khỏi Git.',
+    'accounts/.dev.vars.example': 'Tên biến bí mật cần cấu hình để gửi OTP và quản trị, không có giá trị thật.',
+    'accounts/test/accounts.test.mjs': 'Kiểm tra Worker/D1 với nhà cung cấp OTP giả lập, gồm tranh chấp key và giới hạn thiết bị.',
+    'web/account.html': 'Giao diện OTP, key chỉ hiển thị một lần, gói và thiết bị trên website hoặc ứng dụng.',
+    'web/account.js': 'Luồng tài khoản dùng cookie web hoặc API local của desktop, không lưu token trong trình duyệt.',
+    'web/account.css': 'Bố cục responsive và trạng thái giao diện tài khoản/bản quyền.',
+    'tests/test_accounts.py': 'Kiểm tra phiên desktop mã hóa, cấu hình origin và chốt bản quyền UI/API.',
+    'docs/ACCOUNTS.md': 'Luồng thương mại, chi phí, triển khai OTP/Workers, cấp gói, đóng gói và giới hạn kiểm chứng.',
     'src/access_control.py': 'Kiểm tra Basic Auth trong Docker; tạo và đọc mật khẩu local.',
     'src/calendar_watch.py': 'Đọc iCal, mở rộng lịch lặp, lọc buổi Zoom và chống nhắc trùng.',
     'src/container_main.py': 'Khởi động API trong container và dừng bộ ghi khi thoát.',
@@ -165,6 +184,12 @@ def validate(graph, domain=False):
 
 
 def layer_for(name):
+    if name.startswith('accounts/test/'):
+        return 'quality'
+    if name.startswith('accounts/migrations/') or name == 'accounts/worker.mjs':
+        return 'service'
+    if name.startswith('accounts/'):
+        return 'delivery'
     if name.startswith(('web/', 'tokens', 'design')):
         return 'interface'
     if name.startswith(('native/', 'scripts/build', 'scripts/prepare_sdk')) or name in {'src/runner.py', 'src/transcribe.py'}:

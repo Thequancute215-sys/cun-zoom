@@ -5,22 +5,22 @@
     "name": "Cún Zoom",
     "languages": [
       "Python",
+      "JavaScript",
       "C++",
-      "JavaScript"
+      "SQL"
     ],
     "frameworks": [
-      "Anthropic Python SDK",
-      "Docker Compose",
-      "Ollama",
-      "PyInstaller",
       "Python HTTPServer",
       "Zoom Meeting SDK",
-      "faster-whisper",
-      "pywebview/WebView2"
+      "Cloudflare Workers",
+      "Cloudflare D1",
+      "Miniflare",
+      "PyWebView",
+      "Docker"
     ],
-    "description": "Bản đồ cấp file và import Python được trích từ AST; không phải graph toàn bộ hàm. Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn; chạy như ứng dụng Windows (CunZoom.exe) hoặc Docker Linux. Windows tự mở link lớp, Docker chỉ đưa link tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra trong 2.x; Trang Ôn tập hệ thống hoá bài giảng và tài liệu bằng Claude (khóa riêng) hoặc Ollama, tạo đề cương và đề thi thử. RTMS chưa triển khai.",
-    "analyzedAt": "2026-10-22T11:56:20.425510+00:00",
-    "gitCommitHash": "11a8e5e085e414026d9a01b7a2f62eff2eff7422"
+    "description": "Bản đồ cấp file và import Python được trích từ AST; không phải graph toàn bộ hàm. Ứng dụng học tập local trên Windows/Docker: đọc lịch, ghi Zoom khi có quyền, chép lời và ôn tập tùy chọn AI; portal tài khoản/OTP/key/thiết bị riêng đang ở mức nguồn và kiểm thử local, chưa xác nhận triển khai production.",
+    "analyzedAt": "2026-10-23T20:55:18.513184+00:00",
+    "gitCommitHash": "53decc9d4b95fc032f132c375f05960eb5e824a2"
   },
   "nodes": [
     {
@@ -39,6 +39,21 @@
       ]
     },
     {
+      "id": "file:.github/workflows/accounts-deploy.yml",
+      "type": "pipeline",
+      "name": ".github/workflows/accounts-deploy.yml",
+      "summary": "Workflow thủ công kiểm thử, migration, deploy website tài khoản, nạp secret và kiểm tra health.",
+      "tags": [
+        "delivery"
+      ],
+      "complexity": "moderate",
+      "filePath": ".github/workflows/accounts-deploy.yml",
+      "lineRange": [
+        1,
+        74
+      ]
+    },
+    {
       "id": "file:.github/workflows/docker-release.yml",
       "type": "pipeline",
       "name": ".github/workflows/docker-release.yml",
@@ -50,7 +65,7 @@
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
         1,
-        205
+        211
       ]
     },
     {
@@ -78,6 +93,21 @@
       ],
       "complexity": "moderate",
       "filePath": "AGENTS.md",
+      "lineRange": [
+        1,
+        15
+      ]
+    },
+    {
+      "id": "file:CLAUDE.md",
+      "type": "document",
+      "name": "CLAUDE.md",
+      "summary": "Điểm bắt đầu cho Claude Code, quy tắc và liên kết đặc tả/bàn giao hiện trạng.",
+      "tags": [
+        "reference"
+      ],
+      "complexity": "moderate",
+      "filePath": "CLAUDE.md",
       "lineRange": [
         1,
         15
@@ -125,7 +155,7 @@
       "filePath": "README.md",
       "lineRange": [
         1,
-        70
+        72
       ]
     },
     {
@@ -141,6 +171,126 @@
       "lineRange": [
         1,
         19
+      ]
+    },
+    {
+      "id": "file:accounts/admin.mjs",
+      "type": "file",
+      "name": "accounts/admin.mjs",
+      "summary": "CLI của người bán để cấp/thu hồi gói; đọc token quản trị từ biến môi trường.",
+      "tags": [
+        "delivery"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/admin.mjs",
+      "lineRange": [
+        1,
+        20
+      ]
+    },
+    {
+      "id": "file:accounts/configure-production.mjs",
+      "type": "file",
+      "name": "accounts/configure-production.mjs",
+      "summary": "Sinh cấu hình Workers/D1 production từ thông tin công khai đã kiểm tra, không lưu secret.",
+      "tags": [
+        "delivery"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/configure-production.mjs",
+      "lineRange": [
+        1,
+        40
+      ]
+    },
+    {
+      "id": "file:accounts/migrations/0001_accounts.sql",
+      "type": "file",
+      "name": "accounts/migrations/0001_accounts.sql",
+      "summary": "Lược đồ D1 và ràng buộc số thiết bị khi kích hoạt đồng thời.",
+      "tags": [
+        "service"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/migrations/0001_accounts.sql",
+      "lineRange": [
+        1,
+        30
+      ]
+    },
+    {
+      "id": "file:accounts/package-lock.json",
+      "type": "file",
+      "name": "accounts/package-lock.json",
+      "summary": "Khóa phiên bản và integrity của công cụ Workers/D1.",
+      "tags": [
+        "delivery"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/package-lock.json",
+      "lineRange": [
+        1,
+        2242
+      ]
+    },
+    {
+      "id": "file:accounts/package.json",
+      "type": "file",
+      "name": "accounts/package.json",
+      "summary": "Lệnh phát triển, kiểm thử, migration và triển khai website tài khoản.",
+      "tags": [
+        "delivery"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/package.json",
+      "lineRange": [
+        1,
+        14
+      ]
+    },
+    {
+      "id": "file:accounts/test/accounts.test.mjs",
+      "type": "file",
+      "name": "accounts/test/accounts.test.mjs",
+      "summary": "Kiểm tra Worker/D1 với nhà cung cấp OTP giả lập, gồm tranh chấp key và giới hạn thiết bị.",
+      "tags": [
+        "quality"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/test/accounts.test.mjs",
+      "lineRange": [
+        1,
+        166
+      ]
+    },
+    {
+      "id": "file:accounts/worker.mjs",
+      "type": "file",
+      "name": "accounts/worker.mjs",
+      "summary": "Website tài khoản: OTP, phiên đăng nhập, cấp key một lần và kiểm soát bản quyền/thiết bị trên D1.",
+      "tags": [
+        "service"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/worker.mjs",
+      "lineRange": [
+        1,
+        230
+      ]
+    },
+    {
+      "id": "file:accounts/wrangler.jsonc",
+      "type": "file",
+      "name": "accounts/wrangler.jsonc",
+      "summary": "Cấu hình triển khai Workers/D1 và assets; không chứa khóa bí mật.",
+      "tags": [
+        "delivery"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/wrangler.jsonc",
+      "lineRange": [
+        1,
+        16
       ]
     },
     {
@@ -174,6 +324,36 @@
       ]
     },
     {
+      "id": "file:docs/ACCOUNTS.md",
+      "type": "document",
+      "name": "docs/ACCOUNTS.md",
+      "summary": "Luồng thương mại, chi phí, triển khai OTP/Workers, cấp gói, đóng gói và giới hạn kiểm chứng.",
+      "tags": [
+        "reference"
+      ],
+      "complexity": "moderate",
+      "filePath": "docs/ACCOUNTS.md",
+      "lineRange": [
+        1,
+        81
+      ]
+    },
+    {
+      "id": "file:docs/CHAT_HANDOVER.md",
+      "type": "document",
+      "name": "docs/CHAT_HANDOVER.md",
+      "summary": "Đặc tả cuộc chat, bằng chứng đã làm, việc còn thiếu và tài liệu Word đối chiếu.",
+      "tags": [
+        "reference"
+      ],
+      "complexity": "moderate",
+      "filePath": "docs/CHAT_HANDOVER.md",
+      "lineRange": [
+        1,
+        731
+      ]
+    },
+    {
       "id": "file:docs/DEVELOPMENT.md",
       "type": "document",
       "name": "docs/DEVELOPMENT.md",
@@ -200,7 +380,7 @@
       "filePath": "docs/HANDOVER.md",
       "lineRange": [
         1,
-        39
+        41
       ]
     },
     {
@@ -380,7 +560,7 @@
       "filePath": "scripts/build.py",
       "lineRange": [
         1,
-        56
+        68
       ]
     },
     {
@@ -500,7 +680,7 @@
       "filePath": "scripts/workflow_map.py",
       "lineRange": [
         1,
-        363
+        388
       ]
     },
     {
@@ -564,6 +744,21 @@
       ]
     },
     {
+      "id": "file:src/account_client.py",
+      "type": "file",
+      "name": "src/account_client.py",
+      "summary": "Phiên tài khoản mã hóa và kiểm tra bản quyền trực tuyến của bản ứng dụng thương mại.",
+      "tags": [
+        "service"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/account_client.py",
+      "lineRange": [
+        1,
+        167
+      ]
+    },
+    {
       "id": "file:src/ai_backend.py",
       "type": "file",
       "name": "src/ai_backend.py",
@@ -590,7 +785,7 @@
       "filePath": "src/calendar_watch.py",
       "lineRange": [
         1,
-        255
+        259
       ]
     },
     {
@@ -740,7 +935,7 @@
       "filePath": "src/server.py",
       "lineRange": [
         1,
-        498
+        523
       ]
     },
     {
@@ -755,7 +950,7 @@
       "filePath": "src/study.py",
       "lineRange": [
         1,
-        703
+        707
       ]
     },
     {
@@ -801,6 +996,21 @@
       "lineRange": [
         1,
         9
+      ]
+    },
+    {
+      "id": "file:tests/test_accounts.py",
+      "type": "file",
+      "name": "tests/test_accounts.py",
+      "summary": "Kiểm tra phiên desktop mã hóa, cấu hình origin và chốt bản quyền UI/API.",
+      "tags": [
+        "quality"
+      ],
+      "complexity": "moderate",
+      "filePath": "tests/test_accounts.py",
+      "lineRange": [
+        1,
+        117
       ]
     },
     {
@@ -969,6 +1179,51 @@
       ]
     },
     {
+      "id": "file:web/account.css",
+      "type": "file",
+      "name": "web/account.css",
+      "summary": "Bố cục responsive và trạng thái giao diện tài khoản/bản quyền.",
+      "tags": [
+        "interface"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/account.css",
+      "lineRange": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "file:web/account.html",
+      "type": "file",
+      "name": "web/account.html",
+      "summary": "Giao diện OTP, key chỉ hiển thị một lần, gói và thiết bị trên website hoặc ứng dụng.",
+      "tags": [
+        "interface"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/account.html",
+      "lineRange": [
+        1,
+        29
+      ]
+    },
+    {
+      "id": "file:web/account.js",
+      "type": "file",
+      "name": "web/account.js",
+      "summary": "Luồng tài khoản dùng cookie web hoặc API local của desktop, không lưu token trong trình duyệt.",
+      "tags": [
+        "interface"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/account.js",
+      "lineRange": [
+        1,
+        64
+      ]
+    },
+    {
       "id": "file:web/app.js",
       "type": "file",
       "name": "web/app.js",
@@ -1131,6 +1386,22 @@
     {
       "source": "file:src/access_control.py",
       "target": "file:src/paths.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/account_client.py",
+      "target": "file:src/paths.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/account_client.py",
+      "target": "file:src/vault.py",
       "type": "imports",
       "direction": "forward",
       "description": "Import được đọc từ AST Python.",
@@ -1314,6 +1585,14 @@
     },
     {
       "source": "file:src/server.py",
+      "target": "file:src/account_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:src/server.py",
       "target": "file:src/library.py",
       "type": "imports",
       "direction": "forward",
@@ -1451,6 +1730,30 @@
     {
       "source": "file:src/vault.py",
       "target": "file:src/paths.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_accounts.py",
+      "target": "file:src/account_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_accounts.py",
+      "target": "file:src/vault.py",
+      "type": "imports",
+      "direction": "forward",
+      "description": "Import được đọc từ AST Python.",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_accounts.py",
+      "target": "file:src/server.py",
       "type": "imports",
       "direction": "forward",
       "description": "Import được đọc từ AST Python.",
@@ -1793,6 +2096,9 @@
       "nodeIds": [
         "file:design.md",
         "file:tokens.css",
+        "file:web/account.css",
+        "file:web/account.html",
+        "file:web/account.js",
         "file:web/app.js",
         "file:web/fonts.css",
         "file:web/fonts/OFL-inter.txt",
@@ -1810,7 +2116,10 @@
       "name": "Dịch vụ và cấu hình",
       "description": "API, truy cập, lịch, dữ liệu và thiết lập.",
       "nodeIds": [
+        "file:accounts/migrations/0001_accounts.sql",
+        "file:accounts/worker.mjs",
         "file:src/access_control.py",
+        "file:src/account_client.py",
         "file:src/ai_backend.py",
         "file:src/calendar_watch.py",
         "file:src/documents.py",
@@ -1843,9 +2152,15 @@
       "description": "Điểm vào, Docker và pipeline xuất bản.",
       "nodeIds": [
         "file:.dockerignore",
+        "file:.github/workflows/accounts-deploy.yml",
         "file:.github/workflows/docker-release.yml",
         "file:.gitignore",
         "file:Dockerfile",
+        "file:accounts/admin.mjs",
+        "file:accounts/configure-production.mjs",
+        "file:accounts/package-lock.json",
+        "file:accounts/package.json",
+        "file:accounts/wrangler.jsonc",
         "file:compose.yaml",
         "file:requirements-transcription.txt",
         "file:requirements-windows-lock.txt",
@@ -1862,6 +2177,7 @@
       "description": "Kiểm thử, kiểm tra nguồn, graph và quy tắc bảo trì.",
       "nodeIds": [
         "file:AGENTS.md",
+        "file:accounts/test/accounts.test.mjs",
         "file:scripts/check_source.py",
         "file:scripts/smoke_container.py",
         "file:scripts/validate_workflow_graphs.mjs",
@@ -1870,6 +2186,7 @@
         "file:skills/workflow/agents/openai.yaml",
         "file:skills/workflow/references/cun-zoom.md",
         "file:tests/bootstrap.py",
+        "file:tests/test_accounts.py",
         "file:tests/test_ai_backend.py",
         "file:tests/test_calendar_watch.py",
         "file:tests/test_container.py",
@@ -1886,9 +2203,12 @@
       "name": "Hướng dẫn",
       "description": "Tài liệu cài đặt, vận hành, kiểm thử và giấy phép.",
       "nodeIds": [
+        "file:CLAUDE.md",
         "file:LICENSE",
         "file:README.md",
         "file:THIRD_PARTY_NOTICES.md",
+        "file:docs/ACCOUNTS.md",
+        "file:docs/CHAT_HANDOVER.md",
         "file:docs/DEVELOPMENT.md",
         "file:docs/HANDOVER.md",
         "file:docs/INSTALL.md",
@@ -1910,6 +2230,9 @@
       "nodeIds": [
         "file:design.md",
         "file:tokens.css",
+        "file:web/account.css",
+        "file:web/account.html",
+        "file:web/account.js",
         "file:web/app.js",
         "file:web/fonts.css",
         "file:web/fonts/OFL-inter.txt",
@@ -1927,7 +2250,10 @@
       "title": "Dịch vụ và cấu hình",
       "description": "API, truy cập, lịch, dữ liệu và thiết lập.",
       "nodeIds": [
+        "file:accounts/migrations/0001_accounts.sql",
+        "file:accounts/worker.mjs",
         "file:src/access_control.py",
+        "file:src/account_client.py",
         "file:src/ai_backend.py",
         "file:src/calendar_watch.py",
         "file:src/documents.py",
@@ -1960,9 +2286,15 @@
       "description": "Điểm vào, Docker và pipeline xuất bản.",
       "nodeIds": [
         "file:.dockerignore",
+        "file:.github/workflows/accounts-deploy.yml",
         "file:.github/workflows/docker-release.yml",
         "file:.gitignore",
         "file:Dockerfile",
+        "file:accounts/admin.mjs",
+        "file:accounts/configure-production.mjs",
+        "file:accounts/package-lock.json",
+        "file:accounts/package.json",
+        "file:accounts/wrangler.jsonc",
         "file:compose.yaml",
         "file:requirements-transcription.txt",
         "file:requirements-windows-lock.txt",
@@ -1979,6 +2311,7 @@
       "description": "Kiểm thử, kiểm tra nguồn, graph và quy tắc bảo trì.",
       "nodeIds": [
         "file:AGENTS.md",
+        "file:accounts/test/accounts.test.mjs",
         "file:scripts/check_source.py",
         "file:scripts/smoke_container.py",
         "file:scripts/validate_workflow_graphs.mjs",
@@ -1987,6 +2320,7 @@
         "file:skills/workflow/agents/openai.yaml",
         "file:skills/workflow/references/cun-zoom.md",
         "file:tests/bootstrap.py",
+        "file:tests/test_accounts.py",
         "file:tests/test_ai_backend.py",
         "file:tests/test_calendar_watch.py",
         "file:tests/test_container.py",
@@ -2003,9 +2337,12 @@
       "title": "Hướng dẫn",
       "description": "Tài liệu cài đặt, vận hành, kiểm thử và giấy phép.",
       "nodeIds": [
+        "file:CLAUDE.md",
         "file:LICENSE",
         "file:README.md",
         "file:THIRD_PARTY_NOTICES.md",
+        "file:docs/ACCOUNTS.md",
+        "file:docs/CHAT_HANDOVER.md",
         "file:docs/DEVELOPMENT.md",
         "file:docs/HANDOVER.md",
         "file:docs/INSTALL.md",

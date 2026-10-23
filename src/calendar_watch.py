@@ -138,6 +138,7 @@ class Watcher:
         self.last_sync = None
         self.last_fetch = 0
         self.stop_event = threading.Event()
+        self.authorized = lambda: True
 
     def configure(self, data):
         with self.lock:
@@ -239,6 +240,9 @@ class Watcher:
 
     def run(self):
         while not self.stop_event.is_set():
+            if not self.authorized():
+                self.stop_event.wait(15)
+                continue
             try:
                 with self.lock:
                     enabled = self.config.get('enabled') and bool(self.config.get('feed_url'))

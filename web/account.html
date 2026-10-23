@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="app-token" content="__TOKEN__"><meta name="account-mode" content="__MODE__">
+  <title>Tài khoản và bản quyền · Cún Zoom</title>
+  <link rel="stylesheet" href="/account.css"><script src="/account.js" defer></script>
+</head>
+<body>
+  <header><a href="/" class="brand"><img src="/logo.svg" width="36" height="36" alt=""><span>Cún Zoom<small>Tài khoản & bản quyền</small></span></a><span class="tag">Không gian học tập của bạn</span></header>
+  <main>
+    <section id="login" class="welcome">
+      <div class="intro"><span class="eyebrow">BẮT ĐẦU TẠI ĐÂY</span><h1>Một tài khoản.<br>Việc học liền mạch.</h1><p>Đăng nhập để nhận mã bản quyền bạn đã mua, kích hoạt và quản lý thiết bị của mình.</p><ul><li>Mã xác minh gửi riêng cho bạn</li><li>Bài giảng vẫn lưu trên máy của bạn</li><li>Chủ động gỡ thiết bị không còn sử dụng</li></ul></div>
+      <div class="card">
+        <form id="identity-form"><h2>Chào bạn</h2><p>Nhập email hoặc số điện thoại để nhận mã xác minh. Tài khoản sẽ được tạo sau lần xác minh đầu tiên.</p><label for="identity">Email hoặc số điện thoại</label><input id="identity" name="identity" autocomplete="username" required maxlength="254" placeholder="ban@gmail.com hoặc +84901234567"><p class="help">Số điện thoại cần mã quốc gia. Nếu SMS chưa được bật, hãy dùng email.</p><button type="submit">Gửi mã OTP</button></form>
+        <form id="otp-form" hidden><h2>Kiểm tra tin nhắn của bạn</h2><p id="otp-recipient"></p><label for="otp">Mã xác minh 6 chữ số</label><input id="otp" name="otp" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required><p class="help">Mã dùng một lần, hết hạn sau 5 phút. Không chia sẻ mã với người khác.</p><button type="submit">Xác minh và đăng nhập</button><button id="back" class="secondary" type="button">Đổi địa chỉ / gửi lại mã</button></form>
+      </div>
+    </section>
+    <section id="dashboard" hidden>
+      <div class="page-title"><div><span class="eyebrow">TÀI KHOẢN CỦA BẠN</span><h1>Bản quyền Cún Zoom</h1><p id="account-identity"></p></div><button id="logout" class="secondary" type="button">Đăng xuất</button></div>
+      <div class="actions"><a id="download" class="button secondary" hidden target="_blank" rel="noopener noreferrer">Tải ứng dụng</a><a id="open-app" class="button" href="/" hidden>Vào Cún Zoom</a><button id="reload" class="secondary">Làm mới trạng thái</button></div>
+      <div id="licenses" class="licenses"></div>
+      <section id="key-result" class="card key-card" hidden aria-labelledby="key-title"><h2 id="key-title">Lưu mã này trước khi đóng</h2><p>Mã chỉ hiển thị một lần và chỉ kích hoạt cho tài khoản của bạn. Cún Zoom không lưu bản rõ để hiển thị lại.</p><label for="one-time-key">Mã bản quyền</label><input id="one-time-key" readonly spellcheck="false"><button id="copy-key" class="secondary">Sao chép mã</button><button id="use-key">Kích hoạt mã này</button><button id="hide-key" class="secondary">Tôi đã lưu mã · đóng</button></section>
+      <form id="redeem-form" class="card"><h2>Đã có mã bản quyền?</h2><label for="license-key">Nhập mã bạn đã lưu</label><input id="license-key" autocomplete="off" spellcheck="false" required maxlength="64" placeholder="CZ-…"><button type="submit">Kích hoạt bản quyền</button><p class="help">Xác minh email/SĐT không tự cấp bản quyền. Nếu chưa có gói đã mua, hãy liên hệ người bán để được cấp quyền.</p></form>
+    </section>
+    <p id="feedback" role="status" aria-live="polite" hidden></p>
+  </main>
+  <footer>Cún Zoom · Mã bản quyền ứng dụng độc lập với tài khoản và quyền ghi Zoom.</footer>
+</body></html>

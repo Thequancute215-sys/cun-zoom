@@ -1,0 +1,8 @@
+# Copy to .dev.vars for local use; enter real values securely, never in Git/chat.
+OTP_SECRET=
+ADMIN_TOKEN=
+RESEND_API_KEY=
+# Optional SMS; keep SMS_ENABLED=false until a sender and budget are configured.
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_FROM=
