@@ -2,7 +2,7 @@
 
 > Tài liệu dành để bàn giao trực tiếp cho lập trình viên/Claude Code. Phân biệt mã đã viết, kiểm thử cục bộ, đề xuất và việc chưa hoàn thành. **Chưa triển khai production thật, chưa phát hành ứng dụng thương mại.**
 >
-> Repository: `Thequancute215-sys/cun-zoom`. Nền phiên làm việc: `53decc9d4b95fc032f132c375f05960eb5e824a2` (v2.2.0). Các thay đổi trong phiên này đang ở working tree khi lập tài liệu; không coi chúng đã có trên `main`. Thời điểm bàn giao: tháng 10/2026.
+> Repository: `Thequancute215-sys/cun-zoom`. Nền phiên làm việc: `53decc9d4b95fc032f132c375f05960eb5e824a2` (v2.2.0). Mã, tài liệu và graph của phiên này đã commit và push lên nhánh `codex/accounts-handover` (commit triển khai ban đầu `4e08263`); chưa merge vào `main`. Thời điểm bàn giao: tháng 10/2026.
 
 ## 1. Yêu cầu của chủ sản phẩm
 
@@ -235,10 +235,10 @@ Mẫu giao việc cho Claude Code:
 
 ## 11. Theo dõi GitHub/workflow và giới hạn bàn giao
 
-- Đã viết workflow CI/deploy và cập nhật công cụ lập bản đồ trong working tree.
+- Đã đưa mã OTP/key, cấu hình production, workflow CI/deploy, graph và tài liệu lên [nhánh GitHub bàn giao](https://github.com/Thequancute215-sys/cun-zoom/tree/codex/accounts-handover). [Mở file bàn giao trực tiếp](https://github.com/Thequancute215-sys/cun-zoom/blob/codex/accounts-handover/docs/CHAT_HANDOVER.md).
 - Đã refresh bản đồ cùng file bàn giao: 6 miền, 21 luồng, 127 bước, 158 cạnh. Validator Understand Anything xác nhận domain graph 154 node/158 cạnh và knowledge graph 90 node/89 cạnh; workflow check đạt với snapshot 101 file. Đã mở dashboard bằng Chromium, kiểm tra miền tài khoản, luồng cấp gói/lấy key và chi tiết bước sinh key với đường dẫn mã nguồn.
-- Chưa có bằng chứng thay đổi đã commit/push lên GitHub hoặc GitHub Actions đã chạy. API GitHub của môi trường trả `Forbidden`; native Git vẫn đọc được remote. Không tự suy ra push thành công từ việc có file workflow local.
-- `main` remote đã di chuyển so với commit nền; trước khi đưa lên cần fetch/review chênh lệch, không force push hoặc ghi đè thay đổi người khác.
+- Native Git đã push thành công nhánh `codex/accounts-handover`; API GitHub của môi trường vẫn trả `Forbidden`. Chưa tạo PR, chưa merge, chưa có bằng chứng GitHub Actions đã chạy và chưa deploy production. Người tiếp nhận dùng nhánh này để xem đủ mã; không chỉ checkout `main`.
+- `main` remote đã di chuyển so với commit nền; trước khi merge cần fetch/review chênh lệch, không force push hoặc ghi đè thay đổi người khác.
 - Cấu hình cloud onboarding đã được lưu dạng draft, không có bằng chứng người dùng đã publish cấu hình môi trường đó.
 - Docker integration bản thương mại, staging/production, OTP thật, Windows thật và Zoom thật vẫn cần bằng chứng riêng nếu chưa có xác minh bổ sung sau mốc tài liệu này.
 - `git diff --check` hiện báo trailing whitespace tại dòng mới trong `src/calendar_watch.py`, `web/app.js`, `web/index.html` do CRLF; cần chuẩn hóa có kiểm soát trước commit. Kiểm tra với `git -c core.whitespace=cr-at-eol diff --check` đã đạt; không chuẩn hóa toàn bộ file để tránh tạo diff không liên quan.

@@ -19,8 +19,8 @@
       "Docker"
     ],
     "description": "Bản đồ cấp file và import Python được trích từ AST; không phải graph toàn bộ hàm. Ứng dụng học tập local trên Windows/Docker: đọc lịch, ghi Zoom khi có quyền, chép lời và ôn tập tùy chọn AI; portal tài khoản/OTP/key/thiết bị riêng đang ở mức nguồn và kiểm thử local, chưa xác nhận triển khai production.",
-    "analyzedAt": "2026-10-23T20:55:18.513184+00:00",
-    "gitCommitHash": "53decc9d4b95fc032f132c375f05960eb5e824a2"
+    "analyzedAt": "2026-10-23T20:55:43.163593+00:00",
+    "gitCommitHash": "4e08263d72b4342fd55a1d5954bd64467f279f44"
   },
   "nodes": [
     {
