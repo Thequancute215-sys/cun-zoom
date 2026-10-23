@@ -1,11 +1,22 @@
-# Cún Zoom 2.2.1 · Sửa lỗi Ôn tập
+# Cún Zoom 2.2.1 · Sửa lỗi Ôn tập và tăng cường bảo mật
 
-Bản sửa lỗi sau khi chạy thật trang Ôn tập với Ollama (`qwen2.5:3b` và `qwen2.5:7b`).
+Bản sửa lỗi sau khi chạy thật trang Ôn tập với Ollama (`qwen2.5:3b` và `qwen2.5:7b`) và sau một lượt rà soát bảo mật toàn bộ mã nguồn.
 
 - **Không còn ghi chú bịa:** buổi chỉ có file không đọc được (file hỏng, PDF scan khi dùng Ollama) giờ báo lỗi kèm tên file thay vì để AI tự viết bài từ tên buổi. Buổi chỉ có ảnh mà mô hình Ollama không đọc được ảnh cũng báo lỗi, không đoán.
 - **Một buổi lỗi không chặn cả môn:** hệ thống kiến thức và đề cương vẫn cập nhật từ các buổi khác; lỗi của buổi đó vẫn hiện kèm tên buổi cho tới khi bạn sửa file.
 - **Đề thi rõ hơn:** câu hỏi luôn có đề bài (trước đây mô hình nhỏ đôi khi chỉ ghi số câu hoặc tên chủ đề); thiếu câu thì tự hỏi AI thêm một lần. Tạo đề không còn thử lại buổi đang lỗi.
 - **Mục lục:** link tới ghi chú mở được cả khi tên môn/buổi có dấu cách và dấu tiếng Việt.
+- **Không tốn tiền Claude khi đang ghi:** trong lúc bot còn ghi một buổi, Ôn tập chờ buổi kết thúc rồi mới hệ thống hoá môn đó một lần (trước đây mỗi slide mới có thể làm nó chạy lại).
+- **Chép lời:** file âm thanh/video im lặng không bị chép lại mãi; tiến trình chép lời bị dừng đột ngột được ghi là lỗi thay vì chờ 6 giờ rồi chạy lại; mỗi file chỉ đọc tối đa 3 giờ âm thanh. Bản Docker chép lời lại được với thư viện `av` mới.
+- **Bảo mật:**
+  - Word/PowerPoint được đọc theo luồng, có giới hạn tổng dung lượng và số chữ, không nhận DTD. File được dựng để làm đầy bộ nhớ nay chỉ còn là một cảnh báo.
+  - Câu trả lời từ Ollama có giới hạn kích thước và thời gian.
+  - Bất kỳ lỗi xử lý nào cũng được ghi nhớ, không lặp lại mỗi 30 giây.
+  - Ghi chú `.md` không còn để AI chèn ảnh hay HTML tự tải từ web.
+  - Link Zoom chứa dấu `\` bị từ chối.
+  - Trên Windows, trang ứng dụng chỉ mở từ cửa sổ Cún Zoom, nên tài khoản Windows khác trên cùng máy không đọc được khóa phiên. Cổng ứng dụng không cho tiến trình khác dùng chung.
+  - Kết nối HTTP bỏ ngỏ tự đóng sau 60 giây.
+  - Lọc thẻ HTML trong mô tả sự kiện lịch nay chạy trong thời gian tuyến tính.
 - Hướng dẫn ôn tập ghi rõ: mô hình dưới 7B chỉ nên dùng để thử. Kết quả chạy thật ở [phạm vi kiểm thử](https://github.com/Thequancute215-sys/cun-zoom/blob/main/docs/VALIDATION.md).
 
 Dữ liệu và cấu hình 2.2.0 dùng tiếp, không cần làm gì thêm.

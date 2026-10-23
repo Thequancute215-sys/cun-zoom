@@ -149,6 +149,19 @@ class OllamaTests(unittest.TestCase):
         self.assertIn('không đọc được ảnh', str(result.exception))
         self.assertEqual(len(server.requests), 1)
 
+    def test_oversized_or_malformed_replies_are_errors(self):
+        replies = iter([json.dumps({'message': {'content': 'x' * 300}}).encode(), json.dumps({'message': {'content': '[1, 2]'}}).encode(),
+                        json.dumps({'message': {'content': '[' * 100000}}).encode()])
+        server = FakeServer(lambda path, body: (200, 'application/json', next(replies)))
+        self.addCleanup(server.close)
+        config = {'provider': 'ollama', 'claude_key': '', 'claude_model': 'claude-opus-5-5', 'ollama_url': server.url, 'ollama_model': 'm', 'auto': True}
+        with patch.object(ai, 'OLLAMA_REPLY_LIMIT', 200), self.assertRaises(ai.AIError) as result:
+            ai.generate('s', [{'kind': 'text', 'text': 'x'}], SCHEMA, 'low', config)
+        self.assertIn('quá lớn', str(result.exception))
+        for _ in range(2):
+            with self.assertRaises(ai.AIError):
+                ai.generate('s', [{'kind': 'text', 'text': 'x'}], SCHEMA, 'low', config)
+
     def test_unreachable_server_is_explained(self):
         config = {'provider': 'ollama', 'claude_key': '', 'claude_model': 'claude-opus-5-5', 'ollama_url': 'http://127.0.0.1:9', 'ollama_model': 'm', 'auto': True}
         with self.assertRaises(ai.AIError) as result:

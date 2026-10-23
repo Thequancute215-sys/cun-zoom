@@ -170,6 +170,9 @@ def transcription_state(folder):
     newest = max(p.stat().st_mtime for p in media)
     if transcript and transcript.stat().st_mtime >= newest:
         return 'done'
+    if status.get('state') == 'completed' and (folder / '02_Tom_tat/trang_thai.json').stat().st_mtime >= newest:
+        # Silent media leaves an empty transcript; running it again would hear nothing again.
+        return 'done'
     if status.get('state') == 'processing':
         try:
             started = datetime.fromisoformat(status['time']).timestamp()
@@ -469,6 +472,11 @@ def _link(relative):
     return '[' + relative + '](../' + urllib.parse.quote(relative) + ')'
 
 
+def _inert(markdown):
+    """Model text must not become an image or HTML that a Markdown viewer loads from the web without a click."""
+    return markdown.replace('<', '\\<').replace('![', '!\\[')
+
+
 def session_markdown(subject, data):
     lines = ['# ' + (data.get('tieu_de') or 'Hệ thống hoá buổi học'), '', 'Môn: ' + subject + ' · Tạo bởi ' + data['_meta']['ai'] + ' · ' + data['_meta']['created'], '',
              '## Tóm tắt', '', data.get('tom_tat', ''), '']
@@ -482,7 +490,7 @@ def session_markdown(subject, data):
         if values:
             lines += ['## ' + title, ''] + ['- ' + v for v in values] + ['']
     lines.append('_Bản do AI hệ thống hoá từ bài giảng; đối chiếu với slide và giáo trình trước khi học thuộc._')
-    return '\n'.join(lines) + '\n'
+    return _inert('\n'.join(lines) + '\n')
 
 
 def subject_markdown(subject, data):
@@ -497,7 +505,7 @@ def subject_markdown(subject, data):
     for item in sessions(subject):
         notes = item['folder'] / (SESSION_NOTES + '.md')
         lines.append('- ' + item['label'] + (': ' + _link(notes.relative_to(subject).as_posix()) if notes.is_file() else ': chưa hệ thống hoá'))
-    return '\n'.join(lines) + '\n'
+    return _inert('\n'.join(lines) + '\n')
 
 
 def outline_markdown(subject, data):
@@ -510,7 +518,7 @@ def outline_markdown(subject, data):
         lines.append('')
     lines += ['## Trọng tâm thi', ''] + ['- ' + v for v in data.get('trong_tam_thi', [])] + ['', '## Kế hoạch ôn', '']
     lines += [str(n) + '. **' + s['buoc'] + '**: ' + s['noi_dung'] for n, s in enumerate(data.get('ke_hoach_on', []), 1)]
-    return '\n'.join(lines) + '\n'
+    return _inert('\n'.join(lines) + '\n')
 
 
 def exam_markdown(subject, data):
@@ -526,7 +534,7 @@ def exam_markdown(subject, data):
     lines += ['- Câu ' + str(n) + ': **' + q['dap_an'] + '** — ' + q.get('giai_thich', '') for n, q in enumerate(data.get('trac_nghiem', []), 1)]
     for n, q in enumerate(data.get('tu_luan', []), 1):
         lines += ['', '**Tự luận câu ' + str(n) + ':**'] + ['- ' + v for v in q.get('goi_y_cham', [])]
-    return '\n'.join(lines) + '\n'
+    return _inert('\n'.join(lines) + '\n')
 
 
 def write_root_index():
@@ -643,11 +651,16 @@ class Engine:
         states = {folder: transcription_state(folder) for folder in lessons}
         # Transcription is CPU heavy: one lesson at a time, never during a recording. Uploaded media is always
         # transcribed; older recordings without a transcript only when the user turned on automatic sync.
-        if 'running' not in states.values() and transcribe.model_ready() and not runner.state().get('running'):
+        bot = runner.state()
+        if 'running' not in states.values() and transcribe.model_ready() and not bot.get('running'):
             waiting = next((folder for folder in lessons if states[folder] == 'needed' and (auto or _uploaded_media(folder))), None)
             if waiting:
                 runner.start_transcription(waiting)
+        recording = Path(bot['path']).resolve() if bot.get('running') and bot.get('path') else None
         for subject in subjects:
+            if recording and recording.parent == subject:
+                # Slides keep arriving until the recording ends; notes made now would be redone (and paid for) again.
+                continue
             subject_changed = False
             for item in sessions(subject):
                 folder = item['folder']
@@ -706,11 +719,11 @@ class Engine:
                     for lesson in self._stale_lessons(subject):
                         try:
                             analyze_session(subject, lesson, config)
-                        except ai.AIError as error:
+                        except Exception as error:
                             # This lesson waits for new files; the others still make the subject map.
                             with self.lock:
                                 self.failed[('session', lesson, ())] = fingerprint(lesson)[0]
-                                self.reasons[('session', lesson, ())] = str(error)
+                                self.reasons[('session', lesson, ())] = _reason(error)
                     aggregate_subject(subject, config)
                 elif kind == 'outline':
                     if not knowledge_map(subject) or self._stale_lessons(subject):
@@ -725,16 +738,21 @@ class Engine:
                     else:
                         self.errors.pop(subject.name, None)
                     self.message = 'Đã cập nhật ' + _job_label(self.current)
-            except (ai.AIError, ValueError, OSError) as error:
+            except Exception as error:
+                # Any failure, not only expected ones, waits for new files or a manual retry instead of repeating every scan.
                 with self.lock:
                     version = fingerprint(folder)[0] if kind == 'session' else subject_fingerprint(subject)
                     self.failed[self.current] = version
-                    self.reasons[self.current] = str(error)
+                    self.reasons[self.current] = _reason(error)
                     # A lesson's error names the lesson, together with any other lesson still failing.
-                    self.errors[subject.name] = ' · '.join(self._lesson_problems(subject)) if kind == 'session' else str(error)
+                    self.errors[subject.name] = ' · '.join(self._lesson_problems(subject)) if kind == 'session' else _reason(error)
             finally:
                 with self.lock:
                     self.current = None
+
+
+def _reason(error):
+    return str(error) if isinstance(error, (ai.AIError, ValueError, OSError)) and str(error) else 'Lỗi xử lý (' + type(error).__name__ + ')'
 
 
 def _job_label(job):

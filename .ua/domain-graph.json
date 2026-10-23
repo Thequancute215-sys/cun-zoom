@@ -18,8 +18,8 @@
       "pywebview/WebView2"
     ],
     "description": "Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn; chạy như ứng dụng Windows (CunZoom.exe) hoặc Docker Linux. Windows tự mở link lớp, Docker chỉ đưa link tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra trong 2.x; Trang Ôn tập hệ thống hoá bài giảng và tài liệu bằng Claude (khóa riêng) hoặc Ollama, tạo đề cương và đề thi thử. RTMS chưa triển khai.",
-    "analyzedAt": "2026-10-22T20:13:47.260807+00:00",
-    "gitCommitHash": "ba69e0a6fc0a9cc0caa940d35767e57c887ff382"
+    "analyzedAt": "2026-10-23T15:58:12.116812+00:00",
+    "gitCommitHash": "ffa3fc5a0ef3143045ff6d09797ad774e7fdfe61"
   },
   "nodes": [
     {
@@ -481,15 +481,15 @@
       "id": "step:ket-noi-quyen-zoom:bao-ve-api",
       "type": "step",
       "name": "Kiểm tra phiên và nguồn yêu cầu",
-      "summary": "Trước action POST phải qua Basic Auth, Host/token/Origin và JSON object dưới 65536 byte.",
+      "summary": "Trước action POST phải qua Basic Auth, Host/token/Origin và JSON object dưới 65536 byte. Token so sánh thời gian hằng; kết nối bỏ ngỏ tự đóng sau 60 giây; Windows không bật SO_REUSEADDR.",
       "tags": [
         "quyen-truy-cap"
       ],
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        430,
-        450
+        462,
+        482
       ]
     },
     {
@@ -503,8 +503,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        186,
-        203
+        202,
+        219
       ]
     },
     {
@@ -533,8 +533,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        119,
-        143
+        135,
+        159
       ]
     },
     {
@@ -548,8 +548,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        145,
-        160
+        161,
+        176
       ]
     },
     {
@@ -563,8 +563,8 @@
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        44,
-        51
+        53,
+        60
       ]
     },
     {
@@ -592,8 +592,8 @@
       "complexity": "moderate",
       "filePath": "src/calendar_watch.py",
       "lineRange": [
-        142,
-        158
+        143,
+        159
       ]
     },
     {
@@ -622,8 +622,8 @@
       "complexity": "moderate",
       "filePath": "src/calendar_watch.py",
       "lineRange": [
-        73,
-        117
+        74,
+        118
       ]
     },
     {
@@ -637,8 +637,8 @@
       "complexity": "moderate",
       "filePath": "src/calendar_watch.py",
       "lineRange": [
-        173,
-        191
+        174,
+        192
       ]
     },
     {
@@ -666,8 +666,8 @@
       "complexity": "moderate",
       "filePath": "src/calendar_watch.py",
       "lineRange": [
-        240,
-        255
+        241,
+        256
       ]
     },
     {
@@ -681,8 +681,8 @@
       "complexity": "moderate",
       "filePath": "src/calendar_watch.py",
       "lineRange": [
-        205,
-        228
+        206,
+        229
       ]
     },
     {
@@ -696,8 +696,8 @@
       "complexity": "moderate",
       "filePath": "src/calendar_watch.py",
       "lineRange": [
-        229,
-        238
+        230,
+        239
       ]
     },
     {
@@ -741,8 +741,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        181,
-        185
+        197,
+        201
       ]
     },
     {
@@ -770,8 +770,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        204,
-        219
+        220,
+        235
       ]
     },
     {
@@ -785,8 +785,8 @@
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        106,
-        136
+        115,
+        145
       ]
     },
     {
@@ -800,8 +800,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        220,
-        232
+        236,
+        248
       ]
     },
     {
@@ -815,8 +815,8 @@
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        53,
-        104
+        62,
+        113
       ]
     },
     {
@@ -949,8 +949,8 @@
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        115,
-        139
+        124,
+        148
       ]
     },
     {
@@ -964,8 +964,8 @@
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        62,
-        77
+        71,
+        86
       ]
     },
     {
@@ -993,38 +993,38 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        101,
-        117
+        117,
+        133
       ]
     },
     {
       "id": "step:chep-loi-local:khoi-chay",
       "type": "step",
       "name": "Chỉ xử lý sau khi có âm thanh",
-      "summary": "Runner khởi tiến trình transcribe cho thư mục buổi khi số byte đã nhận lớn hơn 0, ghi log vào buổi tương ứng.",
+      "summary": "Runner khởi tiến trình transcribe cho thư mục buổi khi số byte đã nhận lớn hơn 0, ghi log vào buổi tương ứng. Một luồng theo dõi ghi failed nếu tiến trình chép lời chết trước khi tự ghi trạng thái.",
       "tags": [
         "tai-lieu-bai-giang"
       ],
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        140,
-        140
+        149,
+        149
       ]
     },
     {
       "id": "step:chep-loi-local:nhan-dang",
       "type": "step",
       "name": "Nhận dạng tiếng Việt trên CPU",
-      "summary": "Đọc WAV/webm trong thư mục buổi; dùng Whisper base int8 local_files_only, ghi từng đoạn kèm thời gian.",
+      "summary": "Đọc WAV/webm trong thư mục buổi; dùng Whisper base int8 local_files_only, ghi từng đoạn kèm thời gian. Mỗi file chỉ giải mã tối đa 3 giờ âm thanh (load_audio) rồi đưa mẫu cho Whisper.",
       "tags": [
         "tai-lieu-bai-giang"
       ],
       "complexity": "moderate",
       "filePath": "src/transcribe.py",
       "lineRange": [
-        42,
-        54
+        65,
+        79
       ]
     },
     {
@@ -1046,15 +1046,15 @@
       "id": "step:chep-loi-local:luu-ket-qua",
       "type": "step",
       "name": "Lưu tài liệu và trạng thái thật",
-      "summary": "Lưu transcript, trích ý, hướng dẫn rà soát; completed ghi số đoạn, exception lưu failed rồi trả lỗi.",
+      "summary": "Lưu transcript, trích ý, hướng dẫn rà soát; completed ghi số đoạn, exception lưu failed rồi trả lỗi. Trạng thái completed được coi là xong kể cả khi file im lặng cho bản chép lời rỗng.",
       "tags": [
         "tai-lieu-bai-giang"
       ],
       "complexity": "moderate",
       "filePath": "src/transcribe.py",
       "lineRange": [
-        55,
-        59
+        80,
+        84
       ]
     },
     {
@@ -1112,8 +1112,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        237,
-        244
+        253,
+        260
       ]
     },
     {
@@ -1142,8 +1142,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        356,
-        379
+        374,
+        397
       ]
     },
     {
@@ -1266,8 +1266,8 @@
       "complexity": "moderate",
       "filePath": "src/main.py",
       "lineRange": [
-        71,
-        72
+        72,
+        73
       ]
     },
     {
@@ -1282,15 +1282,15 @@
       "complexity": "moderate",
       "filePath": "src/main.py",
       "lineRange": [
-        84,
-        95
+        85,
+        96
       ]
     },
     {
       "id": "step:chay-ban-windows:cua-so-khay",
       "type": "step",
       "name": "Mở cửa sổ WebView2 và khay hệ thống",
-      "summary": "Tạo API loopback, cửa sổ WebView2, biểu tượng khay và thông báo lịch; đóng cửa sổ chỉ thu gọn, Thoát mới dừng dịch vụ và bộ ghi.",
+      "summary": "Tạo API loopback, cửa sổ WebView2, biểu tượng khay và thông báo lịch; đóng cửa sổ chỉ thu gọn, Thoát mới dừng dịch vụ và bộ ghi. Cửa sổ mở trang bằng khóa khởi chạy riêng; tài khoản khác trên máy không lấy được token từ loopback.",
       "tags": [
         "van-hanh",
         "windows"
@@ -1298,8 +1298,8 @@
       "complexity": "moderate",
       "filePath": "src/main.py",
       "lineRange": [
-        97,
-        154
+        98,
+        156
       ]
     },
     {
@@ -1406,8 +1406,8 @@
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        451,
-        484
+        483,
+        516
       ]
     },
     {
@@ -1421,8 +1421,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        567,
-        576
+        575,
+        584
       ]
     },
     {
@@ -1436,8 +1436,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        552,
-        564
+        560,
+        572
       ]
     },
     {
@@ -1451,8 +1451,8 @@
       "complexity": "moderate",
       "filePath": "src/transcribe.py",
       "lineRange": [
-        28,
-        34
+        51,
+        57
       ]
     },
     {
@@ -1473,15 +1473,15 @@
       "id": "step:dong-bo:quet",
       "type": "step",
       "name": "Quét thay đổi và xếp việc",
-      "summary": "Mỗi 30 giây hoặc khi được đánh thức: khởi chạy một lượt chép lời nếu cần, xếp việc cho buổi/môn/đề cương đã cũ.",
+      "summary": "Mỗi 30 giây hoặc khi được đánh thức: khởi chạy một lượt chép lời nếu cần, xếp việc cho buổi/môn/đề cương đã cũ. Môn có buổi bot đang ghi được bỏ qua tới khi ghi xong, để slide mới không làm AI chạy lại.",
       "tags": [
         "on-tap"
       ],
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        637,
-        667
+        645,
+        680
       ]
     },
     {
@@ -1495,38 +1495,38 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        185,
-        191
+        188,
+        194
       ]
     },
     {
       "id": "step:dong-bo:doc-tai-lieu",
       "type": "step",
       "name": "Chuẩn bị tài liệu cho AI",
-      "summary": "PDF gửi nguyên cho Claude hoặc tách chữ cho Ollama; DOCX/PPTX đọc XML; ảnh giới hạn 5 MB; file lỗi thành cảnh báo.",
+      "summary": "PDF gửi nguyên cho Claude hoặc tách chữ cho Ollama; DOCX/PPTX đọc XML; ảnh giới hạn 5 MB; file lỗi thành cảnh báo. XML Office đọc theo luồng, không nhận DTD, giới hạn 200 MB XML và 4 triệu ký tự mỗi file.",
       "tags": [
         "on-tap"
       ],
       "complexity": "moderate",
       "filePath": "src/documents.py",
       "lineRange": [
-        60,
-        89
+        63,
+        93
       ]
     },
     {
       "id": "step:dong-bo:ghi-chu-buoi",
       "type": "step",
       "name": "Hệ thống hoá một buổi",
-      "summary": "Gửi bản chép lời, tài liệu và tối đa 20 ảnh slide; bài quá dài được chia phần rồi gộp; kết quả sắp theo độ liên quan và độ khó; không có nội dung đọc được (chỉ có file hỏng) thì báo lỗi, không gọi AI.",
+      "summary": "Gửi bản chép lời, tài liệu và tối đa 20 ảnh slide; bài quá dài được chia phần rồi gộp; kết quả sắp theo độ liên quan và độ khó; không có nội dung đọc được (chỉ có file hỏng) thì báo lỗi, không gọi AI. File .md chặn ảnh và HTML do AI chèn (escape `![` và `<`).",
       "tags": [
         "on-tap"
       ],
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        241,
-        302
+        244,
+        305
       ]
     },
     {
@@ -1540,8 +1540,8 @@
       "complexity": "moderate",
       "filePath": "src/ai_backend.py",
       "lineRange": [
-        89,
-        97
+        94,
+        102
       ]
     },
     {
@@ -1555,8 +1555,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        323,
-        356
+        326,
+        359
       ]
     },
     {
@@ -1570,8 +1570,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        366,
-        377
+        369,
+        380
       ]
     },
     {
@@ -1585,23 +1585,23 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        532,
-        549
+        540,
+        557
       ]
     },
     {
       "id": "step:dong-bo:khong-lap-loi",
       "type": "step",
       "name": "Không lặp lại việc lỗi",
-      "summary": "Việc lỗi được nhớ theo dữ liệu đầu vào; chỉ chạy lại khi file đổi hoặc người dùng yêu cầu. Buổi lỗi không chặn hệ thống kiến thức và đề cương của các buổi khác, lỗi của buổi vẫn hiện.",
+      "summary": "Việc lỗi được nhớ theo dữ liệu đầu vào; chỉ chạy lại khi file đổi hoặc người dùng yêu cầu. Buổi lỗi không chặn hệ thống kiến thức và đề cương của các buổi khác, lỗi của buổi vẫn hiện. Mọi loại lỗi (kể cả lỗi bất ngờ) đều được nhớ như vậy.",
       "tags": [
         "on-tap"
       ],
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        669,
-        676
+        682,
+        689
       ]
     },
     {
@@ -1644,8 +1644,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        605,
-        616
+        613,
+        624
       ]
     },
     {
@@ -1659,8 +1659,8 @@
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        380,
-        434
+        383,
+        437
       ]
     },
     {
@@ -1703,8 +1703,8 @@
       "complexity": "moderate",
       "filePath": "src/ai_backend.py",
       "lineRange": [
-        60,
-        82
+        65,
+        87
       ]
     },
     {
@@ -1718,23 +1718,23 @@
       "complexity": "moderate",
       "filePath": "src/ai_backend.py",
       "lineRange": [
-        108,
-        159
+        113,
+        164
       ]
     },
     {
       "id": "step:cau-hinh-ai:ollama",
       "type": "step",
       "name": "Gửi yêu cầu Ollama",
-      "summary": "POST /api/chat với schema, num_ctx 32768; thử lại không ảnh nếu mô hình không đọc ảnh.",
+      "summary": "POST /api/chat với schema, num_ctx 32768; thử lại không ảnh nếu mô hình không đọc ảnh. Câu trả lời giới hạn 16 MB và 1800 giây; dữ liệu sai dạng thành lỗi AI.",
       "tags": [
         "on-tap"
       ],
       "complexity": "moderate",
       "filePath": "src/ai_backend.py",
       "lineRange": [
-        163,
-        179
+        165,
+        212
       ]
     },
     {
@@ -1748,8 +1748,8 @@
       "complexity": "moderate",
       "filePath": "src/ai_backend.py",
       "lineRange": [
-        100,
-        105
+        105,
+        110
       ]
     }
   ],

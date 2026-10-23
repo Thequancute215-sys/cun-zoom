@@ -7,7 +7,8 @@ def parse_room_link(value):
     if not isinstance(value, str):
         raise ValueError('Hãy dán link phòng Zoom hợp lệ.')
     value = value.strip()
-    if not value or len(value) > 4096 or re.search(r'[\x00-\x20\x7f]', value):
+    # Browsers read a backslash as '/', so 'https://evil.example\.zoom.us/j/1' would open evil.example.
+    if not value or len(value) > 4096 or re.search(r'[\x00-\x20\x7f\\]', value):
         raise ValueError('Link Zoom trống hoặc chứa ký tự không hợp lệ.')
     try:
         url = urlsplit(value)

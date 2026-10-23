@@ -156,9 +156,9 @@ flowchart LR
 | 1. Chọn thư mục dữ liệu theo nền tảng | Windows dùng tiếp thư mục dữ liệu mặc định mà bản 1.x đã tạo trên máy, nếu không có thì dùng %LOCALAPPDATA%\CunZoom; Docker/Linux dùng thư mục được cấu hình. | [src/paths.py](../src/paths.py#L11) |
 | 2. Giữ thư mục bài giảng cũ | Khi chưa chọn thư mục, bản desktop đọc lại vị trí bài giảng mặc định của 1.x; container luôn khóa vào /data/lessons. | [src/paths.py](../src/paths.py#L30) |
 | 3. Sao chép kho khóa 1.x | Chỉ trên desktop: sao chép quyen_zoom.dpapi/calendar.dpapi sang zoom.vault/calendar.vault khi chưa có; file nguồn giữ nguyên. | [src/paths.py](../src/paths.py#L44) |
-| 4. Chạy nâng cấp trước dịch vụ | Điểm vào gọi bước sao chép trước khi khởi tạo API, trừ khi chạy với --no-migrate (CI self-test). | [src/main.py](../src/main.py#L71) |
-| 5. Giữ một phiên ứng dụng | Mutex Windows chặn mở hai bản; lần mở thứ hai yêu cầu bản đang chạy hiện cửa sổ. | [src/main.py](../src/main.py#L84) |
-| 6. Mở cửa sổ WebView2 và khay hệ thống | Tạo API loopback, cửa sổ WebView2, biểu tượng khay và thông báo lịch; đóng cửa sổ chỉ thu gọn, Thoát mới dừng dịch vụ và bộ ghi. | [src/main.py](../src/main.py#L97) |
+| 4. Chạy nâng cấp trước dịch vụ | Điểm vào gọi bước sao chép trước khi khởi tạo API, trừ khi chạy với --no-migrate (CI self-test). | [src/main.py](../src/main.py#L72) |
+| 5. Giữ một phiên ứng dụng | Mutex Windows chặn mở hai bản; lần mở thứ hai yêu cầu bản đang chạy hiện cửa sổ. | [src/main.py](../src/main.py#L85) |
+| 6. Mở cửa sổ WebView2 và khay hệ thống | Tạo API loopback, cửa sổ WebView2, biểu tượng khay và thông báo lịch; đóng cửa sổ chỉ thu gọn, Thoát mới dừng dịch vụ và bộ ghi. Cửa sổ mở trang bằng khóa khởi chạy riêng; tài khoản khác trên máy không lấy được token từ loopback. | [src/main.py](../src/main.py#L98) |
 | 7. Cài Zoom SDK của người dùng | Người dùng chọn file ZIP Meeting SDK Windows chính thức; khi bot không chạy và thư mục SDK do ứng dụng quản lý, ứng dụng chỉ chép x64/bin vào zoom-sdk rồi thay bản cũ. | [src/sdk_setup.py](../src/sdk_setup.py#L47) |
 
 </details>
@@ -194,12 +194,12 @@ flowchart LR
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
 | 1. Xác thực giao diện bằng mật khẩu riêng | Docker so sánh username cunzoom và mật khẩu local; mật khẩu được tạo ngẫu nhiên, giữ qua restart. | [src/access_control.py](../src/access_control.py#L12) |
-| 2. Kiểm tra phiên và nguồn yêu cầu | Trước action POST phải qua Basic Auth, Host/token/Origin và JSON object dưới 65536 byte. | [src/server.py](../src/server.py#L430) |
-| 3. Lưu ứng dụng và vô hiệu trạng thái cũ | Kiểm tra độ dài thông tin, giữ secret khi ô trống, loại OAuth khi đổi Client ID và đặt lại kết quả SDK khi thông tin SDK thay đổi. | [src/server.py](../src/server.py#L186) |
+| 2. Kiểm tra phiên và nguồn yêu cầu | Trước action POST phải qua Basic Auth, Host/token/Origin và JSON object dưới 65536 byte. Token so sánh thời gian hằng; kết nối bỏ ngỏ tự đóng sau 60 giây; Windows không bật SO_REUSEADDR. | [src/server.py](../src/server.py#L462) |
+| 3. Lưu ứng dụng và vô hiệu trạng thái cũ | Kiểm tra độ dài thông tin, giữ secret khi ô trống, loại OAuth khi đổi Client ID và đặt lại kết quả SDK khi thông tin SDK thay đổi. | [src/server.py](../src/server.py#L202) |
 | 4. Mã hóa, từ chối khóa sai | Windows dùng DPAPI, Linux dùng Fernet; ghi thay thế nguyên tử và báo lỗi khi mất/sai khóa, không ghi bản rõ. | [src/vault.py](../src/vault.py#L11) |
-| 5. Tạo phiên OAuth có hạn | Tạo state cùng PKCE S256; Docker dùng callback của PUBLIC_ORIGIN, phiên hết hạn sau 600 giây. | [src/server.py](../src/server.py#L119) |
-| 6. Đổi code và lưu token | Xác minh state/hạn, xử lý việc chưa cấp quyền, chỉ mã hóa kết quả khi có đủ access và refresh token. | [src/server.py](../src/server.py#L145) |
-| 7. Làm mới quyền khi cần dùng | Trước khi vào phòng, dùng access token còn hạn hoặc đổi refresh token và lưu lại; thiếu token yêu cầu kết nối lại. | [src/runner.py](../src/runner.py#L44) |
+| 5. Tạo phiên OAuth có hạn | Tạo state cùng PKCE S256; Docker dùng callback của PUBLIC_ORIGIN, phiên hết hạn sau 600 giây. | [src/server.py](../src/server.py#L135) |
+| 6. Đổi code và lưu token | Xác minh state/hạn, xử lý việc chưa cấp quyền, chỉ mã hóa kết quả khi có đủ access và refresh token. | [src/server.py](../src/server.py#L161) |
+| 7. Làm mới quyền khi cần dùng | Trước khi vào phòng, dùng access token còn hạn hoặc đổi refresh token và lưu lại; thiếu token yêu cầu kết nối lại. | [src/runner.py](../src/runner.py#L53) |
 
 </details>
 
@@ -227,10 +227,10 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Xác nhận nguồn lịch và từ khóa | Yêu cầu đúng iCal Google, có từ khóa và xác nhận tài khoản; mã hóa cấu hình rồi xóa sự kiện cũ. | [src/calendar_watch.py](../src/calendar_watch.py#L142) |
+| 1. Xác nhận nguồn lịch và từ khóa | Yêu cầu đúng iCal Google, có từ khóa và xác nhận tài khoản; mã hóa cấu hình rồi xóa sự kiện cũ. | [src/calendar_watch.py](../src/calendar_watch.py#L143) |
 | 2. Tải iCal có giới hạn | Chỉ nhận HTTPS calendar.google.com /basic.ics, không chuyển hướng; chặn lịch quá lớn và che địa chỉ bí mật trong lỗi. | [src/calendar_watch.py](../src/calendar_watch.py#L28) |
-| 3. Chọn buổi rõ giờ và một phòng | Mở rộng định kỳ 14 ngày, quy về Asia/Bangkok, bỏ cả ngày/hủy/quá hạn và các buổi có nhiều phòng; khử trùng bằng khóa. | [src/calendar_watch.py](../src/calendar_watch.py#L73) |
-| 4. Cập nhật hoặc xóa lịch lỗi | Lỗi tải/đọc làm rỗng danh sách, không giữ phòng cũ; chỉ nhận kết quả khi cấu hình nguồn chưa thay đổi. | [src/calendar_watch.py](../src/calendar_watch.py#L173) |
+| 3. Chọn buổi rõ giờ và một phòng | Mở rộng định kỳ 14 ngày, quy về Asia/Bangkok, bỏ cả ngày/hủy/quá hạn và các buổi có nhiều phòng; khử trùng bằng khóa. | [src/calendar_watch.py](../src/calendar_watch.py#L74) |
+| 4. Cập nhật hoặc xóa lịch lỗi | Lỗi tải/đọc làm rỗng danh sách, không giữ phòng cũ; chỉ nhận kết quả khi cấu hình nguồn chưa thay đổi. | [src/calendar_watch.py](../src/calendar_watch.py#L174) |
 
 </details>
 
@@ -258,12 +258,12 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Theo dõi khi được bật | Chỉ hoạt động khi bật và có feed, đồng bộ khoảng 5 phút rồi tick; lỗi tạm dừng được báo để người dùng đồng bộ lại. | [src/calendar_watch.py](../src/calendar_watch.py#L240) |
-| 2. Tính mốc và ngăn lặp | Chọn nhắc trong 30 phút, tùy chọn open từ 2 phút trước đến 10 phút sau giờ; lưu đánh dấu trước tác động. | [src/calendar_watch.py](../src/calendar_watch.py#L205) |
-| 3. Gửi nhắc hoặc liên kết | Gửi thông báo; hành động open chuyển link và nhắc người dùng vào Zoom trước khi xác nhận bắt đầu bot. | [src/calendar_watch.py](../src/calendar_watch.py#L229) |
+| 1. Theo dõi khi được bật | Chỉ hoạt động khi bật và có feed, đồng bộ khoảng 5 phút rồi tick; lỗi tạm dừng được báo để người dùng đồng bộ lại. | [src/calendar_watch.py](../src/calendar_watch.py#L241) |
+| 2. Tính mốc và ngăn lặp | Chọn nhắc trong 30 phút, tùy chọn open từ 2 phút trước đến 10 phút sau giờ; lưu đánh dấu trước tác động. | [src/calendar_watch.py](../src/calendar_watch.py#L206) |
+| 3. Gửi nhắc hoặc liên kết | Gửi thông báo; hành động open chuyển link và nhắc người dùng vào Zoom trước khi xác nhận bắt đầu bot. | [src/calendar_watch.py](../src/calendar_watch.py#L230) |
 | 4. Mở link theo nền tảng | Windows mở link lớp bằng ứng dụng mặc định; Docker không chạy lệnh trên host mà đưa link vào hàng sự kiện cho giao diện. | [src/platform_actions.py](../src/platform_actions.py#L11) |
 | 5. Người dùng bấm link trên UI | Giao diện hiển thị liên kết HTTPS và toast từ sự kiện mới; cần UI đang mở để nhận, không replay backlog khi mới tải. | [web/app.js](../web/app.js#L76) |
-| 6. Mở đúng buổi còn trong danh sách | API lấy sự kiện theo khóa hiện tại; Docker trả URL cho giao diện, desktop mở link trực tiếp. | [src/server.py](../src/server.py#L181) |
+| 6. Mở đúng buổi còn trong danh sách | API lấy sự kiện theo khóa hiện tại; Docker trả URL cho giao diện, desktop mở link trực tiếp. | [src/server.py](../src/server.py#L197) |
 
 </details>
 
@@ -295,10 +295,10 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Kiểm tra SDK riêng, không vào phòng | API gọi worker ở chế độ auth-test; native xác thực SDK và thoát khi chỉ kiểm tra. | [src/server.py](../src/server.py#L204) |
-| 2. Chỉ chấp nhận kiểm tra đạt đủ | Runner chỉ lưu auth_test_passed khi SDK khởi tạo, xác thực đều thành công và tiến trình thoát 0. | [src/runner.py](../src/runner.py#L106) |
-| 3. Xác nhận có phép và đúng phòng | Chặn nếu chưa consent/chưa kiểm tra SDK; chuẩn hóa ID, từ chối ID khác link trước khi làm mới OAuth. | [src/server.py](../src/server.py#L220) |
-| 4. Xin OBF và tạo hồ sơ buổi | Chặn worker trùng, kiểm tra tên/ID/mật khẩu; xin OBF cho tài khoản OAuth đang ở phòng, sau đó tạo thư mục môn/buổi. | [src/runner.py](../src/runner.py#L53) |
+| 1. Kiểm tra SDK riêng, không vào phòng | API gọi worker ở chế độ auth-test; native xác thực SDK và thoát khi chỉ kiểm tra. | [src/server.py](../src/server.py#L220) |
+| 2. Chỉ chấp nhận kiểm tra đạt đủ | Runner chỉ lưu auth_test_passed khi SDK khởi tạo, xác thực đều thành công và tiến trình thoát 0. | [src/runner.py](../src/runner.py#L115) |
+| 3. Xác nhận có phép và đúng phòng | Chặn nếu chưa consent/chưa kiểm tra SDK; chuẩn hóa ID, từ chối ID khác link trước khi làm mới OAuth. | [src/server.py](../src/server.py#L236) |
+| 4. Xin OBF và tạo hồ sơ buổi | Chặn worker trùng, kiểm tra tên/ID/mật khẩu; xin OBF cho tài khoản OAuth đang ở phòng, sau đó tạo thư mục môn/buổi. | [src/runner.py](../src/runner.py#L62) |
 | 5. Khởi tạo và xác thực worker | Nhận thông tin qua stdin riêng, bắt buộc OBF ở chế độ join; InitSDK và yêu cầu xác thực SDK. | [native/linux_bot.cpp](../native/linux_bot.cpp#L124) |
 | 6. Vào bằng OBF với camera và micro tắt | Sau xác thực, cấu hình micro ảo im lặng, Join có OBF, tắt video/audio; lỗi join kết thúc quá trình. | [native/linux_bot.cpp](../native/linux_bot.cpp#L116) |
 
@@ -335,8 +335,8 @@ flowchart LR
 | 3. Lưu ảnh nội dung chia sẻ | Subscribe RAW_DATA_TYPE_SHARE và lưu JPEG giới hạn nhịp 30 giây, chiều rộng tối đa 1600; không chụp camera. | [native/linux_bot.cpp](../native/linux_bot.cpp#L72) |
 | 4. Dừng khi quá hạn hoặc bị yêu cầu | Nhận STOP/tín hiệu; timeout xác thực 60 giây, vào phòng 180 giây, chờ ghi 300 giây và tổng phiên 3 giờ tính từ lúc bắt đầu. | [native/linux_bot.cpp](../native/linux_bot.cpp#L135) |
 | 5. Dừng raw, rời phòng, đóng WAV | Ngừng subscribe và ghi, rời phòng, cập nhật WAV header rồi phát stopped kèm byte thực và dọn SDK. | [native/linux_bot.cpp](../native/linux_bot.cpp#L155) |
-| 6. Ghi trạng thái theo âm thanh thực | Runner lưu lỗi, byte và slide vào hồ sơ; chỉ trạng thái có audio mới khởi chạy chép lời, không coi vào phòng là đã ghi. | [src/runner.py](../src/runner.py#L115) |
-| 7. Chờ worker thoát trước cưỡng bức | STOP được gửi qua stdin; khi dịch vụ dừng, chờ 20 giây rồi terminate và chỉ kill nếu tiếp tục treo. | [src/runner.py](../src/runner.py#L62) |
+| 6. Ghi trạng thái theo âm thanh thực | Runner lưu lỗi, byte và slide vào hồ sơ; chỉ trạng thái có audio mới khởi chạy chép lời, không coi vào phòng là đã ghi. | [src/runner.py](../src/runner.py#L124) |
+| 7. Chờ worker thoát trước cưỡng bức | STOP được gửi qua stdin; khi dịch vụ dừng, chờ 20 giây rồi terminate và chỉ kill nếu tiếp tục treo. | [src/runner.py](../src/runner.py#L71) |
 
 </details>
 
@@ -366,11 +366,11 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Tải bộ chép lời khi yêu cầu | Tải faster-whisper-base từ Hugging Face vào cache local; báo trạng thái tải, sẵn sàng hoặc thất bại. | [src/server.py](../src/server.py#L101) |
-| 2. Chỉ xử lý sau khi có âm thanh | Runner khởi tiến trình transcribe cho thư mục buổi khi số byte đã nhận lớn hơn 0, ghi log vào buổi tương ứng. | [src/runner.py](../src/runner.py#L140) |
-| 3. Nhận dạng tiếng Việt trên CPU | Đọc WAV/webm trong thư mục buổi; dùng Whisper base int8 local_files_only, ghi từng đoạn kèm thời gian. | [src/transcribe.py](../src/transcribe.py#L42) |
+| 1. Tải bộ chép lời khi yêu cầu | Tải faster-whisper-base từ Hugging Face vào cache local; báo trạng thái tải, sẵn sàng hoặc thất bại. | [src/server.py](../src/server.py#L117) |
+| 2. Chỉ xử lý sau khi có âm thanh | Runner khởi tiến trình transcribe cho thư mục buổi khi số byte đã nhận lớn hơn 0, ghi log vào buổi tương ứng. Một luồng theo dõi ghi failed nếu tiến trình chép lời chết trước khi tự ghi trạng thái. | [src/runner.py](../src/runner.py#L149) |
+| 3. Nhận dạng tiếng Việt trên CPU | Đọc WAV/webm trong thư mục buổi; dùng Whisper base int8 local_files_only, ghi từng đoạn kèm thời gian. Mỗi file chỉ giải mã tối đa 3 giờ âm thanh (load_audio) rồi đưa mẫu cho Whisper. | [src/transcribe.py](../src/transcribe.py#L65) |
 | 4. Chọn câu nổi bật và dấu hiệu bài tập | Quy tắc chấm điểm từ vựng chọn câu và dò cụm bài tập/hạn; nhãn bản nháp nêu rõ có thể sai, chưa đối chiếu slide. | [src/transcribe.py](../src/transcribe.py#L5) |
-| 5. Lưu tài liệu và trạng thái thật | Lưu transcript, trích ý, hướng dẫn rà soát; completed ghi số đoạn, exception lưu failed rồi trả lỗi. | [src/transcribe.py](../src/transcribe.py#L55) |
+| 5. Lưu tài liệu và trạng thái thật | Lưu transcript, trích ý, hướng dẫn rà soát; completed ghi số đoạn, exception lưu failed rồi trả lỗi. Trạng thái completed được coi là xong kể cả khi file im lặng cho bản chép lời rỗng. | [src/transcribe.py](../src/transcribe.py#L80) |
 
 </details>
 
@@ -398,9 +398,9 @@ flowchart LR
 | --- | --- | --- |
 | 1. Lập danh sách buổi có metadata | Duyệt dưới recordings_root, bỏ symlink/thư mục ngoài phạm vi; ID băm, sắp mới trước và tối đa 300 buổi. | [src/library.py](../src/library.py#L11) |
 | 2. Đọc bản chép lời hoặc trích ý | Tìm ID đã biết, chỉ nhận loại summary/transcript; xác minh tệp trong thư mục buổi và giới hạn 160000 ký tự. | [src/library.py](../src/library.py#L49) |
-| 3. Trả liên kết tải từ ID hợp lệ | Docker kiểm tra buổi rồi trả URL nội bộ; desktop mở thư mục đã biết thay vì nhận đường dẫn tùy ý. | [src/server.py](../src/server.py#L237) |
+| 3. Trả liên kết tải từ ID hợp lệ | Docker kiểm tra buổi rồi trả URL nội bộ; desktop mở thư mục đã biết thay vì nhận đường dẫn tùy ý. | [src/server.py](../src/server.py#L253) |
 | 4. Đóng gói riêng dữ liệu buổi | Chỉ đưa tệp thường trong buổi đã chọn vào ZIP, bỏ symlink và tệp nằm ngoài thư mục buổi. | [src/library.py](../src/library.py#L71) |
-| 5. Tải sau xác thực, báo sai ID | Handler yêu cầu Host hợp lệ và đăng nhập trước khi stream ZIP; ID không hợp lệ trả lỗi 400. | [src/server.py](../src/server.py#L356) |
+| 5. Tải sau xác thực, báo sai ID | Handler yêu cầu Host hợp lệ và đăng nhập trước khi stream ZIP; ID không hợp lệ trả lỗi 400. | [src/server.py](../src/server.py#L374) |
 
 </details>
 
@@ -431,10 +431,10 @@ flowchart LR
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
 | 1. Chọn môn, buổi và file | Giao diện gửi từng file thành một request riêng kèm token; file đầu tạo buổi mới, các file sau vào cùng buổi. | [web/study.js](../web/study.js#L119) |
-| 2. Nhận file theo luồng có giới hạn | Server kiểm tra token, nguồn, kích thước ≤ 2 GB, ghi từng phần ra file tạm rồi đổi tên; lỗi thì xóa phần dở. | [src/server.py](../src/server.py#L451) |
-| 3. Kiểm tra loại và tên file | Chỉ nhận đuôi được hỗ trợ, làm sạch tên, không ghi đè file cùng tên. | [src/study.py](../src/study.py#L567) |
-| 4. Tạo buổi chỉ có tài liệu | Tạo thư mục buổi cùng cấu trúc bản ghi, chặn tên môn đặc biệt hoặc thoát khỏi thư mục bài giảng. | [src/study.py](../src/study.py#L552) |
-| 5. Chép lời âm thanh/video tải lên | Bộ chép lời đọc âm thanh bot ghi và mọi file media tải lên, ghi bản chép lời một lần khi xong. | [src/transcribe.py](../src/transcribe.py#L28) |
+| 2. Nhận file theo luồng có giới hạn | Server kiểm tra token, nguồn, kích thước ≤ 2 GB, ghi từng phần ra file tạm rồi đổi tên; lỗi thì xóa phần dở. | [src/server.py](../src/server.py#L483) |
+| 3. Kiểm tra loại và tên file | Chỉ nhận đuôi được hỗ trợ, làm sạch tên, không ghi đè file cùng tên. | [src/study.py](../src/study.py#L575) |
+| 4. Tạo buổi chỉ có tài liệu | Tạo thư mục buổi cùng cấu trúc bản ghi, chặn tên môn đặc biệt hoặc thoát khỏi thư mục bài giảng. | [src/study.py](../src/study.py#L560) |
+| 5. Chép lời âm thanh/video tải lên | Bộ chép lời đọc âm thanh bot ghi và mọi file media tải lên, ghi bản chép lời một lần khi xong. | [src/transcribe.py](../src/transcribe.py#L51) |
 
 </details>
 
@@ -468,15 +468,15 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Quét thay đổi và xếp việc | Mỗi 30 giây hoặc khi được đánh thức: khởi chạy một lượt chép lời nếu cần, xếp việc cho buổi/môn/đề cương đã cũ. | [src/study.py](../src/study.py#L637) |
-| 2. So dấu vân tay nội dung | Ghi chú hợp lệ khi dấu vân tay bản chép lời, tài liệu và slide trùng lúc tạo; khác thì là cũ. | [src/study.py](../src/study.py#L185) |
-| 3. Chuẩn bị tài liệu cho AI | PDF gửi nguyên cho Claude hoặc tách chữ cho Ollama; DOCX/PPTX đọc XML; ảnh giới hạn 5 MB; file lỗi thành cảnh báo. | [src/documents.py](../src/documents.py#L60) |
-| 4. Hệ thống hoá một buổi | Gửi bản chép lời, tài liệu và tối đa 20 ảnh slide; bài quá dài được chia phần rồi gộp; kết quả sắp theo độ liên quan và độ khó; không có nội dung đọc được (chỉ có file hỏng) thì báo lỗi, không gọi AI. | [src/study.py](../src/study.py#L241) |
-| 5. Gọi AI với JSON theo schema | Claude: SDK, output_config.format, fallback máy chủ, cache, xử lý từ chối/quá dài; Ollama: /api/chat với format schema, bỏ ảnh nếu mô hình chỉ đọc chữ, trừ khi buổi chỉ có ảnh thì báo lỗi thay vì đoán. | [src/ai_backend.py](../src/ai_backend.py#L89) |
-| 6. Tổng hợp kiến thức của môn | Gộp ghi chú các buổi, bỏ trùng, đánh giá lại độ liên quan/độ khó, ghi buổi nguồn và liên kết khái niệm. | [src/study.py](../src/study.py#L323) |
-| 7. Lập đề cương | Chia chương, đánh dấu ý trọng tâm, câu hỏi tự kiểm tra, trọng tâm thi và kế hoạch ôn; đánh dấu cũ khi hệ thống kiến thức đổi. | [src/study.py](../src/study.py#L366) |
-| 8. Cập nhật mục lục tổng | Ghi 00_Tong_hop/Muc_luc.md khi nội dung đổi, liên kết tới file của từng môn. | [src/study.py](../src/study.py#L532) |
-| 9. Không lặp lại việc lỗi | Việc lỗi được nhớ theo dữ liệu đầu vào; chỉ chạy lại khi file đổi hoặc người dùng yêu cầu. Buổi lỗi không chặn hệ thống kiến thức và đề cương của các buổi khác, lỗi của buổi vẫn hiện. | [src/study.py](../src/study.py#L669) |
+| 1. Quét thay đổi và xếp việc | Mỗi 30 giây hoặc khi được đánh thức: khởi chạy một lượt chép lời nếu cần, xếp việc cho buổi/môn/đề cương đã cũ. Môn có buổi bot đang ghi được bỏ qua tới khi ghi xong, để slide mới không làm AI chạy lại. | [src/study.py](../src/study.py#L645) |
+| 2. So dấu vân tay nội dung | Ghi chú hợp lệ khi dấu vân tay bản chép lời, tài liệu và slide trùng lúc tạo; khác thì là cũ. | [src/study.py](../src/study.py#L188) |
+| 3. Chuẩn bị tài liệu cho AI | PDF gửi nguyên cho Claude hoặc tách chữ cho Ollama; DOCX/PPTX đọc XML; ảnh giới hạn 5 MB; file lỗi thành cảnh báo. XML Office đọc theo luồng, không nhận DTD, giới hạn 200 MB XML và 4 triệu ký tự mỗi file. | [src/documents.py](../src/documents.py#L63) |
+| 4. Hệ thống hoá một buổi | Gửi bản chép lời, tài liệu và tối đa 20 ảnh slide; bài quá dài được chia phần rồi gộp; kết quả sắp theo độ liên quan và độ khó; không có nội dung đọc được (chỉ có file hỏng) thì báo lỗi, không gọi AI. File .md chặn ảnh và HTML do AI chèn (escape `![` và `<`). | [src/study.py](../src/study.py#L244) |
+| 5. Gọi AI với JSON theo schema | Claude: SDK, output_config.format, fallback máy chủ, cache, xử lý từ chối/quá dài; Ollama: /api/chat với format schema, bỏ ảnh nếu mô hình chỉ đọc chữ, trừ khi buổi chỉ có ảnh thì báo lỗi thay vì đoán. | [src/ai_backend.py](../src/ai_backend.py#L94) |
+| 6. Tổng hợp kiến thức của môn | Gộp ghi chú các buổi, bỏ trùng, đánh giá lại độ liên quan/độ khó, ghi buổi nguồn và liên kết khái niệm. | [src/study.py](../src/study.py#L326) |
+| 7. Lập đề cương | Chia chương, đánh dấu ý trọng tâm, câu hỏi tự kiểm tra, trọng tâm thi và kế hoạch ôn; đánh dấu cũ khi hệ thống kiến thức đổi. | [src/study.py](../src/study.py#L369) |
+| 8. Cập nhật mục lục tổng | Ghi 00_Tong_hop/Muc_luc.md khi nội dung đổi, liên kết tới file của từng môn. | [src/study.py](../src/study.py#L540) |
+| 9. Không lặp lại việc lỗi | Việc lỗi được nhớ theo dữ liệu đầu vào; chỉ chạy lại khi file đổi hoặc người dùng yêu cầu. Buổi lỗi không chặn hệ thống kiến thức và đề cương của các buổi khác, lỗi của buổi vẫn hiện. Mọi loại lỗi (kể cả lỗi bất ngờ) đều được nhớ như vậy. | [src/study.py](../src/study.py#L682) |
 
 </details>
 
@@ -501,8 +501,8 @@ flowchart LR
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
 | 1. Chọn số câu và mức độ | Tối đa 60 trắc nghiệm và 10 tự luận, mức cân bằng / cơ bản / nâng cao. | [web/study.js](../web/study.js#L86) |
-| 2. Xếp việc tạo đề | Server kiểm tra mức độ rồi đưa việc vào hàng chờ, không trùng việc đang chạy; tạo đề không thử lại buổi đang lỗi, Đồng bộ lại thì có. | [src/study.py](../src/study.py#L605) |
-| 3. Soạn đề từ hệ thống kiến thức | Gửi hệ thống kiến thức trước (dùng lại cache), yêu cầu sau; câu chỉ ghi tên chủ đề thành "Phát biểu nào đúng về…", loại câu chỉ ghi số hoặc thiếu 4 lựa chọn; thiếu câu thì hỏi thêm một lần; lưu JSON và Markdown có đáp án cuối file. | [src/study.py](../src/study.py#L380) |
+| 2. Xếp việc tạo đề | Server kiểm tra mức độ rồi đưa việc vào hàng chờ, không trùng việc đang chạy; tạo đề không thử lại buổi đang lỗi, Đồng bộ lại thì có. | [src/study.py](../src/study.py#L613) |
+| 3. Soạn đề từ hệ thống kiến thức | Gửi hệ thống kiến thức trước (dùng lại cache), yêu cầu sau; câu chỉ ghi tên chủ đề thành "Phát biểu nào đúng về…", loại câu chỉ ghi số hoặc thiếu 4 lựa chọn; thiếu câu thì hỏi thêm một lần; lưu JSON và Markdown có đáp án cuối file. | [src/study.py](../src/study.py#L383) |
 | 4. Làm bài và chấm trắc nghiệm | Chọn đáp án, nộp để xem đúng/sai, giải thích và điểm; tự luận có ô trả lời và gợi ý chấm. | [web/study.js](../web/study.js#L99) |
 
 </details>
@@ -527,10 +527,10 @@ flowchart LR
 
 | Bước | Thực hiện | Mã nguồn |
 | --- | --- | --- |
-| 1. Lưu cấu hình mã hóa | Kiểm tra bộ AI, khóa sk-ant-, mô hình được phép, địa chỉ Ollama http(s); giữ khóa cũ khi để trống. | [src/ai_backend.py](../src/ai_backend.py#L60) |
-| 2. Gửi yêu cầu Claude | Streaming với output_config.format, fallbacks default cho Opus/Sonnet 5.5, giới hạn 24 MB, báo lỗi khóa/hạn mức/mạng bằng tiếng Việt. | [src/ai_backend.py](../src/ai_backend.py#L108) |
-| 3. Gửi yêu cầu Ollama | POST /api/chat với schema, num_ctx 32768; thử lại không ảnh nếu mô hình không đọc ảnh. | [src/ai_backend.py](../src/ai_backend.py#L163) |
-| 4. Kiểm tra kết nối AI | Gửi một yêu cầu JSON nhỏ; chỉ đạt khi trả đúng định dạng. | [src/ai_backend.py](../src/ai_backend.py#L100) |
+| 1. Lưu cấu hình mã hóa | Kiểm tra bộ AI, khóa sk-ant-, mô hình được phép, địa chỉ Ollama http(s); giữ khóa cũ khi để trống. | [src/ai_backend.py](../src/ai_backend.py#L65) |
+| 2. Gửi yêu cầu Claude | Streaming với output_config.format, fallbacks default cho Opus/Sonnet 5.5, giới hạn 24 MB, báo lỗi khóa/hạn mức/mạng bằng tiếng Việt. | [src/ai_backend.py](../src/ai_backend.py#L113) |
+| 3. Gửi yêu cầu Ollama | POST /api/chat với schema, num_ctx 32768; thử lại không ảnh nếu mô hình không đọc ảnh. Câu trả lời giới hạn 16 MB và 1800 giây; dữ liệu sai dạng thành lỗi AI. | [src/ai_backend.py](../src/ai_backend.py#L165) |
+| 4. Kiểm tra kết nối AI | Gửi một yêu cầu JSON nhỏ; chỉ đạt khi trả đúng định dạng. | [src/ai_backend.py](../src/ai_backend.py#L105) |
 
 </details>
 

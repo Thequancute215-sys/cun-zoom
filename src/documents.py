@@ -2,7 +2,7 @@
 from pathlib import Path
 import re
 import zipfile
-from xml.etree import ElementTree
+from xml.parsers import expat
 
 TEXT = {'.txt', '.md'}
 OFFICE = {'.docx', '.pptx'}
@@ -13,6 +13,9 @@ ACCEPTED = TEXT | OFFICE | MEDIA | set(IMAGES) | {'.pdf'}
 IMAGE_LIMIT = 5 * 1024 * 1024
 PDF_LIMIT = 20 * 1024 * 1024
 XML_LIMIT = 50 * 1024 * 1024
+# One Office file may inflate to at most this much XML in total and yield at most as much text as a TXT file.
+OFFICE_LIMIT = 200 * 1024 * 1024
+TEXT_LIMIT = 4_000_000
 
 
 def kind(path):
@@ -41,7 +44,7 @@ def text_of(path):
     path = Path(path)
     suffix = path.suffix.lower()
     if suffix in TEXT:
-        raw = path.read_bytes()[:4_000_000]
+        raw = path.read_bytes()[:TEXT_LIMIT]
         for encoding in ('utf-8-sig', 'utf-16'):
             try:
                 return raw.decode(encoding)
@@ -81,7 +84,8 @@ def parts_for(path, provider):
     if file_kind == 'text':
         try:
             text = text_of(path)
-        except (OSError, ValueError, zipfile.BadZipFile, ElementTree.ParseError):
+        except Exception:
+            # Broken, encrypted or hostile files of any kind become a warning, never a stuck sync.
             return [], path.name + ': không đọc được nội dung file.'
         if not text.strip():
             return [], path.name + ': file không có chữ.'
@@ -89,38 +93,84 @@ def parts_for(path, provider):
     return [], None
 
 
-def _xml(archive, name):
-    info = archive.getinfo(name)
-    if info.file_size > XML_LIMIT:
-        raise ValueError('Office part too large.')
-    return ElementTree.fromstring(archive.read(name))
+class _Office:
+    """Streams paragraph text out of Office XML parts without building a tree, within one file's size budget."""
+
+    def __init__(self, path):
+        self.archive = zipfile.ZipFile(path)
+        self.inflated = 0
+        self.chars = 0
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        self.archive.close()
+
+    def full(self):
+        return self.chars >= TEXT_LIMIT
+
+    def paragraphs(self, name, namespace):
+        info = self.archive.getinfo(name)
+        self.inflated += info.file_size
+        if info.file_size > XML_LIMIT or self.inflated > OFFICE_LIMIT:
+            raise ValueError('Office part too large.')
+        found, current, depth = [], [], [0]
+        text_tag, paragraph_tag = namespace + ' t', namespace + ' p'
+
+        def refuse(*_):
+            # Office files never declare a DTD; one here only serves entity expansion.
+            raise ValueError('Office part declares a DTD.')
+
+        def start(tag, _):
+            if tag == text_tag:
+                depth[0] += 1
+
+        def end(tag):
+            if tag == text_tag:
+                depth[0] -= 1
+            elif tag == paragraph_tag:
+                found.append(''.join(current))
+                current.clear()
+
+        def data(text):
+            if depth[0] and self.chars < TEXT_LIMIT:
+                text = text[:TEXT_LIMIT - self.chars]
+                self.chars += len(text)
+                current.append(text)
+
+        parser = expat.ParserCreate(namespace_separator=' ')
+        parser.StartDoctypeDeclHandler = refuse
+        parser.EntityDeclHandler = refuse
+        parser.StartElementHandler = start
+        parser.EndElementHandler = end
+        parser.CharacterDataHandler = data
+        with self.archive.open(info) as stream:
+            parser.ParseFile(stream)
+        return found
 
 
 def _docx(path):
-    word = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
-    with zipfile.ZipFile(path) as archive:
-        root = _xml(archive, 'word/document.xml')
-    lines = []
-    for paragraph in root.iter(word + 'p'):
-        text = ''.join(node.text or '' for node in paragraph.iter(word + 't'))
-        if text.strip():
-            lines.append(text)
-    return '\n'.join(lines)
+    word = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
+    with _Office(path) as office:
+        return '\n'.join(text for text in office.paragraphs('word/document.xml', word) if text.strip())
 
 
 def _pptx(path):
-    drawing = '{http://schemas.openxmlformats.org/drawingml/2006/main}'
-    with zipfile.ZipFile(path) as archive:
+    drawing = 'http://schemas.openxmlformats.org/drawingml/2006/main'
+    with _Office(path) as office:
+        names = office.archive.namelist()
         number = lambda name: int(re.search(r'(\d+)\.xml$', name).group(1))
-        slides = sorted((n for n in archive.namelist() if re.fullmatch(r'ppt/slides/slide\d+\.xml', n)), key=number)
-        notes = {number(n): n for n in archive.namelist() if re.fullmatch(r'ppt/notesSlides/notesSlide\d+\.xml', n)}
+        slides = sorted((n for n in names if re.fullmatch(r'ppt/slides/slide\d+\.xml', n)), key=number)
+        notes = {number(n): n for n in names if re.fullmatch(r'ppt/notesSlides/notesSlide\d+\.xml', n)}
         lines = []
         for index, name in enumerate(slides, 1):
-            paragraphs = [''.join(t.text or '' for t in p.iter(drawing + 't')) for p in _xml(archive, name).iter(drawing + 'p')]
+            if office.full():
+                break
+            paragraphs = office.paragraphs(name, drawing)
             lines.append('Slide ' + str(index) + ': ' + ' | '.join(p for p in paragraphs if p.strip()))
             if number(name) in notes:
-                spoken = [''.join(t.text or '' for t in p.iter(drawing + 't')) for p in _xml(archive, notes[number(name)]).iter(drawing + 'p')]
-                spoken = ' '.join(p for p in spoken if p.strip() and not p.strip().isdigit())
+                spoken = ' '.join(p for p in office.paragraphs(notes[number(name)], drawing) if p.strip() and not p.strip().isdigit())
                 if spoken:
                     lines.append('  Ghi chú: ' + spoken)
     return '\n'.join(lines)

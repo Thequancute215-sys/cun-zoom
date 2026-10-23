@@ -23,6 +23,29 @@ def model_root():
 def model_ready():
     return any(model_root().glob('models--Systran--faster-whisper-base/snapshots/*/model.bin'))
 
+# The recorder stops at 3 h; a few MB of crafted media must not unpack into days of samples in memory.
+MAX_SECONDS=3*3600
+RATE=16000
+
+def load_audio(path):
+    """16 kHz mono float32 samples of at most MAX_SECONDS, and whether the file went on longer."""
+    import av,numpy as np
+    resampler=av.audio.resampler.AudioResampler(format='s16',layout='mono',rate=RATE)
+    chunks=[];total=0;limit=MAX_SECONDS*RATE;cut=False
+    with av.open(str(path),mode='r') as container:
+        frames=container.decode(audio=0)
+        while not cut:
+            try:frame=next(frames)
+            except StopIteration:frame=None
+            except av.error.InvalidDataError:continue
+            for out in resampler.resample(frame):
+                samples=out.to_ndarray().reshape(-1)
+                if total+samples.size>limit:samples=samples[:limit-total];cut=True
+                chunks.append(samples);total+=samples.size
+            if frame is None:break
+    audio=np.concatenate(chunks) if chunks else np.zeros(0,dtype=np.int16)
+    return audio.astype(np.float32)/32768.0,cut
+
 MEDIA={'.mp3','.m4a','.wav','.aac','.flac','.ogg','.opus','.wma','.mp4','.mkv','.mov','.webm','.avi'}
 
 def media_files(folder):
@@ -47,10 +70,12 @@ def main():
         with temp.open('w',encoding='utf-8') as f:
             for audio in sources:
                 if len(sources)>1:f.write(f'## {audio.name}\n')
-                segments,info=model.transcribe(str(audio),language='vi',vad_filter=True,beam_size=3)
+                samples,cut=load_audio(audio)
+                segments,info=model.transcribe(samples,language='vi',vad_filter=True,beam_size=3)
                 for s in segments:
                     line=f'[{int(s.start//60):02d}:{int(s.start%60):02d}] {s.text.strip()}'
                     f.write(line+'\n'); f.flush(); lines.append(s.text.strip())
+                if cut:f.write(f'[Chỉ chép {MAX_SECONDS//3600} giờ đầu của {audio.name}; phần sau bị bỏ qua.]\n')
         temp.replace(out/'ban_chep_loi.txt')
         (out/'tom_tat_nhap.md').write_text(draft('\n'.join(lines)),encoding='utf-8')
         (out/'GUI_CHO_CUN.txt').write_text('Hãy đọc ban_chep_loi.txt và các ảnh slide trong thư mục buổi học này, tổng hợp theo môn: kiến thức chính, giải thích ví dụ, phần cần ôn, bài tập và hạn nộp. Không suy đoán chỗ thiếu.\n'+str(folder),encoding='utf-8')

