@@ -1,0 +1,14 @@
+{
+  "name": "cun-zoom-accounts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "test": "node --test test/*.test.mjs",
+    "check": "node --check worker.mjs",
+    "deploy": "wrangler deploy",
+    "db:local": "wrangler d1 migrations apply DB --local",
+    "db:remote": "wrangler d1 migrations apply DB --remote"
+  },
+  "devDependencies": { "miniflare": "^4.0.0", "wrangler": "^4.0.0" }
+}

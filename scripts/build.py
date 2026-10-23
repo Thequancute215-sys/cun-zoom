@@ -12,7 +12,17 @@ ROOT=Path(__file__).resolve().parents[1]
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--onedir',action='store_true')
+    parser.add_argument('--accounts-url', help='HTTPS origin of the account service for a commercial build')
     args=parser.parse_args()
+    account_config = None
+    if args.accounts_url:
+        from urllib.parse import urlsplit
+        origin = urlsplit(args.accounts_url)
+        if origin.scheme != 'https' or not origin.netloc or origin.username or origin.password or origin.path or origin.query or origin.fragment:
+            raise SystemExit('--accounts-url must be an HTTPS origin without a path or credentials.')
+        account_config = ROOT/'build/accounts-config.json'
+        account_config.parent.mkdir(parents=True,exist_ok=True)
+        account_config.write_text(json.dumps({'url':args.accounts_url}),encoding='utf-8')
     import shutil
     shutil.copyfile(ROOT/'tokens.css', ROOT/'web/tokens.css')
     # Some bundled Python runtimes load a distrust-policy PEM beside ssl.py.
@@ -41,6 +51,8 @@ def main():
              '--specpath',str(ROOT/'build'), '--onedir' if args.onedir else '--onefile',str(ROOT/'src/main.py')]
     if ssl_policy.is_file():
         command[3:3]=['--add-data',str(ssl_policy)+';.']
+    if account_config:
+        command[3:3]=['--add-data',str(account_config)+';.']
     result=subprocess.run(command,cwd=ROOT)
     if result.returncode:
         raise SystemExit(result.returncode)

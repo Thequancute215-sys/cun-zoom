@@ -4,7 +4,7 @@ import re
 import subprocess
 
 ROOT=Path(__file__).resolve().parents[1]
-SKIP={'.git','.venv','build','dist','vendor','__pycache__','.local'}
+SKIP={'.git','.venv','build','dist','vendor','__pycache__','.local','node_modules','.wrangler'}
 
 
 def main():

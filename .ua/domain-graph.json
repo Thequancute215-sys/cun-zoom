@@ -4,67 +4,89 @@
     "name": "Cún Zoom",
     "languages": [
       "Python",
+      "JavaScript",
       "C++",
-      "JavaScript"
+      "SQL"
     ],
     "frameworks": [
-      "Anthropic Python SDK",
-      "Docker Compose",
-      "Ollama",
-      "PyInstaller",
       "Python HTTPServer",
       "Zoom Meeting SDK",
-      "faster-whisper",
-      "pywebview/WebView2"
+      "Cloudflare Workers",
+      "Cloudflare D1",
+      "Miniflare",
+      "PyWebView",
+      "Docker"
     ],
-    "description": "Trợ lý local hỗ trợ theo dõi lịch học Zoom, ghi buổi được phép và sắp xếp tài liệu theo môn; chạy như ứng dụng Windows (CunZoom.exe) hoặc Docker Linux. Windows tự mở link lớp, Docker chỉ đưa link tới giao diện; ghi phòng thật cần OAuth/OBF và quyền host. SDK init đã xác minh, OAuth/ghi thật chưa được kiểm tra trong 2.x; Trang Ôn tập hệ thống hoá bài giảng và tài liệu bằng Claude (khóa riêng) hoặc Ollama, tạo đề cương và đề thi thử. RTMS chưa triển khai.",
-    "analyzedAt": "2026-10-23T15:58:12.116812+00:00",
-    "gitCommitHash": "ffa3fc5a0ef3143045ff6d09797ad774e7fdfe61"
+    "description": "Ứng dụng học tập local trên Windows/Docker: đọc lịch, ghi Zoom khi có quyền, chép lời và ôn tập tùy chọn AI; portal tài khoản/OTP/key/thiết bị riêng đang ở mức nguồn và kiểm thử local, chưa xác nhận triển khai production.",
+    "analyzedAt": "2026-10-23T20:55:43.163593+00:00",
+    "gitCommitHash": "4e08263d72b4342fd55a1d5954bd64467f279f44"
   },
   "nodes": [
     {
       "id": "domain:van-hanh",
       "type": "domain",
       "name": "Cài đặt và vận hành",
-      "summary": "Đưa ứng dụng local vào hoạt động trên Windows (CunZoom.exe) hoặc Docker, kiểm tra trước phát hành và bảo toàn dữ liệu khi cập nhật. Không bản phát hành nào chứa Zoom SDK: người dùng tự tải SDK chính thức và cài vào ứng dụng (Windows) hoặc mount (Docker).",
+      "summary": "Chạy ứng dụng local trên Windows hoặc Docker, giữ dữ liệu qua nâng cấp và kiểm tra bản phát hành. Có workflow riêng cho triển khai portal thủ công khi đủ cấu hình, nhưng chưa xác nhận đã chạy Cloudflare production; pipeline exe mặc định chưa tạo bản thương mại.",
       "tags": [
         "van-hanh"
       ],
       "complexity": "complex",
       "domainMeta": {
         "entities": [
-          "Bản phát hành",
-          "Bản sao lưu",
-          "CunZoom.exe",
-          "Image Docker",
-          "SDK Linux",
-          "SDK Windows",
-          "Thư mục dữ liệu 1.x",
-          "Volume /data"
+          "Bản cài",
+          "SDK riêng",
+          "Volume",
+          "Artifact",
+          "Bản đồ workflow"
         ],
         "businessRules": [
-          "Chạy UID 10001, cổng host mặc định chỉ trên 127.0.0.1; SDK mount chỉ đọc.",
-          "Thiếu SDK hoặc biên dịch lỗi vẫn giữ giao diện, không coi bộ ghi là sẵn sàng.",
-          "SDK Linux 7.1.5.4432 đã được biên dịch và InitSDK thành công; OAuth/OBF và ghi phòng thật trong Docker chưa được kiểm tra.",
-          "RTMS chưa được triển khai; trường hợp Meeting SDK/OBF phải được Zoom cho phép.",
-          "Sao lưu là thao tác thủ công, chứa cả khóa và dữ liệu cá nhân; không có lịch sao lưu tự động.",
-          "Mỗi thay đổi phải được rà bằng Understand Anything và refresh với validator gốc; CI chặn bản đồ lệch nguồn trước tests/build.",
-          "Skill /workflow đóng gói quy trình Understand Anything; docs/HANDOVER.md là mục lục cơ chế, nguồn và hướng dẫn. Skill không tự tạo AI nền hoặc tự cho phép công khai/phát hành.",
-          "Nâng cấp từ Windows 1.x chỉ sao chép kho khóa .dpapi sang tên mới, không xóa/ghi đè; dùng tiếp thư mục dữ liệu và bài giảng cũ trên cùng máy.",
-          "CunZoom.exe chỉ được phát hành sau khi tests Windows và self-test gói (SDK đặt ngoài exe nạp được, mã hóa, HTTPS) đạt; CI dừng nếu exe chứa SDK.",
-          "Người dùng Windows tự cài SDK từ ZIP chính thức: chỉ chép x64/bin vào thư mục zoom-sdk do ứng dụng quản lý, từ chối gói sai hoặc đường dẫn không an toàn mà không đổi bản đã cài."
+          "SDK không được phân phối trong exe/image công khai",
+          "CI không thay thế phân tích domain bằng AI",
+          "Phát hành cần workflow_dispatch bật publish_release"
         ],
         "crossDomainInteractions": [
-          "Khởi động dịch vụ truy cập, lịch và bộ ghi.",
-          "Phát hành gói cài cho các miền khác; sao lưu cấu hình mã hóa và thư viện."
+          "Khởi động API, lịch và xử lý bài giảng",
+          "Build thương mại cần origin tài khoản riêng; deploy portal là workflow thủ công riêng"
+        ]
+      }
+    },
+    {
+      "id": "domain:tai-khoan-ban-quyen",
+      "type": "domain",
+      "name": "Tài khoản và bản quyền",
+      "summary": "Portal Workers/D1 phục vụ OTP, phiên, gói được người bán cấp thủ công, key dùng một lần và quản lý thiết bị. Đây là mã và kiểm thử local; cấu hình production hiện còn placeholder, chưa chứng minh gửi OTP thật hoặc thanh toán tự động.",
+      "tags": [
+        "tai-khoan-ban-quyen"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entities": [
+          "Danh tính email/SĐT",
+          "OTP",
+          "Phiên",
+          "Gói",
+          "Key",
+          "Thiết bị",
+          "Audit"
+        ],
+        "businessRules": [
+          "Email và SĐT là hai danh tính riêng; chưa liên kết tài khoản",
+          "Mã OTP không mật khẩu là hành vi hiện có, lựa chọn sản phẩm còn chờ chốt",
+          "Key chỉ trả bản rõ một lần, kích hoạt một lần đúng danh tính",
+          "Thời hạn bắt đầu lúc redeem; số thiết bị do DB ràng buộc",
+          "Không chứa SDK, dữ liệu buổi học hoặc khóa Zoom/AI"
+        ],
+        "crossDomainInteractions": [
+          "Client lưu phiên trong vault và chốt các thao tác app",
+          "Watchdog dừng bot khi mất quyền; chính sách offline/giữa buổi còn cần chốt với đề xuất mới"
         ]
       }
     },
     {
       "id": "domain:quyen-truy-cap",
       "type": "domain",
-      "name": "Truy cập và ủy quyền Zoom",
-      "summary": "Bảo vệ giao diện local và lưu cấu hình có mã hóa. Quyền OAuth của người dùng, xác thực Meeting SDK và quyền ghi của chủ phòng là các điều kiện riêng biệt.",
+      "name": "Truy cập local và ủy quyền Zoom",
+      "summary": "Bảo vệ API local, lưu cấu hình mã hóa và hoàn tất OAuth PKCE. Quyền tài khoản Cún Zoom, xác thực Meeting SDK và quyền ghi Zoom là các điều kiện khác nhau.",
       "tags": [
         "quyen-truy-cap"
       ],
@@ -72,22 +94,21 @@
       "domainMeta": {
         "entities": [
           "Mật khẩu local",
-          "Client ID",
-          "Kho khóa",
-          "Phiên OAuth PKCE",
-          "Access token",
-          "Refresh token"
+          "App token",
+          "Vault",
+          "OAuth",
+          "JWT SDK",
+          "OBF"
         ],
         "businessRules": [
-          "Docker dùng Basic Auth cho giao diện/API/tệp buổi học; /health chỉ công bố sản phẩm và phiên bản.",
-          "POST phải qua kiểm tra Host, X-App-Token, Origin và JSON giới hạn dung lượng.",
-          "Fernet trên Linux hoặc DPAPI trên Windows; thiếu/sai khóa phải báo lỗi, không hạ xuống bản rõ.",
-          "Phiên OAuth có state, PKCE S256 và hạn 600 giây; chỉ lưu khi có đủ hai token.",
-          "Đổi thông tin SDK làm mất trạng thái đã kiểm tra; đổi Client ID loại bỏ OAuth cũ."
+          "Docker yêu cầu Basic Auth trước dữ liệu riêng",
+          "POST cần Host, app token, Origin hợp lệ",
+          "Không lưu bí mật bản rõ; thiếu/sai khóa phải báo lỗi",
+          "OAuth/SDK init không chứng minh đã vào hoặc ghi phòng"
         ],
         "crossDomainInteractions": [
-          "Cấp cấu hình và token cho việc vào phòng thủ công.",
-          "Cùng cơ chế vault bảo vệ nguồn lịch riêng tư."
+          "Tài khoản thương mại chốt API trước chức năng Zoom",
+          "Runner làm mới OAuth trước lấy OBF và vào phòng"
         ]
       }
     },
@@ -95,7 +116,7 @@
       "id": "domain:lich-hoc",
       "type": "domain",
       "name": "Theo dõi lịch học",
-      "summary": "Đọc lịch Google dạng iCal, lọc các buổi có một phòng Zoom rõ ràng và nhắc người dùng. Trong Docker, lịch chỉ chuyển thông báo và liên kết tới giao diện đang mở; không tự tham gia hoặc ghi.",
+      "summary": "Đọc Google iCal theo từ khóa, nhắc trước giờ học và chuyển link Zoom. Desktop có thể mở link; Docker chỉ phát sự kiện/link lên giao diện, người dùng tự tham gia và xác nhận ghi.",
       "tags": [
         "lich-hoc"
       ],
@@ -103,21 +124,20 @@
       "domainMeta": {
         "entities": [
           "Nguồn iCal",
-          "Từ khóa môn",
+          "Từ khóa",
           "Buổi học",
-          "Mốc nhắc",
-          "Liên kết Zoom"
+          "Nhắc",
+          "Dấu chống trùng"
         ],
         "businessRules": [
-          "Chỉ chấp nhận iCal HTTPS của calendar.google.com, không chuyển hướng; xác nhận đúng nguồn lịch trước khi lưu.",
-          "Dùng Asia/Bangkok, mở rộng lịch định kỳ đến 14 ngày; bỏ lịch cả ngày, đã hủy, quá hạn hoặc nhiều phòng khác nhau.",
-          "Lỗi tải làm rỗng sự kiện để không mở phòng từ dữ liệu cũ.",
-          "Đồng bộ khoảng 5 phút; vòng theo dõi 15 giây; nhắc trước 30 phút và tùy chọn chuyển link từ 2 phút trước giờ.",
-          "Hành động được đánh dấu trước khi thực hiện để tránh lặp; đây không phải cơ chế tự ghi hoặc vào lớp trước người dùng OBF."
+          "Chỉ HTTPS calendar.google.com /basic.ics, không chuyển hướng",
+          "Chỉ chọn buổi rõ giờ và đúng một phòng Zoom",
+          "Đồng bộ lỗi xóa lịch cũ; không mở phòng cũ",
+          "Watcher nền chờ khi không còn bản quyền"
         ],
         "crossDomainInteractions": [
-          "Dùng vault cho nguồn iCal.",
-          "Người dùng nhận link, vào Zoom rồi mới xác nhận bắt đầu bộ ghi."
+          "Link được chuyển qua platform_actions và giao diện",
+          "Bắt đầu ghi là luồng thủ công riêng"
         ]
       }
     },
@@ -125,59 +145,63 @@
       "id": "domain:ghi-buoi-hoc",
       "type": "domain",
       "name": "Ghi buổi học được phép",
-      "summary": "Quản lý quá trình xác thực SDK, yêu cầu vào đúng phòng, xin quyền ghi và thu dữ liệu thực tế. Luồng đã được cài đặt trong mã nhưng bản Docker chưa xác minh OAuth, âm thanh và slide trong phòng thật.",
+      "summary": "Điều phối một worker Meeting SDK Windows/Linux, yêu cầu tham gia bằng OBF và chờ quyền host trước dữ liệu thô. Ghi WAV và ảnh chia sẻ, xử lý STOP, lỗi quyền và thoát; chưa có RTMS.",
       "tags": [
         "ghi-buoi-hoc"
       ],
       "complexity": "complex",
       "domainMeta": {
         "entities": [
-          "Tiến trình bộ ghi",
-          "Token OBF",
-          "Quyền ghi local",
+          "Worker",
+          "Phòng Zoom",
+          "Quyền ghi",
           "WAV",
-          "Ảnh chia sẻ",
-          "Trạng thái buổi"
+          "Ảnh slide",
+          "Trạng thái"
         ],
         "businessRules": [
-          "Chỉ một worker chạy; bắt đầu cần xác nhận đã vào đúng lớp và được phép ghi, cùng kiểm tra SDK đã đạt.",
-          "OBF được xin cho tài khoản OAuth đang có mặt trong phòng; không vượt phòng chờ hoặc quyền chủ phòng.",
-          "Camera tắt, micro ảo không phát âm thanh; dữ liệu slide lấy từ chia sẻ màn hình, không phải camera.",
-          "Chỉ đánh dấu có ghi khi nhận số byte âm thanh lớn hơn 0.",
-          "Bị từ chối hoặc thu hồi quyền ghi, hết thời gian hay dừng thủ công phải đóng dữ liệu và rời phòng."
+          "Một worker đang chạy mỗi bản cài",
+          "Cần xác nhận đồng ý và auth-test đạt trước join",
+          "Micro ngoài im lặng, camera tắt",
+          "Chỉ xác nhận ghi bằng số byte âm thanh thực nhận",
+          "Linux có timeout quyền ghi riêng; không suy ra đã kiểm tra phòng thật"
         ],
         "crossDomainInteractions": [
-          "Nhận quyền và token từ miền truy cập.",
-          "Chuyển buổi có âm thanh thực sang chép lời và đưa trạng thái vào thư viện."
+          "OAuth cấp token cho OBF",
+          "Bản quyền có thể dừng worker",
+          "Âm thanh thực nhận kích hoạt chép lời local"
         ]
       }
     },
     {
       "id": "domain:tai-lieu-bai-giang",
       "type": "domain",
-      "name": "Chép lời và thư viện bài giảng",
-      "summary": "Sắp xếp bản ghi theo môn và buổi, chép lời local rồi cung cấp tài liệu để người học rà soát. Bản trích ý chỉ là bản nháp chọn câu, chưa đối chiếu slide và không thay thế xác nhận yêu cầu của giảng viên.",
+      "name": "Bài giảng và ôn tập",
+      "summary": "Giữ dữ liệu học local, đọc bản chép lời, nhận tài liệu và dùng AI tùy chọn để hệ thống hóa từng buổi/cả môn. Tạo đề cương, đề thử và tải ZIP; kết quả AI cần đối chiếu tài liệu.",
       "tags": [
         "tai-lieu-bai-giang"
       ],
       "complexity": "complex",
       "domainMeta": {
         "entities": [
-          "Mô hình Whisper base",
+          "Buổi học",
+          "Tài liệu gốc",
           "Bản chép lời",
-          "Bản trích ý nháp",
-          "Hồ sơ buổi",
-          "ZIP tải về"
+          "Ghi chú",
+          "Hệ thống kiến thức",
+          "Đề cương",
+          "Đề thi thử"
         ],
         "businessRules": [
-          "Chép lời chỉ được tự khởi chạy sau khi có âm thanh thực; mô hình phải được tải trước.",
-          "Nhận dạng dùng CPU int8, ngôn ngữ Việt, mô hình local; lỗi được lưu trạng thái failed.",
-          "Bản nháp ghi rõ nhận dạng có thể sai; không tìm được bài tập không đồng nghĩa không có bài tập.",
-          "Thư viện dùng ID băm và giới hạn thư mục; tải ZIP không nhận đường dẫn tùy ý, không theo symlink ra ngoài buổi."
+          "Whisper chạy local với mô hình đã tải",
+          "AI mặc định tắt; dùng khóa Claude của người dùng hoặc Ollama",
+          "Mỗi lần một job AI; bản lỗi chờ nguồn mới hoặc retry thủ công",
+          "Bản quyền kiểm tra giữa vòng/job, không hủy yêu cầu AI đang gửi",
+          "Không có cloud lưu bài giảng trong portal"
         ],
         "crossDomainInteractions": [
-          "Nhận WAV, ảnh và metadata từ bộ ghi.",
-          "Toàn bộ /data gồm tài liệu và khóa được quản lý trong quy trình sao lưu."
+          "Nhận WAV/slide từ worker hoặc upload người dùng",
+          "Client thương mại chốt đọc, upload và xử lý nền"
         ]
       }
     },
@@ -185,9 +209,10 @@
       "id": "flow:khoi-dong-docker",
       "type": "flow",
       "name": "Khởi động Docker và kiểm tra bộ ghi",
-      "summary": "Chuẩn bị môi trường local, tái sử dụng worker đúng SDK và mở giao diện ngay cả khi thiếu bộ ghi.",
+      "summary": "Khởi tạo môi trường container và giữ giao diện hoạt động khi thiếu SDK; build/init chưa chứng minh ghi phòng thật.",
       "tags": [
-        "van-hanh"
+        "van-hanh",
+        "khoi-dong-docker"
       ],
       "complexity": "complex",
       "domainMeta": {
@@ -196,12 +221,13 @@
       }
     },
     {
-      "id": "step:khoi-dong-docker:gioi-han-host",
+      "id": "step:khoi-dong-docker:volume",
       "type": "step",
-      "name": "Mở cổng local, gắn dữ liệu",
-      "summary": "Compose giữ dữ liệu trong volume, gắn SDK chỉ đọc và bỏ capabilities; không mở cổng ra toàn mạng.",
+      "name": "Gắn dữ liệu và SDK riêng",
+      "summary": "Compose chỉ công bố cổng loopback, volume dữ liệu bền vững và SDK mount chỉ đọc; bỏ capabilities.",
       "tags": [
-        "van-hanh"
+        "van-hanh",
+        "khoi-dong-docker"
       ],
       "complexity": "moderate",
       "filePath": "compose.yaml",
@@ -211,12 +237,13 @@
       ]
     },
     {
-      "id": "step:khoi-dong-docker:image-khong-sdk",
+      "id": "step:khoi-dong-docker:image",
       "type": "step",
       "name": "Chạy image không kèm SDK",
-      "summary": "Image cài thư viện cần thiết và chạy UID 10001; nguồn SDK không được chép vào image.",
+      "summary": "Image chứa runtime/compiler và nguồn ứng dụng, chạy UID 10001; dữ liệu ở /data.",
       "tags": [
-        "van-hanh"
+        "van-hanh",
+        "khoi-dong-docker"
       ],
       "complexity": "moderate",
       "filePath": "Dockerfile",
@@ -226,12 +253,13 @@
       ]
     },
     {
-      "id": "step:khoi-dong-docker:thiet-bi-ao",
+      "id": "step:khoi-dong-docker:virtual",
       "type": "step",
-      "name": "Chuẩn bị màn hình và âm thanh ảo",
-      "summary": "Supervisor chạy Xvfb và PulseAudio nội bộ, không lấy micro/camera của máy host.",
+      "name": "Chuẩn bị màn hình và âm thanh nội bộ",
+      "summary": "Supervisor tạo Xvfb/PulseAudio và nguồn âm ảo trong container.",
       "tags": [
-        "van-hanh"
+        "van-hanh",
+        "khoi-dong-docker"
       ],
       "complexity": "moderate",
       "filePath": "scripts/container_entry.py",
@@ -241,12 +269,13 @@
       ]
     },
     {
-      "id": "step:khoi-dong-docker:bien-dich",
+      "id": "step:khoi-dong-docker:worker",
       "type": "step",
-      "name": "Kiểm tra SDK và cache worker",
-      "summary": "Băm SDK/header/mã worker để biên dịch lại khi thay đổi; thiếu SDK hoặc build lỗi xóa worker và giữ UI.",
+      "name": "Build hoặc dùng lại worker",
+      "summary": "Băm SDK/header/nguồn worker; build lỗi hoặc thiếu SDK xóa worker để tránh dùng sai nhưng vẫn chạy UI.",
       "tags": [
-        "van-hanh"
+        "van-hanh",
+        "khoi-dong-docker"
       ],
       "complexity": "moderate",
       "filePath": "scripts/container_entry.py",
@@ -256,12 +285,13 @@
       ]
     },
     {
-      "id": "step:khoi-dong-docker:mo-dich-vu",
+      "id": "step:khoi-dong-docker:service",
       "type": "step",
-      "name": "Bật dịch vụ và theo dõi lịch",
-      "summary": "Tạo mật khẩu local, khởi động HTTP cùng watcher; tín hiệu dừng đưa dịch vụ qua luồng đóng an toàn.",
+      "name": "Khởi động API và đóng an toàn",
+      "summary": "Tạo mật khẩu local, gắn notifier, khởi động dịch vụ; SIGTERM/SIGINT đưa qua Service.stop.",
       "tags": [
-        "van-hanh"
+        "van-hanh",
+        "khoi-dong-docker"
       ],
       "complexity": "moderate",
       "filePath": "src/container_main.py",
@@ -271,145 +301,298 @@
       ]
     },
     {
-      "id": "step:khoi-dong-docker:gioi-han-xac-minh",
-      "type": "step",
-      "name": "Phân biệt khởi tạo và ghi thật",
-      "summary": "Hồ sơ kiểm thử xác nhận compile/link và InitSDK; OAuth/OBF, âm thanh và slide Docker trong phòng thật chưa kiểm tra.",
+      "id": "flow:mo-windows",
+      "type": "flow",
+      "name": "Mở và nâng cấp Windows",
+      "summary": "Giữ dữ liệu cũ của cùng máy, chạy một cửa sổ/tray và cài SDK riêng của người dùng.",
       "tags": [
-        "van-hanh"
+        "van-hanh",
+        "mo-windows"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "CunZoom.exe",
+        "entryType": "manual"
+      }
+    },
+    {
+      "id": "step:mo-windows:storage",
+      "type": "step",
+      "name": "Chọn dữ liệu và bài giảng phù hợp",
+      "summary": "Chọn thư mục theo nền tảng, tái dùng vị trí bản 1.x; container cố định theo mount cấu hình.",
+      "tags": [
+        "van-hanh",
+        "mo-windows"
       ],
       "complexity": "moderate",
-      "filePath": "docs/VALIDATION.md",
+      "filePath": "src/paths.py",
       "lineRange": [
-        14,
-        25
+        11,
+        42
+      ]
+    },
+    {
+      "id": "step:mo-windows:migration",
+      "type": "step",
+      "name": "Sao chép vault cũ trước khởi động",
+      "summary": "Bản desktop chỉ sao chép vault 1.x khi đích chưa tồn tại; điểm vào có --no-migrate cho kiểm thử.",
+      "tags": [
+        "van-hanh",
+        "mo-windows"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/paths.py",
+      "lineRange": [
+        44,
+        49
+      ]
+    },
+    {
+      "id": "step:mo-windows:singleton",
+      "type": "step",
+      "name": "Giữ một phiên ứng dụng",
+      "summary": "Điểm vào nâng cấp trước dịch vụ; mutex Windows yêu cầu bản đang chạy hiện lại cửa sổ.",
+      "tags": [
+        "van-hanh",
+        "mo-windows"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/main.py",
+      "lineRange": [
+        71,
+        95
+      ]
+    },
+    {
+      "id": "step:mo-windows:window",
+      "type": "step",
+      "name": "Mở WebView2 và tray",
+      "summary": "Cửa sổ local, chọn thư mục/SDK, thông báo và tray; đóng chỉ ẩn, Thoát dừng dịch vụ.",
+      "tags": [
+        "van-hanh",
+        "mo-windows"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/main.py",
+      "lineRange": [
+        97,
+        154
+      ]
+    },
+    {
+      "id": "step:mo-windows:sdk",
+      "type": "step",
+      "name": "Cài runtime SDK riêng",
+      "summary": "Kiểm tra thư mục do app quản lý và bot đã dừng trước chọn ZIP; staging thay SDK có phục hồi.",
+      "tags": [
+        "van-hanh",
+        "mo-windows"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/server.py",
+      "lineRange": [
+        276,
+        288
+      ]
+    },
+    {
+      "id": "step:mo-windows:archive",
+      "type": "step",
+      "name": "Chỉ giải nén SDK Windows x64",
+      "summary": "ZIP cần x64/bin/sdk.dll; chặn đường dẫn vượt đích, không thực thi nội dung.",
+      "tags": [
+        "van-hanh",
+        "mo-windows"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/sdk_setup.py",
+      "lineRange": [
+        12,
+        69
       ]
     },
     {
       "id": "flow:kiem-tra-phat-hanh",
       "type": "flow",
-      "name": "Rà bản đồ, kiểm tra và phát hành phiên bản",
-      "summary": "Rà bản đồ, chạy tests trên Linux và Windows, build và tự kiểm tra CunZoom.exe, build/smoke Docker rồi chỉ phát hành khi được yêu cầu và mọi bước đạt.",
+      "name": "Rà bản đồ, kiểm tra và phát hành",
+      "summary": "CI kiểm tra nguồn/bản đồ, tests Python và Worker/D1, Windows có SDK thì build/self-test, rồi Docker smoke; publish chỉ khi được bật. Chưa có job deploy portal hay truyền accounts-url khi build exe.",
       "tags": [
-        "van-hanh"
+        "van-hanh",
+        "kiem-tra-phat-hanh"
       ],
       "complexity": "complex",
       "domainMeta": {
-        "entryPoint": "/workflow và AGENTS.md → GitHub Actions: push, pull_request hoặc workflow_dispatch",
+        "entryPoint": "push main; pull_request; workflow_dispatch",
         "entryType": "event"
       }
     },
     {
-      "id": "step:kiem-tra-phat-hanh:kiem-tra-nguon",
+      "id": "step:kiem-tra-phat-hanh:map",
       "type": "step",
-      "name": "Kiểm tra nguồn trước CI",
-      "summary": "CI cài phụ thuộc và chạy check_source để chặn dữ liệu riêng hoặc SDK trước các chốt bản đồ, kiểm thử và build.",
+      "name": "Rà nguồn rồi refresh bản đồ",
+      "summary": "refresh nhận graph đã rà, gọi validator gốc và tái tạo graph/tài liệu/fingerprint; check phát hiện drift.",
       "tags": [
-        "van-hanh"
+        "van-hanh",
+        "kiem-tra-phat-hanh"
+      ],
+      "complexity": "moderate",
+      "filePath": "scripts/workflow_map.py",
+      "lineRange": [
+        334,
+        388
+      ]
+    },
+    {
+      "id": "step:kiem-tra-phat-hanh:handoff",
+      "type": "step",
+      "name": "Theo quy tắc bàn giao nguồn và sơ đồ",
+      "summary": "AGENTS yêu cầu fresh scan, dashboard kiểm tra chi tiết bước, nguồn/graph cùng bàn giao; dữ liệu tạm không commit.",
+      "tags": [
+        "van-hanh",
+        "kiem-tra-phat-hanh"
+      ],
+      "complexity": "moderate",
+      "filePath": "AGENTS.md",
+      "lineRange": [
+        5,
+        15
+      ]
+    },
+    {
+      "id": "step:kiem-tra-phat-hanh:checks",
+      "type": "step",
+      "name": "Chặn nguồn/bản đồ lệch và chạy tests",
+      "summary": "CI kiểm tra nguồn, workflow_map check, unittest, cú pháp JS, rồi Node 24/npm ci và Worker/D1 tests.",
+      "tags": [
+        "van-hanh",
+        "kiem-tra-phat-hanh"
       ],
       "complexity": "moderate",
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
         22,
-        33
+        43
       ]
     },
     {
-      "id": "step:kiem-tra-phat-hanh:build-smoke",
+      "id": "step:kiem-tra-phat-hanh:windows",
       "type": "step",
-      "name": "Chạy tests, build và kiểm tra HTTP thật",
-      "summary": "Sau chốt bản đồ, chạy unit/integration, kiểm tra cú pháp JavaScript, build image không SDK rồi smoke HTTP thật; lỗi có diagnostics.",
+      "name": "Kiểm tra Windows và lấy SDK riêng",
+      "summary": "Windows tests luôn chạy; tải SDK từ release riêng với checksum. Thiếu SDK có thể bỏ build trong CI thường, nhưng publish phải thất bại.",
       "tags": [
-        "van-hanh"
+        "van-hanh",
+        "kiem-tra-phat-hanh"
       ],
       "complexity": "moderate",
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
-        112,
-        139
+        44,
+        88
       ]
     },
     {
-      "id": "step:kiem-tra-phat-hanh:kiem-tra-version",
+      "id": "step:kiem-tra-phat-hanh:exe",
       "type": "step",
-      "name": "Chặn sai hoặc trùng phiên bản",
-      "summary": "Chỉ publish khi dispatch được bật; đối chiếu phiên bản mã với input, từ chối tag đã tồn tại.",
+      "name": "Build và self-test exe không SDK",
+      "summary": "Biên dịch worker, package, kiểm tra SDK ngoại vi, mã hóa/HTTPS/study và từ chối bundle SDK; lưu artifact.",
       "tags": [
-        "van-hanh"
+        "van-hanh",
+        "kiem-tra-phat-hanh"
       ],
       "complexity": "moderate",
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
-        140,
-        157
+        89,
+        117
       ]
     },
     {
-      "id": "step:kiem-tra-phat-hanh:day-image",
+      "id": "step:kiem-tra-phat-hanh:smoke",
       "type": "step",
-      "name": "Đẩy image đã kiểm tra",
-      "summary": "Đăng nhập GHCR bằng token workflow rồi đẩy tag phiên bản và latest từ image đã test.",
+      "name": "Build Docker rồi kiểm tra HTTP thật",
+      "summary": "Build image không SDK, chạy non-root và smoke xác thực/CSRF/mã hóa/restart; diagnostics khi lỗi.",
       "tags": [
-        "van-hanh"
+        "van-hanh",
+        "kiem-tra-phat-hanh"
       ],
       "complexity": "moderate",
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
-        158,
-        174
+        118,
+        145
       ]
     },
     {
-      "id": "step:kiem-tra-phat-hanh:dong-goi-release",
+      "id": "step:kiem-tra-phat-hanh:version",
       "type": "step",
-      "name": "Đóng gói và tạo Release",
-      "summary": "Tải exe Windows đã kiểm tra, đóng gói source và SHA256SUMS, tạo một Release chung cho Windows và Docker.",
+      "name": "Chặn phiên bản sai hoặc tag trùng",
+      "summary": "Khi dispatch publish, đối chiếu input với paths.VERSION và từ chối tag đã tồn tại.",
       "tags": [
-        "van-hanh"
+        "van-hanh",
+        "kiem-tra-phat-hanh"
       ],
       "complexity": "moderate",
       "filePath": ".github/workflows/docker-release.yml",
       "lineRange": [
-        175,
-        205
+        146,
+        163
+      ]
+    },
+    {
+      "id": "step:kiem-tra-phat-hanh:publish",
+      "type": "step",
+      "name": "Đẩy image và tạo Release",
+      "summary": "Chỉ publish khi bật cờ; đẩy version/latest, lấy Windows artifact, đóng gói source/checksum và tạo GitHub Release.",
+      "tags": [
+        "van-hanh",
+        "kiem-tra-phat-hanh"
+      ],
+      "complexity": "moderate",
+      "filePath": ".github/workflows/docker-release.yml",
+      "lineRange": [
+        164,
+        211
       ]
     },
     {
       "id": "flow:sao-luu-cap-nhat",
       "type": "flow",
       "name": "Sao lưu, khôi phục và cập nhật thủ công",
-      "summary": "Người vận hành giữ dữ liệu và khóa nhất quán trước khi thay phiên bản; quy trình này là hướng dẫn thao tác, không phải job tự động.",
+      "summary": "Người vận hành dừng ghi/xử lý, giữ cả dữ liệu và khóa rồi đổi source/image; chưa có job sao lưu tự động.",
       "tags": [
-        "van-hanh"
+        "van-hanh",
+        "sao-luu-cap-nhat"
       ],
       "complexity": "complex",
       "domainMeta": {
-        "entryPoint": "Người vận hành làm theo docs/OPERATIONS.md",
+        "entryPoint": "docs/OPERATIONS.md",
         "entryType": "manual"
       }
     },
     {
-      "id": "step:sao-luu-cap-nhat:dung-truoc",
+      "id": "step:sao-luu-cap-nhat:stop",
       "type": "step",
-      "name": "Dừng ghi và chép lời trước sao lưu",
-      "summary": "Đợi xử lý hoàn tất rồi dừng container để có bản sao nhất quán.",
+      "name": "Đợi xử lý và dừng ứng dụng",
+      "summary": "Dừng ghi, đợi chép lời rồi dừng container để có bản sao nhất quán.",
       "tags": [
-        "van-hanh"
+        "van-hanh",
+        "sao-luu-cap-nhat"
       ],
       "complexity": "moderate",
       "filePath": "docs/OPERATIONS.md",
       "lineRange": [
         56,
-        59
+        61
       ]
     },
     {
-      "id": "step:sao-luu-cap-nhat:sao-toan-volume",
+      "id": "step:sao-luu-cap-nhat:backup",
       "type": "step",
-      "name": "Sao lưu toàn bộ dữ liệu cùng khóa",
-      "summary": "Đóng gói /data gồm cấu hình, khóa, mô hình và lessons; bản sao phải giữ riêng vì có thông tin truy cập.",
+      "name": "Sao lưu toàn bộ volume cùng khóa",
+      "summary": "Đóng gói /data gồm vault, khóa, mô hình, cấu hình và lessons; bản sao giữ riêng.",
       "tags": [
-        "van-hanh"
+        "van-hanh",
+        "sao-luu-cap-nhat"
       ],
       "complexity": "moderate",
       "filePath": "docs/OPERATIONS.md",
@@ -419,12 +602,13 @@
       ]
     },
     {
-      "id": "step:sao-luu-cap-nhat:khoi-phuc",
+      "id": "step:sao-luu-cap-nhat:restore",
       "type": "step",
-      "name": "Khôi phục có bảo toàn dữ liệu đích",
-      "summary": "Sao lưu volume đích trước thao tác có thể ghi đè; dùng đúng khóa, không chuyển thẳng DPAPI sang Linux.",
+      "name": "Khôi phục sau sao lưu dữ liệu đích",
+      "summary": "Khôi phục có thể ghi đè; cần đúng khóa Linux, không chuyển thẳng vault DPAPI Windows sang Linux.",
       "tags": [
-        "van-hanh"
+        "van-hanh",
+        "sao-luu-cap-nhat"
       ],
       "complexity": "moderate",
       "filePath": "docs/OPERATIONS.md",
@@ -434,41 +618,631 @@
       ]
     },
     {
-      "id": "step:sao-luu-cap-nhat:cap-nhat",
+      "id": "step:sao-luu-cap-nhat:update",
       "type": "step",
-      "name": "Đổi mã/image, giữ volume",
-      "summary": "Đọc release và sao lưu trước; cập nhật source hoặc tag image rồi tạo lại container, không xóa volume.",
+      "name": "Cập nhật source hoặc image giữ volume",
+      "summary": "Đọc release, backup, cập nhật và tạo lại container; không xóa volume; SDK thay riêng khi bot dừng.",
       "tags": [
-        "van-hanh"
+        "van-hanh",
+        "sao-luu-cap-nhat"
       ],
       "complexity": "moderate",
       "filePath": "docs/OPERATIONS.md",
       "lineRange": [
         84,
-        100
+        103
+      ]
+    },
+    {
+      "id": "flow:cau-hinh-portal",
+      "type": "flow",
+      "name": "Cấu hình dịch vụ tài khoản và bản thương mại",
+      "summary": "Portal hiện mới có cấu hình mẫu; triển khai production, gửi OTP thật và exe thương mại cần cấu hình/thử riêng. Website chỉ phục vụ màn tài khoản.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "cau-hinh-portal"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "configure-production.mjs; workflow_dispatch accounts-deploy.yml; build.py --accounts-url",
+        "entryType": "manual"
+      }
+    },
+    {
+      "id": "step:cau-hinh-portal:placeholder",
+      "type": "step",
+      "name": "Điền D1 và origin của portal",
+      "summary": "wrangler dùng assets run_worker_first; D1 ID đang là placeholder, localhost origin và SMS tắt. Đây chưa phải production đã cấu hình.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "cau-hinh-portal"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/wrangler.jsonc",
+      "lineRange": [
+        1,
+        16
+      ]
+    },
+    {
+      "id": "step:cau-hinh-portal:secrets",
+      "type": "step",
+      "name": "Kiểm tra bí mật và origin trước phục vụ",
+      "summary": "Worker yêu cầu OTP_SECRET/ADMIN_TOKEN đủ dài, origin HTTPS ngoài local và Host khớp; lỗi cấu hình trả 503.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "cau-hinh-portal"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/worker.mjs",
+      "lineRange": [
+        26,
+        35
+      ]
+    },
+    {
+      "id": "step:cau-hinh-portal:assets",
+      "type": "step",
+      "name": "Giới hạn assets cho tài khoản",
+      "summary": "Worker chỉ cho trang tài khoản/account.js/account.css/logo và health; không mở giao diện app đầy đủ trên website.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "cau-hinh-portal"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/worker.mjs",
+      "lineRange": [
+        212,
+        230
+      ]
+    },
+    {
+      "id": "step:cau-hinh-portal:database",
+      "type": "step",
+      "name": "Áp dụng schema và chạy triển khai riêng",
+      "summary": "package cung cấp migration local/remote và deploy; workflow riêng tổ chức việc chạy chúng khi được dispatch. Chưa xác nhận các lệnh đã chạy production.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "cau-hinh-portal"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/package.json",
+      "lineRange": [
+        5,
+        13
+      ]
+    },
+    {
+      "id": "step:cau-hinh-portal:commercial",
+      "type": "step",
+      "name": "Đóng gói origin công khai trong exe",
+      "summary": "Chỉ --accounts-url hợp lệ mới tạo accounts-config.json và thêm vào bundle; CI hiện gọi build.py không truyền tùy chọn này.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "cau-hinh-portal"
+      ],
+      "complexity": "moderate",
+      "filePath": "scripts/build.py",
+      "lineRange": [
+        12,
+        25
+      ]
+    },
+    {
+      "id": "step:cau-hinh-portal:client-origin",
+      "type": "step",
+      "name": "Chọn dịch vụ khi mở ứng dụng",
+      "summary": "Exe frozen dùng origin đóng gói; source/Docker có thể dùng biến môi trường. Không có cấu hình thì bản cộng đồng không bật chốt license.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "cau-hinh-portal"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/account_client.py",
+      "lineRange": [
+        27,
+        56
+      ]
+    },
+    {
+      "id": "flow:dang-nhap-otp",
+      "type": "flow",
+      "name": "Đăng nhập OTP và quản lý phiên",
+      "summary": "Hành vi đang triển khai là OTP không mật khẩu: tạo/xác minh danh tính email hoặc SĐT rồi dùng phiên 7 ngày. Đây chưa phải quyết định sản phẩm cuối cùng hay bằng chứng gửi OTP thật.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "dang-nhap-otp"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "POST /api/otp/request; /api/otp/verify; /api/logout",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:dang-nhap-otp:identity",
+      "type": "step",
+      "name": "Nhập danh tính ở website hoặc app",
+      "summary": "Một UI dùng API portal/cookie hoặc proxy local desktop; email/SĐT chuẩn hóa, không có đăng nhập Google OAuth.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "dang-nhap-otp"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/account.js",
+      "lineRange": [
+        3,
+        14
+      ]
+    },
+    {
+      "id": "step:dang-nhap-otp:limits",
+      "type": "step",
+      "name": "Giới hạn gửi OTP và ngân sách",
+      "summary": "Tối đa 1/phút, 5/giờ/danh tính, 15/giờ/IP và hạn mức global/ngày; yêu cầu vẫn tính ngân sách khi gửi lỗi.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "dang-nhap-otp"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/worker.mjs",
+      "lineRange": [
+        125,
+        134
+      ]
+    },
+    {
+      "id": "step:dang-nhap-otp:challenge",
+      "type": "step",
+      "name": "Tạo OTP có hạn và vô hiệu mã cũ",
+      "summary": "OTP sáu số rejection sampling, HMAC gắn challenge, hết hạn 300 giây; vô hiệu challenge cũ và dọn dữ liệu hết hạn.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "dang-nhap-otp"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/worker.mjs",
+      "lineRange": [
+        134,
+        142
+      ]
+    },
+    {
+      "id": "step:dang-nhap-otp:delivery",
+      "type": "step",
+      "name": "Gửi qua nhà cung cấp khi đã cấu hình",
+      "summary": "Email dùng Resend, SMS Twilio chỉ khi bật/có secret; timeout 10 giây. Gửi lỗi vô hiệu challenge và báo lỗi, không trả OTP.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "dang-nhap-otp"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/worker.mjs",
+      "lineRange": [
+        60,
+        74
+      ]
+    },
+    {
+      "id": "step:dang-nhap-otp:verify",
+      "type": "step",
+      "name": "Giới hạn thử và tiêu thụ OTP nguyên tử",
+      "summary": "Tăng attempts trước kiểm HMAC, tối đa năm lần; conditional update chỉ cho một yêu cầu claim được mã.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "dang-nhap-otp"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/worker.mjs",
+      "lineRange": [
+        147,
+        155
+      ]
+    },
+    {
+      "id": "step:dang-nhap-otp:session",
+      "type": "step",
+      "name": "Tạo user và phiên bảy ngày",
+      "summary": "DB chỉ giữ digest session; web nhận cookie HttpOnly/SameSite Strict/Secure trên HTTPS, desktop nhận token riêng.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "dang-nhap-otp"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/worker.mjs",
+      "lineRange": [
+        155,
+        164
+      ]
+    },
+    {
+      "id": "step:dang-nhap-otp:vault",
+      "type": "step",
+      "name": "Giữ token desktop trong vault mã hóa",
+      "summary": "Proxy local yêu cầu client desktop, xác minh token, giữ device_id và license cũ khi cùng danh tính rồi mã hóa account.vault.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "dang-nhap-otp"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/account_client.py",
+      "lineRange": [
+        123,
+        143
+      ]
+    },
+    {
+      "id": "step:dang-nhap-otp:logout",
+      "type": "step",
+      "name": "Thu hồi phiên và xóa đăng nhập local",
+      "summary": "Worker xóa session hiện tại; client cuối cùng xóa credentials/cache và giữ device_id kể cả khi logout mạng lỗi.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "dang-nhap-otp"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/account_client.py",
+      "lineRange": [
+        144,
+        152
+      ]
+    },
+    {
+      "id": "flow:cap-goi-va-key",
+      "type": "flow",
+      "name": "Cấp gói thủ công và lấy key một lần",
+      "summary": "Người bán xác nhận mua qua kênh riêng rồi dùng CLI cấp gói đúng danh tính; chưa có cổng thanh toán. User tự lấy key chỉ một lần, DB không giữ bản rõ.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "cap-goi-va-key"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "node accounts/admin.mjs grant; POST /api/licenses/key",
+        "entryType": "manual"
+      }
+    },
+    {
+      "id": "step:cap-goi-va-key:operator",
+      "type": "step",
+      "name": "Người bán dùng token quản trị ngoài argv",
+      "summary": "CLI đọc ADMIN_TOKEN từ môi trường, kiểm origin HTTPS ngoài local và chỉ nhận grant/revoke.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "cap-goi-va-key"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/admin.mjs",
+      "lineRange": [
+        1,
+        20
+      ]
+    },
+    {
+      "id": "step:cap-goi-va-key:grant",
+      "type": "step",
+      "name": "Cấp thời hạn và số thiết bị",
+      "summary": "Worker kiểm Bearer quản trị, danh tính, 1–3650 ngày, 1–10 máy; tạo license chưa owner/chưa expires và audit grant.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "cap-goi-va-key"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/worker.mjs",
+      "lineRange": [
+        102,
+        114
+      ]
+    },
+    {
+      "id": "step:cap-goi-va-key:storage",
+      "type": "step",
+      "name": "Lưu trạng thái gói trong D1",
+      "summary": "Schema tách identity, key_digest duy nhất, owner, số ngày, số máy, hạn và revoked; không có bảng thanh toán tự động.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "cap-goi-va-key"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/migrations/0001_accounts.sql",
+      "lineRange": [
+        11,
+        18
+      ]
+    },
+    {
+      "id": "step:cap-goi-va-key:overview",
+      "type": "step",
+      "name": "Liệt kê gói và trạng thái",
+      "summary": "/me trả pending/issued/active/expired/revoked, thiết bị và download_url HTTPS; tài khoản mới không tự có gói.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "cap-goi-va-key"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/worker.mjs",
+      "lineRange": [
+        166,
+        174
+      ]
+    },
+    {
+      "id": "step:cap-goi-va-key:key",
+      "type": "step",
+      "name": "Cấp key bản rõ duy nhất một lần",
+      "summary": "UPDATE có điều kiện chỉ khi đúng identity, chưa key/owner, chưa revoked; key 160 bit CZ- chỉ có trong response, DB giữ SHA-256.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "cap-goi-va-key"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/worker.mjs",
+      "lineRange": [
+        175,
+        181
+      ]
+    },
+    {
+      "id": "step:cap-goi-va-key:display",
+      "type": "step",
+      "name": "Hiển thị và xóa key khỏi giao diện",
+      "summary": "UI cho sao chép, ẩn hoặc redeem; không lưu key/token vào localStorage, pagehide/logout xóa key. Mất key cần người bán thu hồi/cấp lại.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "cap-goi-va-key"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/account.js",
+      "lineRange": [
+        34,
+        63
+      ]
+    },
+    {
+      "id": "flow:kich-hoat-thiet-bi",
+      "type": "flow",
+      "name": "Kích hoạt gói và quản lý thiết bị",
+      "summary": "Redeem một lần gắn license với user và bắt đầu hạn; các lần dùng sau kích hoạt thiết bị, không dùng lại key. Website có thể gỡ thiết bị để chuyển máy.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "kich-hoat-thiet-bi"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "POST /api/licenses/redeem; /api/devices/activate; /api/devices/remove",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:kich-hoat-thiet-bi:redeem",
+      "type": "step",
+      "name": "Dùng key đúng danh tính một lần",
+      "summary": "Kiểm format/key hash và owner trống bằng UPDATE có điều kiện; expires tính từ now + days, request tranh chấp sau bị từ chối.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "kich-hoat-thiet-bi"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/worker.mjs",
+      "lineRange": [
+        182,
+        189
+      ]
+    },
+    {
+      "id": "step:kich-hoat-thiet-bi:activation",
+      "type": "step",
+      "name": "Đăng ký thiết bị của user đang có gói",
+      "summary": "Kiểm gói còn hạn/chưa revoke, device_id và tên; INSERT/UPDATE thiết bị thuộc license của user.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "kich-hoat-thiet-bi"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/worker.mjs",
+      "lineRange": [
+        190,
+        198
+      ]
+    },
+    {
+      "id": "step:kich-hoat-thiet-bi:capacity",
+      "type": "step",
+      "name": "Khóa giới hạn máy tại cơ sở dữ liệu",
+      "summary": "Trigger BEFORE INSERT đếm theo license, bỏ qua máy đã tồn tại; giữ giới hạn khi hai kích hoạt đồng thời.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "kich-hoat-thiet-bi"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/migrations/0001_accounts.sql",
+      "lineRange": [
+        19,
+        29
+      ]
+    },
+    {
+      "id": "step:kich-hoat-thiet-bi:local",
+      "type": "step",
+      "name": "Lưu gói đang dùng trên máy",
+      "summary": "Client lưu license_id nhận từ server, bỏ cache và xác minh trực tuyến trước trả thành công.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "kich-hoat-thiet-bi"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/account_client.py",
+      "lineRange": [
+        153,
+        161
+      ]
+    },
+    {
+      "id": "step:kich-hoat-thiet-bi:remove",
+      "type": "step",
+      "name": "Gỡ máy thuộc gói của mình",
+      "summary": "Worker chỉ xóa device trong license user sở hữu; UI cho danh sách từng máy và xác nhận gỡ.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "kich-hoat-thiet-bi"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/worker.mjs",
+      "lineRange": [
+        199,
+        203
+      ]
+    },
+    {
+      "id": "step:kich-hoat-thiet-bi:interface",
+      "type": "step",
+      "name": "Mở ứng dụng sau chọn dùng trên máy",
+      "summary": "Chỉ desktop có nút Dùng trên máy này; portal cung cấp tải app/gói/thiết bị, không chạy bot từ website.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "kich-hoat-thiet-bi"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/account.js",
+      "lineRange": [
+        19,
+        48
+      ]
+    },
+    {
+      "id": "flow:kiem-tra-thu-hoi",
+      "type": "flow",
+      "name": "Kiểm tra quyền trực tuyến và thu hồi",
+      "summary": "Client bật account cần session/gói/thiết bị còn hiệu lực, cache tối đa 60 giây. Mất mạng sau cache hết hạn khóa thao tác và watchdog dừng bot; chính sách này còn chờ quyết định sản phẩm với đề xuất mới.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "kiem-tra-thu-hoi"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "POST /api/licenses/check; admin revoke; watchdog 15 giây",
+        "entryType": "event"
+      }
+    },
+    {
+      "id": "step:kiem-tra-thu-hoi:server-check",
+      "type": "step",
+      "name": "Kiểm tra gói, owner và máy trực tuyến",
+      "summary": "Worker yêu cầu session hợp lệ, owner đúng, revoked=0, expires còn hạn và device hiện diện; cập nhật last_seen, trả recheck_after 60.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "kiem-tra-thu-hoi"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/worker.mjs",
+      "lineRange": [
+        204,
+        209
+      ]
+    },
+    {
+      "id": "step:kiem-tra-thu-hoi:cache",
+      "type": "step",
+      "name": "Chỉ cache quyền tối đa sáu mươi giây",
+      "summary": "Client cache theo monotonic và hạn gói; thiếu credentials, phản hồi sai, mạng lỗi hoặc hết hạn phải fail closed.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "kiem-tra-thu-hoi"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/account_client.py",
+      "lineRange": [
+        91,
+        116
+      ]
+    },
+    {
+      "id": "step:kiem-tra-thu-hoi:gate",
+      "type": "step",
+      "name": "Chốt UI/API ứng dụng",
+      "summary": "Account actions được truy cập trước license; phần còn lại require trừ stop/quit/show. Root đưa về account khi chưa active; download và upload cũng chốt quyền.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "kiem-tra-thu-hoi"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/server.py",
+      "lineRange": [
+        167,
+        173
+      ]
+    },
+    {
+      "id": "step:kiem-tra-thu-hoi:background",
+      "type": "step",
+      "name": "Tạm dừng watcher khi mất quyền",
+      "summary": "Service gắn account.authorized cho watcher lịch và engine ôn tập; chúng kiểm lại mỗi vòng/job, không hủy yêu cầu AI đã gửi.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "kiem-tra-thu-hoi"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/server.py",
+      "lineRange": [
+        61,
+        72
+      ]
+    },
+    {
+      "id": "step:kiem-tra-thu-hoi:watchdog",
+      "type": "step",
+      "name": "Dừng bot đang chạy khi mất quyền",
+      "summary": "Watchdog mỗi 15 giây gọi authorized; khi cache hết hạn và không xác minh được sẽ shutdown worker. Thời gian dừng còn phụ thuộc worker.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "kiem-tra-thu-hoi"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/server.py",
+      "lineRange": [
+        506,
+        515
+      ]
+    },
+    {
+      "id": "step:kiem-tra-thu-hoi:revoke",
+      "type": "step",
+      "name": "Người bán thu hồi gói và ghi audit",
+      "summary": "Admin revoke cập nhật revoked=1 và audit cùng batch; key chưa dùng và gói đã active đều không qua kiểm tra tiếp theo.",
+      "tags": [
+        "tai-khoan-ban-quyen",
+        "kiem-tra-thu-hoi"
+      ],
+      "complexity": "moderate",
+      "filePath": "accounts/worker.mjs",
+      "lineRange": [
+        115,
+        122
       ]
     },
     {
       "id": "flow:ket-noi-quyen-zoom",
       "type": "flow",
-      "name": "Đăng nhập local và kết nối quyền Zoom",
-      "summary": "Người dùng lưu ứng dụng Zoom trên máy, hoàn tất OAuth PKCE và giữ token mã hóa; đây chưa phải quyền ghi trong cuộc họp.",
+      "name": "Bảo vệ giao diện và kết nối quyền Zoom",
+      "summary": "Lưu ứng dụng Zoom của chính người dùng, hoàn tất OAuth PKCE và bảo vệ token trên máy; không đồng nhất với quyền bản quyền hay quyền host ghi.",
       "tags": [
-        "quyen-truy-cap"
+        "quyen-truy-cap",
+        "ket-noi-quyen-zoom"
       ],
       "complexity": "complex",
       "domainMeta": {
-        "entryPoint": "POST /settings/zoom; POST /zoom/connect; GET /oauth/callback",
+        "entryPoint": "POST /settings/zoom; /zoom/connect; GET /oauth/callback",
         "entryType": "http"
       }
     },
     {
-      "id": "step:ket-noi-quyen-zoom:dang-nhap",
+      "id": "step:ket-noi-quyen-zoom:local-auth",
       "type": "step",
-      "name": "Xác thực giao diện bằng mật khẩu riêng",
-      "summary": "Docker so sánh username cunzoom và mật khẩu local; mật khẩu được tạo ngẫu nhiên, giữ qua restart.",
+      "name": "Kiểm mật khẩu giao diện Docker",
+      "summary": "Tạo mật khẩu local ngẫu nhiên bền qua restart; Docker kiểm Basic Auth username cunzoom trước nội dung riêng.",
       "tags": [
-        "quyen-truy-cap"
+        "quyen-truy-cap",
+        "ket-noi-quyen-zoom"
       ],
       "complexity": "moderate",
       "filePath": "src/access_control.py",
@@ -478,42 +1252,45 @@
       ]
     },
     {
-      "id": "step:ket-noi-quyen-zoom:bao-ve-api",
+      "id": "step:ket-noi-quyen-zoom:request",
       "type": "step",
-      "name": "Kiểm tra phiên và nguồn yêu cầu",
-      "summary": "Trước action POST phải qua Basic Auth, Host/token/Origin và JSON object dưới 65536 byte. Token so sánh thời gian hằng; kết nối bỏ ngỏ tự đóng sau 60 giây; Windows không bật SO_REUSEADDR.",
+      "name": "Kiểm phiên và nguồn POST",
+      "summary": "Host, X-App-Token, Origin và JSON object dưới 65536 byte bắt buộc trước điều phối; upload có luồng stream riêng.",
       "tags": [
-        "quyen-truy-cap"
+        "quyen-truy-cap",
+        "ket-noi-quyen-zoom"
       ],
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        462,
-        482
+        444,
+        468
       ]
     },
     {
-      "id": "step:ket-noi-quyen-zoom:luu-cau-hinh",
+      "id": "step:ket-noi-quyen-zoom:config",
       "type": "step",
-      "name": "Lưu ứng dụng và vô hiệu trạng thái cũ",
-      "summary": "Kiểm tra độ dài thông tin, giữ secret khi ô trống, loại OAuth khi đổi Client ID và đặt lại kết quả SDK khi thông tin SDK thay đổi.",
+      "name": "Lưu cấu hình và vô hiệu quyền cũ khi cần",
+      "summary": "Kiểm ID/secret, giữ secret khi ô trống; đổi Client ID bỏ OAuth, đổi SDK credentials bỏ auth-test.",
       "tags": [
-        "quyen-truy-cap"
+        "quyen-truy-cap",
+        "ket-noi-quyen-zoom"
       ],
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        202,
-        219
+        195,
+        212
       ]
     },
     {
-      "id": "step:ket-noi-quyen-zoom:kho-ma-hoa",
+      "id": "step:ket-noi-quyen-zoom:encryption",
       "type": "step",
-      "name": "Mã hóa, từ chối khóa sai",
-      "summary": "Windows dùng DPAPI, Linux dùng Fernet; ghi thay thế nguyên tử và báo lỗi khi mất/sai khóa, không ghi bản rõ.",
+      "name": "Lưu vault mã hóa và từ chối khóa sai",
+      "summary": "Windows dùng DPAPI, Linux Fernet; ghi thay thế nguyên tử, không fallback bản rõ khi mất/sai khóa.",
       "tags": [
-        "quyen-truy-cap"
+        "quyen-truy-cap",
+        "ket-noi-quyen-zoom"
       ],
       "complexity": "moderate",
       "filePath": "src/vault.py",
@@ -525,69 +1302,74 @@
     {
       "id": "step:ket-noi-quyen-zoom:pkce",
       "type": "step",
-      "name": "Tạo phiên OAuth có hạn",
-      "summary": "Tạo state cùng PKCE S256; Docker dùng callback của PUBLIC_ORIGIN, phiên hết hạn sau 600 giây.",
+      "name": "Bắt đầu OAuth state và PKCE S256",
+      "summary": "Desktop dùng listener loopback cổng ngẫu nhiên, Docker callback theo PUBLIC_ORIGIN; phiên 600 giây và thay phiên cũ.",
       "tags": [
-        "quyen-truy-cap"
+        "quyen-truy-cap",
+        "ket-noi-quyen-zoom"
       ],
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        135,
-        159
+        124,
+        148
       ]
     },
     {
-      "id": "step:ket-noi-quyen-zoom:nhan-token",
+      "id": "step:ket-noi-quyen-zoom:tokens",
       "type": "step",
-      "name": "Đổi code và lưu token",
-      "summary": "Xác minh state/hạn, xử lý việc chưa cấp quyền, chỉ mã hóa kết quả khi có đủ access và refresh token.",
+      "name": "Đổi code sau kiểm state và hạn",
+      "summary": "Callback kiểm state/hết hạn/lỗi từ Zoom và chỉ mã hóa khi đủ access/refresh token.",
       "tags": [
-        "quyen-truy-cap"
+        "quyen-truy-cap",
+        "ket-noi-quyen-zoom"
       ],
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        161,
-        176
+        150,
+        165
       ]
     },
     {
-      "id": "step:ket-noi-quyen-zoom:lam-moi",
+      "id": "step:ket-noi-quyen-zoom:refresh",
       "type": "step",
-      "name": "Làm mới quyền khi cần dùng",
-      "summary": "Trước khi vào phòng, dùng access token còn hạn hoặc đổi refresh token và lưu lại; thiếu token yêu cầu kết nối lại.",
+      "name": "Làm mới access token trước dùng",
+      "summary": "Runner dùng token còn hạn hoặc refresh và lưu; thiếu quyền báo cần kết nối lại.",
       "tags": [
-        "quyen-truy-cap"
+        "quyen-truy-cap",
+        "ket-noi-quyen-zoom"
       ],
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        53,
-        60
+        44,
+        51
       ]
     },
     {
       "id": "flow:ket-noi-dong-bo-lich",
       "type": "flow",
-      "name": "Kết nối và đồng bộ nguồn lịch học",
-      "summary": "Xác nhận lịch của người dùng, lọc buổi Zoom theo từ khóa và giữ trạng thái lỗi trung thực.",
+      "name": "Kết nối và đồng bộ lịch",
+      "summary": "Lưu nguồn iCal của người dùng, tải có giới hạn và lọc buổi Zoom rõ ràng; lỗi không được giữ phòng cũ.",
       "tags": [
-        "lich-hoc"
+        "lich-hoc",
+        "ket-noi-dong-bo-lich"
       ],
       "complexity": "complex",
       "domainMeta": {
-        "entryPoint": "POST /calendar/configure; POST /calendar/sync",
+        "entryPoint": "POST /calendar/configure; /calendar/sync",
         "entryType": "http"
       }
     },
     {
-      "id": "step:ket-noi-dong-bo-lich:xac-nhan-nguon",
+      "id": "step:ket-noi-dong-bo-lich:config",
       "type": "step",
-      "name": "Xác nhận nguồn lịch và từ khóa",
-      "summary": "Yêu cầu đúng iCal Google, có từ khóa và xác nhận tài khoản; mã hóa cấu hình rồi xóa sự kiện cũ.",
+      "name": "Xác nhận đúng lịch và từ khóa",
+      "summary": "Chỉ lưu khi có feed Google hợp lệ, từ khóa và account_confirmed; mã hóa rồi xóa events cũ.",
       "tags": [
-        "lich-hoc"
+        "lich-hoc",
+        "ket-noi-dong-bo-lich"
       ],
       "complexity": "moderate",
       "filePath": "src/calendar_watch.py",
@@ -597,12 +1379,13 @@
       ]
     },
     {
-      "id": "step:ket-noi-dong-bo-lich:tai-ical",
+      "id": "step:ket-noi-dong-bo-lich:fetch",
       "type": "step",
       "name": "Tải iCal có giới hạn",
-      "summary": "Chỉ nhận HTTPS calendar.google.com /basic.ics, không chuyển hướng; chặn lịch quá lớn và che địa chỉ bí mật trong lỗi.",
+      "summary": "Chỉ calendar.google.com/basic.ics HTTPS không redirect, tối đa 10 MB; lỗi chỉ giữ loại/mã, không lộ URL bí mật.",
       "tags": [
-        "lich-hoc"
+        "lich-hoc",
+        "ket-noi-dong-bo-lich"
       ],
       "complexity": "moderate",
       "filePath": "src/calendar_watch.py",
@@ -612,27 +1395,29 @@
       ]
     },
     {
-      "id": "step:ket-noi-dong-bo-lich:loc-buoi",
+      "id": "step:ket-noi-dong-bo-lich:parse",
       "type": "step",
-      "name": "Chọn buổi rõ giờ và một phòng",
-      "summary": "Mở rộng định kỳ 14 ngày, quy về Asia/Bangkok, bỏ cả ngày/hủy/quá hạn và các buổi có nhiều phòng; khử trùng bằng khóa.",
+      "name": "Mở rộng lịch và chọn một phòng duy nhất",
+      "summary": "Mở rộng 14 ngày, chuẩn giờ Asia/Bangkok, bỏ cả ngày/hủy/quá hạn, lọc tiêu đề; chỉ nhận đúng một meeting_id và khử trùng.",
       "tags": [
-        "lich-hoc"
+        "lich-hoc",
+        "ket-noi-dong-bo-lich"
       ],
       "complexity": "moderate",
       "filePath": "src/calendar_watch.py",
       "lineRange": [
-        74,
-        118
+        73,
+        117
       ]
     },
     {
-      "id": "step:ket-noi-dong-bo-lich:dong-bo-loi",
+      "id": "step:ket-noi-dong-bo-lich:result",
       "type": "step",
-      "name": "Cập nhật hoặc xóa lịch lỗi",
-      "summary": "Lỗi tải/đọc làm rỗng danh sách, không giữ phòng cũ; chỉ nhận kết quả khi cấu hình nguồn chưa thay đổi.",
+      "name": "Cập nhật lịch hoặc xóa khi lỗi",
+      "summary": "Nếu config đổi giữa lúc tải thì bỏ kết quả; lỗi xóa events và ghi lỗi an toàn, thành công cập nhật last_sync.",
       "tags": [
-        "lich-hoc"
+        "lich-hoc",
+        "ket-noi-dong-bo-lich"
       ],
       "complexity": "moderate",
       "filePath": "src/calendar_watch.py",
@@ -644,69 +1429,74 @@
     {
       "id": "flow:nhac-va-chuyen-link",
       "type": "flow",
-      "name": "Nhắc học và chuyển liên kết tới người dùng",
-      "summary": "Watcher nhắc trước 30 phút và tùy chọn chuyển link trước 2 phút; Docker chỉ hiển thị trong trình duyệt đang mở, không tự vào hoặc ghi.",
+      "name": "Nhắc học và chuyển link lớp",
+      "summary": "Nhắc 30 phút và tùy chọn mở link gần giờ một lần; không tự join/ghi. Watcher nền chỉ hoạt động khi account cho phép.",
       "tags": [
-        "lich-hoc"
+        "lich-hoc",
+        "nhac-va-chuyen-link"
       ],
       "complexity": "complex",
       "domainMeta": {
-        "entryPoint": "Watcher.run: đồng bộ 300 giây, tick 15 giây; POST /calendar/open",
-        "entryType": "cron"
+        "entryPoint": "Watcher.run mỗi 15 giây; POST /calendar/open",
+        "entryType": "event"
       }
     },
     {
-      "id": "step:nhac-va-chuyen-link:theo-doi",
+      "id": "step:nhac-va-chuyen-link:poll",
       "type": "step",
-      "name": "Theo dõi khi được bật",
-      "summary": "Chỉ hoạt động khi bật và có feed, đồng bộ khoảng 5 phút rồi tick; lỗi tạm dừng được báo để người dùng đồng bộ lại.",
+      "name": "Đồng bộ nền khi đang được phép",
+      "summary": "Mỗi vòng kiểm quyền; lịch bật được tải lại sau 300 giây, tick mỗi 15 giây; lỗi báo tạm dừng.",
       "tags": [
-        "lich-hoc"
+        "lich-hoc",
+        "nhac-va-chuyen-link"
       ],
       "complexity": "moderate",
       "filePath": "src/calendar_watch.py",
       "lineRange": [
         241,
-        256
+        259
       ]
     },
     {
-      "id": "step:nhac-va-chuyen-link:moc-hanh-dong",
+      "id": "step:nhac-va-chuyen-link:window",
       "type": "step",
-      "name": "Tính mốc và ngăn lặp",
-      "summary": "Chọn nhắc trong 30 phút, tùy chọn open từ 2 phút trước đến 10 phút sau giờ; lưu đánh dấu trước tác động.",
+      "name": "Chọn thời điểm nhắc và mở link",
+      "summary": "Nhắc khi còn 0–1800 giây, auto_open trong khoảng từ trước 120 tới sau 600 giây, bỏ buổi đã hết.",
       "tags": [
-        "lich-hoc"
+        "lich-hoc",
+        "nhac-va-chuyen-link"
       ],
       "complexity": "moderate",
       "filePath": "src/calendar_watch.py",
       "lineRange": [
         206,
-        229
+        221
       ]
     },
     {
-      "id": "step:nhac-va-chuyen-link:phat-su-kien",
+      "id": "step:nhac-va-chuyen-link:dedup",
       "type": "step",
-      "name": "Gửi nhắc hoặc liên kết",
-      "summary": "Gửi thông báo; hành động open chuyển link và nhắc người dùng vào Zoom trước khi xác nhận bắt đầu bot.",
+      "name": "Ghi dấu trước hành động",
+      "summary": "Lưu dấu remind/open vào vault trước side effect, dọn dấu cũ để restart không liên tục mở lại lớp.",
       "tags": [
-        "lich-hoc"
+        "lich-hoc",
+        "nhac-va-chuyen-link"
       ],
       "complexity": "moderate",
       "filePath": "src/calendar_watch.py",
       "lineRange": [
-        230,
+        222,
         239
       ]
     },
     {
-      "id": "step:nhac-va-chuyen-link:khong-tu-vao",
+      "id": "step:nhac-va-chuyen-link:handoff",
       "type": "step",
-      "name": "Mở link theo nền tảng",
-      "summary": "Windows mở link lớp bằng ứng dụng mặc định; Docker không chạy lệnh trên host mà đưa link vào hàng sự kiện cho giao diện.",
+      "name": "Mở trên Windows hoặc phát sự kiện Docker",
+      "summary": "platform_actions dùng os.startfile Windows; Linux phát open_url/notice cho giao diện, không mở trình duyệt ẩn trên host.",
       "tags": [
-        "lich-hoc"
+        "lich-hoc",
+        "nhac-va-chuyen-link"
       ],
       "complexity": "moderate",
       "filePath": "src/platform_actions.py",
@@ -716,190 +1506,235 @@
       ]
     },
     {
-      "id": "step:nhac-va-chuyen-link:hien-trong-ui",
+      "id": "step:nhac-va-chuyen-link:manual",
       "type": "step",
-      "name": "Người dùng bấm link trên UI",
-      "summary": "Giao diện hiển thị liên kết HTTPS và toast từ sự kiện mới; cần UI đang mở để nhận, không replay backlog khi mới tải.",
+      "name": "Cho người dùng mở buổi đã chọn",
+      "summary": "API chỉ lấy event còn hiện hữu; Docker trả URL cho UI, desktop mở link; bắt đầu bot là thao tác xác nhận riêng.",
       "tags": [
-        "lich-hoc"
-      ],
-      "complexity": "moderate",
-      "filePath": "web/app.js",
-      "lineRange": [
-        76,
-        100
-      ]
-    },
-    {
-      "id": "step:nhac-va-chuyen-link:mo-thu-cong",
-      "type": "step",
-      "name": "Mở đúng buổi còn trong danh sách",
-      "summary": "API lấy sự kiện theo khóa hiện tại; Docker trả URL cho giao diện, desktop mở link trực tiếp.",
-      "tags": [
-        "lich-hoc"
+        "lich-hoc",
+        "nhac-va-chuyen-link"
       ],
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        197,
-        201
+        190,
+        194
       ]
     },
     {
       "id": "flow:kiem-tra-va-vao-phong",
       "type": "flow",
-      "name": "Kiểm tra SDK rồi yêu cầu vào phòng thủ công",
-      "summary": "Yêu cầu xác nhận ghi, kiểm tra ID/link và quyền OBF của người đã vào lớp; không có luồng tự vượt quyền hoặc vào trước tài khoản OBF.",
+      "name": "Kiểm tra SDK rồi yêu cầu vào phòng",
+      "summary": "Người dùng kiểm tra SDK, chọn phòng và xác nhận được phép ghi; server lấy OBF rồi đưa JWT/OBF qua pipe cho một worker.",
       "tags": [
-        "ghi-buoi-hoc"
+        "ghi-buoi-hoc",
+        "kiem-tra-va-vao-phong"
       ],
       "complexity": "complex",
       "domainMeta": {
-        "entryPoint": "POST /sdk-test; POST /start-bot",
+        "entryPoint": "POST /sdk-test; /parse-room; /start-bot",
         "entryType": "http"
       }
     },
     {
-      "id": "step:kiem-tra-va-vao-phong:thu-sdk",
+      "id": "step:kiem-tra-va-vao-phong:auth-test",
       "type": "step",
-      "name": "Kiểm tra SDK riêng, không vào phòng",
-      "summary": "API gọi worker ở chế độ auth-test; native xác thực SDK và thoát khi chỉ kiểm tra.",
+      "name": "Kiểm SDK riêng trước join",
+      "summary": "/sdk-test chạy auth-test; join cần consent và auth_test_passed. Auth-test không tham gia phòng.",
       "tags": [
-        "ghi-buoi-hoc"
+        "ghi-buoi-hoc",
+        "kiem-tra-va-vao-phong"
       ],
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        220,
-        235
+        224,
+        232
       ]
     },
     {
-      "id": "step:kiem-tra-va-vao-phong:doi-ket-qua",
+      "id": "step:kiem-tra-va-vao-phong:room",
       "type": "step",
-      "name": "Chỉ chấp nhận kiểm tra đạt đủ",
-      "summary": "Runner chỉ lưu auth_test_passed khi SDK khởi tạo, xác thực đều thành công và tiến trình thoát 0.",
+      "name": "Đọc link phòng tại máy",
+      "summary": "Chỉ HTTPS zoom.us/zoom.com, numeric 9–11 số với đường dẫn được hỗ trợ; báo link có pwd nhưng không coi pwd nhúng là mật khẩu thật.",
       "tags": [
-        "ghi-buoi-hoc"
+        "ghi-buoi-hoc",
+        "kiem-tra-va-vao-phong"
       ],
       "complexity": "moderate",
-      "filePath": "src/runner.py",
+      "filePath": "src/room_link.py",
       "lineRange": [
-        115,
-        145
+        6,
+        27
       ]
     },
     {
-      "id": "step:kiem-tra-va-vao-phong:xac-nhan-ghi",
+      "id": "step:kiem-tra-va-vao-phong:prepare",
       "type": "step",
-      "name": "Xác nhận có phép và đúng phòng",
-      "summary": "Chặn nếu chưa consent/chưa kiểm tra SDK; chuẩn hóa ID, từ chối ID khác link trước khi làm mới OAuth.",
+      "name": "Kiểm ID và làm mới quyền Zoom",
+      "summary": "Nếu ID/link khác nhau thì từ chối; refresh OAuth trước gọi runner với subject/title và xác nhận.",
       "tags": [
-        "ghi-buoi-hoc"
+        "ghi-buoi-hoc",
+        "kiem-tra-va-vao-phong"
       ],
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        236,
-        248
+        233,
+        242
       ]
     },
     {
       "id": "step:kiem-tra-va-vao-phong:obf",
       "type": "step",
-      "name": "Xin OBF và tạo hồ sơ buổi",
-      "summary": "Chặn worker trùng, kiểm tra tên/ID/mật khẩu; xin OBF cho tài khoản OAuth đang ở phòng, sau đó tạo thư mục môn/buổi.",
+      "name": "Lấy OBF cho đúng meeting",
+      "summary": "Gọi Zoom users/me/token type=onbehalf theo meeting_id; thiếu/từ chối token báo lỗi, không gửi access token cho native.",
       "tags": [
-        "ghi-buoi-hoc"
+        "ghi-buoi-hoc",
+        "kiem-tra-va-vao-phong"
       ],
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        62,
-        113
+        53,
+        60
       ]
     },
     {
-      "id": "step:kiem-tra-va-vao-phong:ipc",
+      "id": "step:kiem-tra-va-vao-phong:launch",
       "type": "step",
-      "name": "Khởi tạo và xác thực worker",
-      "summary": "Nhận thông tin qua stdin riêng, bắt buộc OBF ở chế độ join; InitSDK và yêu cầu xác thực SDK.",
+      "name": "Tạo buổi học và một worker qua stdin riêng",
+      "summary": "Kiểm SDK/worker, bot duy nhất, consent, ID, tên và password; tạo metadata joining chưa recording_confirmed; secrets gửi base64 qua stdin.",
       "tags": [
-        "ghi-buoi-hoc"
+        "ghi-buoi-hoc",
+        "kiem-tra-va-vao-phong"
       ],
       "complexity": "moderate",
-      "filePath": "native/linux_bot.cpp",
+      "filePath": "src/runner.py",
       "lineRange": [
-        124,
-        134
+        80,
+        104
       ]
     },
     {
-      "id": "step:kiem-tra-va-vao-phong:vao-phong",
+      "id": "step:kiem-tra-va-vao-phong:native",
       "type": "step",
-      "name": "Vào bằng OBF với camera và micro tắt",
-      "summary": "Sau xác thực, cấu hình micro ảo im lặng, Join có OBF, tắt video/audio; lỗi join kết thúc quá trình.",
+      "name": "SDK auth thành công rồi yêu cầu join",
+      "summary": "Native Windows init/auth và join bằng OBF, video/audio off, external mic im lặng; lỗi hoặc timeout có event riêng.",
       "tags": [
-        "ghi-buoi-hoc"
+        "ghi-buoi-hoc",
+        "kiem-tra-va-vao-phong"
       ],
       "complexity": "moderate",
-      "filePath": "native/linux_bot.cpp",
+      "filePath": "native/bot.cpp",
       "lineRange": [
-        116,
-        123
+        98,
+        122
+      ]
+    },
+    {
+      "id": "step:kiem-tra-va-vao-phong:proof",
+      "type": "step",
+      "name": "Chỉ đánh dấu auth-test đạt khi đủ điều kiện",
+      "summary": "Runner cần SDK init, SDK auth code=0 và process exit=0; join_requested không tự thành ghi thành công.",
+      "tags": [
+        "ghi-buoi-hoc",
+        "kiem-tra-va-vao-phong"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/runner.py",
+      "lineRange": [
+        106,
+        136
       ]
     },
     {
       "id": "flow:ghi-va-dung",
       "type": "flow",
-      "name": "Xin quyền, ghi dữ liệu và dừng an toàn",
-      "summary": "Worker chờ chủ phòng cấp quyền, lưu âm thanh và ảnh chia sẻ thực tế rồi đóng phiên khi dừng hoặc lỗi; chưa được xác minh trong phòng thật Docker.",
+      "name": "Xin quyền ghi, lưu dữ liệu và dừng",
+      "summary": "Native chỉ mở raw recording khi Zoom cho phép; giữ WAV/slide local và đóng an toàn khi user STOP, mất quyền/room ended hoặc license watchdog.",
       "tags": [
-        "ghi-buoi-hoc"
+        "ghi-buoi-hoc",
+        "ghi-va-dung"
       ],
       "complexity": "complex",
       "domainMeta": {
-        "entryPoint": "Native meeting events; POST /stop-bot; SIGTERM",
+        "entryPoint": "Meeting SDK callbacks; POST /stop-bot; Service.stop",
         "entryType": "event"
       }
     },
     {
-      "id": "step:ghi-va-dung:xin-quyen",
+      "id": "step:ghi-va-dung:permission",
       "type": "step",
-      "name": "Chờ hoặc xin quyền ghi local",
-      "summary": "Chỉ StartRawRecording khi được phép; xin quyền một lần, nhận callback; từ chối/thu hồi quyền dẫn tới dừng.",
+      "name": "Chờ host cho raw recording",
+      "summary": "Windows kiểm CanStartRawRecording; xin privilege một lần khi chưa đủ quyền, thu hồi quyền đang ghi dừng raw và thoát.",
       "tags": [
-        "ghi-buoi-hoc"
+        "ghi-buoi-hoc",
+        "ghi-va-dung"
+      ],
+      "complexity": "moderate",
+      "filePath": "native/bot.cpp",
+      "lineRange": [
+        86,
+        100
+      ]
+    },
+    {
+      "id": "step:ghi-va-dung:linux",
+      "type": "step",
+      "name": "Theo quyền/timeout của Linux",
+      "summary": "Linux cũng xin quyền/stop; bị denied thoát, chờ quyền quá 300 giây hoặc admission 180 giây phải kết thúc.",
+      "tags": [
+        "ghi-buoi-hoc",
+        "ghi-va-dung"
       ],
       "complexity": "moderate",
       "filePath": "native/linux_bot.cpp",
       "lineRange": [
         104,
-        118
+        151
       ]
     },
     {
-      "id": "step:ghi-va-dung:ghi-wav",
+      "id": "step:ghi-va-dung:audio",
       "type": "step",
-      "name": "Lưu PCM thực vào WAV",
-      "summary": "Chỉ ghi buffer hợp lệ khi rawStarted, giữ header và đếm byte; lỗi ghi hoặc đổi định dạng dừng nhận.",
+      "name": "Lưu âm thanh hỗn hợp WAV",
+      "summary": "Chỉ khi rawStarted và dữ liệu hợp lệ; ghi PCM, sửa header định kỳ, đếm byte thực và dừng khi format/ghi lỗi; không ghi mic host.",
       "tags": [
-        "ghi-buoi-hoc"
+        "ghi-buoi-hoc",
+        "ghi-va-dung"
       ],
       "complexity": "moderate",
-      "filePath": "native/linux_bot.cpp",
+      "filePath": "native/bot.cpp",
       "lineRange": [
-        54,
-        68
+        45,
+        61
       ]
     },
     {
-      "id": "step:ghi-va-dung:chup-share",
+      "id": "step:ghi-va-dung:slides",
       "type": "step",
-      "name": "Lưu ảnh nội dung chia sẻ",
-      "summary": "Subscribe RAW_DATA_TYPE_SHARE và lưu JPEG giới hạn nhịp 30 giây, chiều rộng tối đa 1600; không chụp camera.",
+      "name": "Lấy ảnh luồng chia sẻ có giới hạn",
+      "summary": "Windows chụp tối đa một lần/30 giây, giới hạn kích thước, đổi YUV sang JPEG và xoay theo frame.",
       "tags": [
-        "ghi-buoi-hoc"
+        "ghi-buoi-hoc",
+        "ghi-va-dung"
+      ],
+      "complexity": "moderate",
+      "filePath": "native/bot.cpp",
+      "lineRange": [
+        63,
+        81
+      ]
+    },
+    {
+      "id": "step:ghi-va-dung:linux-slides",
+      "type": "step",
+      "name": "Lưu ảnh chia sẻ trên Linux",
+      "summary": "Linux chuyển YUV, giới hạn 1600px và 30 giây, xoay khung và nén JPEG; polling nguồn share khi rawStarted.",
+      "tags": [
+        "ghi-buoi-hoc",
+        "ghi-va-dung"
       ],
       "complexity": "moderate",
       "filePath": "native/linux_bot.cpp",
@@ -909,131 +1744,140 @@
       ]
     },
     {
-      "id": "step:ghi-va-dung:gioi-han-loi",
+      "id": "step:ghi-va-dung:stop",
       "type": "step",
-      "name": "Dừng khi quá hạn hoặc bị yêu cầu",
-      "summary": "Nhận STOP/tín hiệu; timeout xác thực 60 giây, vào phòng 180 giây, chờ ghi 300 giây và tổng phiên 3 giờ tính từ lúc bắt đầu.",
+      "name": "Gửi STOP và cưỡng dừng khi cần",
+      "summary": "Runner gửi STOP qua stdin, shutdown đợi 20 giây rồi terminate/kill nếu chưa thoát; UI vẫn cho dừng khi license mất.",
       "tags": [
-        "ghi-buoi-hoc"
+        "ghi-buoi-hoc",
+        "ghi-va-dung"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/runner.py",
+      "lineRange": [
+        62,
+        77
+      ]
+    },
+    {
+      "id": "step:ghi-va-dung:finalize",
+      "type": "step",
+      "name": "Đóng raw, WAV và SDK",
+      "summary": "Native thoát khi STOP, kết thúc phòng, lỗi hoặc hạn phiên; stop raw, leave, hoàn chỉnh WAV và cleanup SDK.",
+      "tags": [
+        "ghi-buoi-hoc",
+        "ghi-va-dung"
       ],
       "complexity": "moderate",
       "filePath": "native/linux_bot.cpp",
       "lineRange": [
         135,
-        153
-      ]
-    },
-    {
-      "id": "step:ghi-va-dung:dong-file",
-      "type": "step",
-      "name": "Dừng raw, rời phòng, đóng WAV",
-      "summary": "Ngừng subscribe và ghi, rời phòng, cập nhật WAV header rồi phát stopped kèm byte thực và dọn SDK.",
-      "tags": [
-        "ghi-buoi-hoc"
-      ],
-      "complexity": "moderate",
-      "filePath": "native/linux_bot.cpp",
-      "lineRange": [
-        155,
         157
       ]
     },
     {
-      "id": "step:ghi-va-dung:ket-thuc-trung-thuc",
+      "id": "step:ghi-va-dung:metadata",
       "type": "step",
-      "name": "Ghi trạng thái theo âm thanh thực",
-      "summary": "Runner lưu lỗi, byte và slide vào hồ sơ; chỉ trạng thái có audio mới khởi chạy chép lời, không coi vào phòng là đã ghi.",
+      "name": "Ghi kết quả thật và chép lời khi có audio",
+      "summary": "Runner cập nhật ended/state/audio_bytes/slides/error; recording_confirmed chỉ khi byte>0 và chỉ khi đó tự mở transcription.",
       "tags": [
-        "ghi-buoi-hoc"
+        "ghi-buoi-hoc",
+        "ghi-va-dung"
       ],
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        124,
-        148
-      ]
-    },
-    {
-      "id": "step:ghi-va-dung:dung-dich-vu",
-      "type": "step",
-      "name": "Chờ worker thoát trước cưỡng bức",
-      "summary": "STOP được gửi qua stdin; khi dịch vụ dừng, chờ 20 giây rồi terminate và chỉ kill nếu tiếp tục treo.",
-      "tags": [
-        "ghi-buoi-hoc"
-      ],
-      "complexity": "moderate",
-      "filePath": "src/runner.py",
-      "lineRange": [
-        71,
-        86
+        127,
+        145
       ]
     },
     {
       "id": "flow:chep-loi-local",
       "type": "flow",
-      "name": "Chép lời local và tạo bản trích ý nháp",
-      "summary": "Sau buổi có âm thanh, dùng mô hình đã tải để tạo transcript và bản nháp cần người học rà soát.",
+      "name": "Chép lời local và bản trích ý nháp",
+      "summary": "Tải mô hình một lần, chép audio/video bằng Whisper CPU offline và tạo transcript/nháp quy tắc, không coi là bản đã đối chiếu.",
       "tags": [
-        "tai-lieu-bai-giang"
+        "tai-lieu-bai-giang",
+        "chep-loi-local"
       ],
       "complexity": "complex",
       "domainMeta": {
-        "entryPoint": "POST /model/download; runner.read_events khi audio_bytes > 0",
+        "entryPoint": "POST /model/download; worker kết thúc có audio; Engine.scan",
         "entryType": "event"
       }
     },
     {
-      "id": "step:chep-loi-local:tai-model",
+      "id": "step:chep-loi-local:model",
       "type": "step",
-      "name": "Tải bộ chép lời khi yêu cầu",
-      "summary": "Tải faster-whisper-base từ Hugging Face vào cache local; báo trạng thái tải, sẵn sàng hoặc thất bại.",
+      "name": "Tải mô hình khi người dùng yêu cầu",
+      "summary": "Service tải riêng các file faster-whisper-base từ Hugging Face vào cache; trạng thái downloading/ready/failed.",
       "tags": [
-        "tai-lieu-bai-giang"
+        "tai-lieu-bai-giang",
+        "chep-loi-local"
       ],
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        117,
-        133
+        106,
+        122
       ]
     },
     {
-      "id": "step:chep-loi-local:khoi-chay",
+      "id": "step:chep-loi-local:queue",
       "type": "step",
-      "name": "Chỉ xử lý sau khi có âm thanh",
-      "summary": "Runner khởi tiến trình transcribe cho thư mục buổi khi số byte đã nhận lớn hơn 0, ghi log vào buổi tương ứng. Một luồng theo dõi ghi failed nếu tiến trình chép lời chết trước khi tự ghi trạng thái.",
+      "name": "Xếp chép lời tránh trùng",
+      "summary": "Engine chỉ chép một buổi khi có model và không đang ghi; media upload luôn chép, audio cũ cần auto; trạng thái processing có hạn stale.",
       "tags": [
-        "tai-lieu-bai-giang"
+        "tai-lieu-bai-giang",
+        "chep-loi-local"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/study.py",
+      "lineRange": [
+        593,
+        605
+      ]
+    },
+    {
+      "id": "step:chep-loi-local:process",
+      "type": "step",
+      "name": "Đánh dấu busy trước mở tiến trình",
+      "summary": "Runner ghi trạng thái processing trước Popen; frozen dùng --transcribe, source chạy module riêng và lưu log local.",
+      "tags": [
+        "tai-lieu-bai-giang",
+        "chep-loi-local"
       ],
       "complexity": "moderate",
       "filePath": "src/runner.py",
       "lineRange": [
-        149,
-        149
+        30,
+        37
       ]
     },
     {
-      "id": "step:chep-loi-local:nhan-dang",
+      "id": "step:chep-loi-local:whisper",
       "type": "step",
-      "name": "Nhận dạng tiếng Việt trên CPU",
-      "summary": "Đọc WAV/webm trong thư mục buổi; dùng Whisper base int8 local_files_only, ghi từng đoạn kèm thời gian. Mỗi file chỉ giải mã tối đa 3 giờ âm thanh (load_audio) rồi đưa mẫu cho Whisper.",
+      "name": "Chép audio/video trên CPU local",
+      "summary": "Chọn audio ghi hoặc upload media, faster-whisper base int8, local_files_only và hai CPU threads; ngôn ngữ vi với timestamp.",
       "tags": [
-        "tai-lieu-bai-giang"
+        "tai-lieu-bai-giang",
+        "chep-loi-local"
       ],
       "complexity": "moderate",
       "filePath": "src/transcribe.py",
       "lineRange": [
-        65,
-        79
+        17,
+        54
       ]
     },
     {
-      "id": "step:chep-loi-local:trich-y",
+      "id": "step:chep-loi-local:draft",
       "type": "step",
-      "name": "Chọn câu nổi bật và dấu hiệu bài tập",
-      "summary": "Quy tắc chấm điểm từ vựng chọn câu và dò cụm bài tập/hạn; nhãn bản nháp nêu rõ có thể sai, chưa đối chiếu slide.",
+      "name": "Tạo nháp và báo hoàn tất/lỗi",
+      "summary": "Trích câu theo tần suất thành tom_tat_nhap, đánh dấu cần rà; tạo hướng dẫn đối chiếu và completed hoặc failed.",
       "tags": [
-        "tai-lieu-bai-giang"
+        "tai-lieu-bai-giang",
+        "chep-loi-local"
       ],
       "complexity": "moderate",
       "filePath": "src/transcribe.py",
@@ -1043,41 +1887,44 @@
       ]
     },
     {
-      "id": "step:chep-loi-local:luu-ket-qua",
+      "id": "step:chep-loi-local:status",
       "type": "step",
-      "name": "Lưu tài liệu và trạng thái thật",
-      "summary": "Lưu transcript, trích ý, hướng dẫn rà soát; completed ghi số đoạn, exception lưu failed rồi trả lỗi. Trạng thái completed được coi là xong kể cả khi file im lặng cho bản chép lời rỗng.",
+      "name": "Giữ trạng thái chép lời riêng với ghi chú",
+      "summary": "Transcript mới hơn media là done; processing dưới sáu giờ là running; lỗi cùng nguồn là failed; model chưa có có thể dùng tài liệu khác trước.",
       "tags": [
-        "tai-lieu-bai-giang"
+        "tai-lieu-bai-giang",
+        "chep-loi-local"
       ],
       "complexity": "moderate",
-      "filePath": "src/transcribe.py",
+      "filePath": "src/study.py",
       "lineRange": [
-        80,
-        84
+        161,
+        209
       ]
     },
     {
       "id": "flow:xem-va-tai-buoi",
       "type": "flow",
-      "name": "Xem tài liệu và tải đúng buổi học",
-      "summary": "Thư viện lấy hồ sơ môn/buổi có thật, giới hạn đường dẫn và phục vụ ZIP qua giao diện đã đăng nhập.",
+      "name": "Xem và tải thư viện bài giảng",
+      "summary": "Đọc buổi học local qua ID, phân biệt ghi nhận âm thanh và tài liệu; Windows mở thư mục, Docker tạo ZIP.",
       "tags": [
-        "tai-lieu-bai-giang"
+        "tai-lieu-bai-giang",
+        "xem-va-tai-buoi"
       ],
       "complexity": "complex",
       "domainMeta": {
-        "entryPoint": "POST /status; POST /library/read; POST /library/open; GET /library/download",
+        "entryPoint": "POST /library/read; /library/open; GET /library/download",
         "entryType": "http"
       }
     },
     {
-      "id": "step:xem-va-tai-buoi:lap-danh-sach",
+      "id": "step:xem-va-tai-buoi:list",
       "type": "step",
-      "name": "Lập danh sách buổi có metadata",
-      "summary": "Duyệt dưới recordings_root, bỏ symlink/thư mục ngoài phạm vi; ID băm, sắp mới trước và tối đa 300 buổi.",
+      "name": "Liệt kê thư mục buổi có metadata",
+      "summary": "Chỉ lấy buổi trong root, chặn symlink/vượt root và metadata sai; trả ID băm, số ảnh/byte, có transcript/nháp hay không.",
       "tags": [
-        "tai-lieu-bai-giang"
+        "tai-lieu-bai-giang",
+        "xem-va-tai-buoi"
       ],
       "complexity": "moderate",
       "filePath": "src/library.py",
@@ -1087,12 +1934,13 @@
       ]
     },
     {
-      "id": "step:xem-va-tai-buoi:doc-van-ban",
+      "id": "step:xem-va-tai-buoi:read",
       "type": "step",
-      "name": "Đọc bản chép lời hoặc trích ý",
-      "summary": "Tìm ID đã biết, chỉ nhận loại summary/transcript; xác minh tệp trong thư mục buổi và giới hạn 160000 ký tự.",
+      "name": "Đọc đúng loại tài liệu qua ID",
+      "summary": "Chỉ transcript/summary được ánh xạ, kiểm đường dẫn trong buổi và giới hạn 160000 ký tự.",
       "tags": [
-        "tai-lieu-bai-giang"
+        "tai-lieu-bai-giang",
+        "xem-va-tai-buoi"
       ],
       "complexity": "moderate",
       "filePath": "src/library.py",
@@ -1102,27 +1950,45 @@
       ]
     },
     {
-      "id": "step:xem-va-tai-buoi:tao-link-tai",
+      "id": "step:xem-va-tai-buoi:show",
       "type": "step",
-      "name": "Trả liên kết tải từ ID hợp lệ",
-      "summary": "Docker kiểm tra buổi rồi trả URL nội bộ; desktop mở thư mục đã biết thay vì nhận đường dẫn tùy ý.",
+      "name": "Hiển thị tài liệu như dữ liệu",
+      "summary": "UI hiển thị âm thanh/ảnh hoặc reader, dựng Markdown hạn chế và textContent; không chạy nội dung bài giảng.",
       "tags": [
-        "tai-lieu-bai-giang"
+        "tai-lieu-bai-giang",
+        "xem-va-tai-buoi"
+      ],
+      "complexity": "moderate",
+      "filePath": "web/app.js",
+      "lineRange": [
+        28,
+        35
+      ]
+    },
+    {
+      "id": "step:xem-va-tai-buoi:download",
+      "type": "step",
+      "name": "Mở thư mục hoặc trả ZIP có kiểm quyền",
+      "summary": "Desktop mở local; Docker GET tải đã qua Basic Auth và license, stream zip tạm.",
+      "tags": [
+        "tai-lieu-bai-giang",
+        "xem-va-tai-buoi"
       ],
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        253,
-        260
+        365,
+        390
       ]
     },
     {
-      "id": "step:xem-va-tai-buoi:dong-goi-zip",
+      "id": "step:xem-va-tai-buoi:zip",
       "type": "step",
-      "name": "Đóng gói riêng dữ liệu buổi",
-      "summary": "Chỉ đưa tệp thường trong buổi đã chọn vào ZIP, bỏ symlink và tệp nằm ngoài thư mục buổi.",
+      "name": "Chỉ đóng gói file trong phạm vi",
+      "summary": "Archive không theo symlink/vượt folder, trả TemporaryFile và đóng khi lỗi.",
       "tags": [
-        "tai-lieu-bai-giang"
+        "tai-lieu-bai-giang",
+        "xem-va-tai-buoi"
       ],
       "complexity": "moderate",
       "filePath": "src/library.py",
@@ -1132,624 +1998,559 @@
       ]
     },
     {
-      "id": "step:xem-va-tai-buoi:phuc-vu-download",
-      "type": "step",
-      "name": "Tải sau xác thực, báo sai ID",
-      "summary": "Handler yêu cầu Host hợp lệ và đăng nhập trước khi stream ZIP; ID không hợp lệ trả lỗi 400.",
-      "tags": [
-        "tai-lieu-bai-giang"
-      ],
-      "complexity": "moderate",
-      "filePath": "src/server.py",
-      "lineRange": [
-        374,
-        397
-      ]
-    },
-    {
-      "id": "step:kiem-tra-phat-hanh:ra-lai-ban-do",
-      "type": "step",
-      "name": "Rà và tái tạo bản đồ trước khi gửi CI",
-      "summary": "Áp dụng /workflow cùng understand-domain --full để phân tích lại nguồn; gọi refresh với đúng plugin ghim. Công cụ dùng validator gốc, sinh graph/tài liệu và snapshot; đây là bảo trì chủ động, CI không tự phân tích AI.",
-      "tags": [
-        "van-hanh"
-      ],
-      "complexity": "complex",
-      "filePath": "scripts/workflow_map.py",
-      "lineRange": [
-        320,
-        343
-      ]
-    },
-    {
-      "id": "step:kiem-tra-phat-hanh:chan-ban-do-lech",
-      "type": "step",
-      "name": "CI chặn bản đồ lệch trước tests",
-      "summary": "Ngay sau check_source, CI gọi workflow_map.py check để đối chiếu fingerprint nguồn/artifact và kiểm tra graph. Bản đồ thiếu, đường dẫn sai hoặc nội dung lệch phải sửa và refresh trước khi tiếp tục unit/integration/JavaScript.",
-      "tags": [
-        "van-hanh"
-      ],
-      "complexity": "moderate",
-      "filePath": ".github/workflows/docker-release.yml",
-      "lineRange": [
-        32,
-        37
-      ]
-    },
-    {
-      "id": "step:kiem-tra-phat-hanh:ban-giao-github",
-      "type": "step",
-      "name": "Đồng bộ mục lục bàn giao và skill",
-      "summary": "Dùng docs/HANDOVER.md làm điểm tìm cơ chế, nguồn, cài đặt, vận hành, kiểm chứng và skill /workflow. Bàn giao nguồn, graph và tài liệu trên đúng repo được phép; giữ SDK, khóa và dữ liệu học ngoài GitHub. Chỉ xác nhận đã đưa lên GitHub sau khi kiểm tra kết quả publish.",
-      "tags": [
-        "van-hanh"
-      ],
-      "complexity": "moderate",
-      "filePath": "docs/HANDOVER.md",
-      "lineRange": [
-        1,
-        39
-      ]
-    },
-    {
-      "id": "flow:chay-ban-windows",
-      "type": "flow",
-      "name": "Mở và nâng cấp bản Windows",
-      "summary": "Chạy CunZoom.exe một phiên duy nhất, nhận lại dữ liệu của bản 1.x trên cùng máy, mở cửa sổ và khay hệ thống, rồi để người dùng cài Zoom SDK của chính họ.",
-      "tags": [
-        "van-hanh",
-        "windows"
-      ],
-      "complexity": "moderate",
-      "domainMeta": {
-        "entryPoint": "Mở CunZoom.exe",
-        "entryType": "manual"
-      }
-    },
-    {
-      "id": "step:chay-ban-windows:thu-muc-du-lieu",
-      "type": "step",
-      "name": "Chọn thư mục dữ liệu theo nền tảng",
-      "summary": "Windows dùng tiếp thư mục dữ liệu mặc định mà bản 1.x đã tạo trên máy, nếu không có thì dùng %LOCALAPPDATA%\\CunZoom; Docker/Linux dùng thư mục được cấu hình.",
-      "tags": [
-        "van-hanh",
-        "windows"
-      ],
-      "complexity": "moderate",
-      "filePath": "src/paths.py",
-      "lineRange": [
-        11,
-        18
-      ]
-    },
-    {
-      "id": "step:chay-ban-windows:thu-muc-bai-giang",
-      "type": "step",
-      "name": "Giữ thư mục bài giảng cũ",
-      "summary": "Khi chưa chọn thư mục, bản desktop đọc lại vị trí bài giảng mặc định của 1.x; container luôn khóa vào /data/lessons.",
-      "tags": [
-        "van-hanh",
-        "windows"
-      ],
-      "complexity": "moderate",
-      "filePath": "src/paths.py",
-      "lineRange": [
-        30,
-        42
-      ]
-    },
-    {
-      "id": "step:chay-ban-windows:sao-chep-kho-khoa",
-      "type": "step",
-      "name": "Sao chép kho khóa 1.x",
-      "summary": "Chỉ trên desktop: sao chép quyen_zoom.dpapi/calendar.dpapi sang zoom.vault/calendar.vault khi chưa có; file nguồn giữ nguyên.",
-      "tags": [
-        "van-hanh",
-        "windows"
-      ],
-      "complexity": "moderate",
-      "filePath": "src/paths.py",
-      "lineRange": [
-        44,
-        49
-      ]
-    },
-    {
-      "id": "step:chay-ban-windows:goi-nang-cap",
-      "type": "step",
-      "name": "Chạy nâng cấp trước dịch vụ",
-      "summary": "Điểm vào gọi bước sao chép trước khi khởi tạo API, trừ khi chạy với --no-migrate (CI self-test).",
-      "tags": [
-        "van-hanh",
-        "windows"
-      ],
-      "complexity": "moderate",
-      "filePath": "src/main.py",
-      "lineRange": [
-        72,
-        73
-      ]
-    },
-    {
-      "id": "step:chay-ban-windows:mot-phien",
-      "type": "step",
-      "name": "Giữ một phiên ứng dụng",
-      "summary": "Mutex Windows chặn mở hai bản; lần mở thứ hai yêu cầu bản đang chạy hiện cửa sổ.",
-      "tags": [
-        "van-hanh",
-        "windows"
-      ],
-      "complexity": "moderate",
-      "filePath": "src/main.py",
-      "lineRange": [
-        85,
-        96
-      ]
-    },
-    {
-      "id": "step:chay-ban-windows:cua-so-khay",
-      "type": "step",
-      "name": "Mở cửa sổ WebView2 và khay hệ thống",
-      "summary": "Tạo API loopback, cửa sổ WebView2, biểu tượng khay và thông báo lịch; đóng cửa sổ chỉ thu gọn, Thoát mới dừng dịch vụ và bộ ghi. Cửa sổ mở trang bằng khóa khởi chạy riêng; tài khoản khác trên máy không lấy được token từ loopback.",
-      "tags": [
-        "van-hanh",
-        "windows"
-      ],
-      "complexity": "moderate",
-      "filePath": "src/main.py",
-      "lineRange": [
-        98,
-        156
-      ]
-    },
-    {
-      "id": "step:kiem-tra-phat-hanh:build-exe",
-      "type": "step",
-      "name": "Build và tự kiểm tra CunZoom.exe",
-      "summary": "Tests trên Windows, lấy SDK Windows từ kho riêng và đối chiếu SHA-256, biên dịch worker, đóng gói exe không kèm SDK, chạy --self-test với SDK đặt ngoài và từ chối exe chứa SDK; giữ exe làm artifact.",
-      "tags": [
-        "van-hanh",
-        "windows"
-      ],
-      "complexity": "complex",
-      "filePath": ".github/workflows/docker-release.yml",
-      "lineRange": [
-        38,
-        111
-      ]
-    },
-    {
-      "id": "step:chay-ban-windows:cai-sdk",
-      "type": "step",
-      "name": "Cài Zoom SDK của người dùng",
-      "summary": "Người dùng chọn file ZIP Meeting SDK Windows chính thức; khi bot không chạy và thư mục SDK do ứng dụng quản lý, ứng dụng chỉ chép x64/bin vào zoom-sdk rồi thay bản cũ.",
-      "tags": [
-        "van-hanh",
-        "windows"
-      ],
-      "complexity": "moderate",
-      "filePath": "src/sdk_setup.py",
-      "lineRange": [
-        47,
-        69
-      ]
-    },
-    {
-      "id": "domain:on-tap",
-      "type": "domain",
-      "name": "Ôn tập và hệ thống hoá kiến thức",
-      "tags": [
-        "on-tap"
-      ],
-      "complexity": "complex",
-      "summary": "Biến bài giảng và tài liệu tải lên thành ghi chú từng buổi, hệ thống kiến thức của môn (nhóm, độ liên quan, độ khó), đề cương và đề thi thử. AI tắt cho tới khi người dùng chọn Claude (khóa riêng) hoặc Ollama; mọi file kết quả nằm trong thư mục bài giảng.",
-      "domainMeta": {
-        "entities": [
-          "Ghi chú buổi",
-          "Hệ thống kiến thức môn",
-          "Đề cương",
-          "Đề thi thử",
-          "Tài liệu tải lên",
-          "Cấu hình AI"
-        ],
-        "businessRules": [
-          "Chỉ dùng nội dung được cung cấp; bản AI cần đối chiếu giáo trình.",
-          "Đồng bộ theo dấu vân tay nội dung file; chỉ chạy lại phần thay đổi, một việc AI mỗi lúc.",
-          "Việc lỗi không tự thử lại với cùng dữ liệu cho tới khi có file mới hoặc người dùng bấm Đồng bộ lại.",
-          "Chép lời một buổi mỗi lúc và không chạy khi bot đang ghi.",
-          "Đề thi thử chỉ tạo khi người dùng yêu cầu; câu trắc nghiệm không đủ 4 lựa chọn bị loại.",
-          "Khóa Claude được mã hóa, không trả lại giao diện; Haiku 5.5 không dùng fallback máy chủ."
-        ],
-        "crossDomainInteractions": [
-          "Dùng bản chép lời và ảnh slide của miền ghi buổi học và thư viện.",
-          "Dùng vault và xác thực API của miền truy cập."
-        ]
-      }
-    },
-    {
       "id": "flow:tai-tai-lieu",
       "type": "flow",
-      "name": "Tải tài liệu lên buổi học",
-      "summary": "Người dùng đưa PDF, Word, PowerPoint, ảnh, chữ hoặc âm thanh/video vào buổi có sẵn hoặc buổi mới; file được ghi nguyên vẹn rồi kích hoạt đồng bộ.",
+      "name": "Tải tài liệu học vào buổi",
+      "summary": "Upload tài liệu vào buổi có sẵn hoặc tạo buổi chỉ có tài liệu; lưu local, không gửi lên account portal.",
       "tags": [
-        "on-tap"
+        "tai-lieu-bai-giang",
+        "tai-tai-lieu"
       ],
-      "complexity": "moderate",
+      "complexity": "complex",
       "domainMeta": {
-        "entryPoint": "Bấm Tải tài liệu lên",
-        "entryType": "manual"
+        "entryPoint": "POST /study/upload",
+        "entryType": "http"
       }
     },
     {
-      "id": "step:tai-tai-lieu:chon-file",
+      "id": "step:tai-tai-lieu:ui",
       "type": "step",
-      "name": "Chọn môn, buổi và file",
-      "summary": "Giao diện gửi từng file thành một request riêng kèm token; file đầu tạo buổi mới, các file sau vào cùng buổi.",
+      "name": "Chọn môn/buổi và nhiều file",
+      "summary": "Giao diện gửi từng file theo thứ tự; file đầu tạo lesson, file sau tái dùng lesson; hiện tiến độ và lỗi.",
       "tags": [
-        "on-tap"
+        "tai-lieu-bai-giang",
+        "tai-tai-lieu"
       ],
       "complexity": "moderate",
       "filePath": "web/study.js",
       "lineRange": [
-        119,
-        127
+        112,
+        126
       ]
     },
     {
-      "id": "step:tai-tai-lieu:nhan-luong",
+      "id": "step:tai-tai-lieu:gate",
       "type": "step",
-      "name": "Nhận file theo luồng có giới hạn",
-      "summary": "Server kiểm tra token, nguồn, kích thước ≤ 2 GB, ghi từng phần ra file tạm rồi đổi tên; lỗi thì xóa phần dở.",
+      "name": "Kiểm quyền trước nhận stream",
+      "summary": "POST upload cần Basic Auth/Host/app-token/Origin và license như các thao tác ứng dụng.",
       "tags": [
-        "on-tap"
+        "tai-lieu-bai-giang",
+        "tai-tai-lieu"
       ],
       "complexity": "moderate",
       "filePath": "src/server.py",
       "lineRange": [
-        483,
-        516
+        444,
+        454
       ]
     },
     {
-      "id": "step:tai-tai-lieu:ten-an-toan",
+      "id": "step:tai-tai-lieu:lesson",
       "type": "step",
-      "name": "Kiểm tra loại và tên file",
-      "summary": "Chỉ nhận đuôi được hỗ trợ, làm sạch tên, không ghi đè file cùng tên.",
+      "name": "Tạo buổi tài liệu local",
+      "summary": "Dùng tên đã làm sạch, chặn root/nhóm đặc biệt, tạo cấu trúc thư mục và metadata source=upload.",
       "tags": [
-        "on-tap"
+        "tai-lieu-bai-giang",
+        "tai-tai-lieu"
       ],
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        575,
-        584
+        507,
+        519
       ]
     },
     {
-      "id": "step:tai-tai-lieu:buoi-moi",
+      "id": "step:tai-tai-lieu:name",
       "type": "step",
-      "name": "Tạo buổi chỉ có tài liệu",
-      "summary": "Tạo thư mục buổi cùng cấu trúc bản ghi, chặn tên môn đặc biệt hoặc thoát khỏi thư mục bài giảng.",
+      "name": "Chọn tên và loại tài liệu",
+      "summary": "Chỉ PDF/DOCX/PPTX/ảnh/TXT/MD/media được chấp nhận, bỏ đường dẫn tên gửi vào và tránh ghi đè bằng hậu tố.",
       "tags": [
-        "on-tap"
+        "tai-lieu-bai-giang",
+        "tai-tai-lieu"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/study.py",
+      "lineRange": [
+        522,
+        531
+      ]
+    },
+    {
+      "id": "step:tai-tai-lieu:stream",
+      "type": "step",
+      "name": "Stream tối đa hai GB rồi thay nguyên tử",
+      "summary": "Dùng Content-Length, đọc mỗi chunk tối đa 1MB vào .part; rename khi hoàn tất, xóa part khi ngắt/lỗi và đánh thức engine.",
+      "tags": [
+        "tai-lieu-bai-giang",
+        "tai-tai-lieu"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/server.py",
+      "lineRange": [
+        469,
+        502
+      ]
+    },
+    {
+      "id": "step:tai-tai-lieu:extract",
+      "type": "step",
+      "name": "Đọc file thành đầu vào AI",
+      "summary": "Đọc TXT/Office XML/PDF có giới hạn và cảnh báo file lỗi; Claude có ảnh/PDF, Ollama dùng text hoặc thử ảnh rồi fallback.",
+      "tags": [
+        "tai-lieu-bai-giang",
+        "tai-tai-lieu"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/documents.py",
+      "lineRange": [
+        31,
+        96
+      ]
+    },
+    {
+      "id": "flow:ai-va-dong-bo",
+      "type": "flow",
+      "name": "Cấu hình AI và đồng bộ nền",
+      "summary": "AI tùy chọn mặc định tắt, dùng khóa Claude của user hoặc Ollama. Hàng đợi một job/lần, fingerprint tránh làm lại và lỗi chờ nguồn mới hoặc retry.",
+      "tags": [
+        "tai-lieu-bai-giang",
+        "ai-va-dong-bo"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "POST /ai/save; /ai/test; Engine.loop",
+        "entryType": "event"
+      }
+    },
+    {
+      "id": "step:ai-va-dong-bo:settings",
+      "type": "step",
+      "name": "Chọn provider và mã hóa cấu hình",
+      "summary": "Kiểm provider/model/key Claude hoặc URL/model Ollama, giữ key khi ô trống; public_settings chỉ trả cờ key_saved.",
+      "tags": [
+        "tai-lieu-bai-giang",
+        "ai-va-dong-bo"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/ai_backend.py",
+      "lineRange": [
+        33,
+        82
+      ]
+    },
+    {
+      "id": "step:ai-va-dong-bo:test",
+      "type": "step",
+      "name": "Kiểm thử kết nối bằng JSON nhỏ",
+      "summary": "generate chọn backend khi đã enabled; test chỉ đạt khi kết quả có ok=true.",
+      "tags": [
+        "tai-lieu-bai-giang",
+        "ai-va-dong-bo"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/ai_backend.py",
+      "lineRange": [
+        89,
+        104
+      ]
+    },
+    {
+      "id": "step:ai-va-dong-bo:claude",
+      "type": "step",
+      "name": "Gửi nội dung bằng SDK Claude",
+      "summary": "Giới hạn tài liệu 24MB, stream với schema/effort/cache, fallback chỉ model được cấu hình; lỗi API được dịch. Chưa xác minh model/account thật bằng mã này.",
+      "tags": [
+        "tai-lieu-bai-giang",
+        "ai-va-dong-bo"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/ai_backend.py",
+      "lineRange": [
+        107,
+        158
+      ]
+    },
+    {
+      "id": "step:ai-va-dong-bo:ollama",
+      "type": "step",
+      "name": "Gửi yêu cầu tới Ollama đã chọn",
+      "summary": "POST /api/chat với schema và num_ctx 32768; model từ chối ảnh thử lại text; lỗi HTTP/mạng/JSON được báo.",
+      "tags": [
+        "tai-lieu-bai-giang",
+        "ai-va-dong-bo"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/ai_backend.py",
+      "lineRange": [
+        161,
+        195
+      ]
+    },
+    {
+      "id": "step:ai-va-dong-bo:queue",
+      "type": "step",
+      "name": "Ưu tiên yêu cầu thủ công và chống trùng",
+      "summary": "Request kiểm AI enabled/môn hợp lệ, xóa failed của môn và appendleft nếu chưa có; status trả current/queued/errors.",
+      "tags": [
+        "tai-lieu-bai-giang",
+        "ai-va-dong-bo"
       ],
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
         560,
-        572
+        574
       ]
     },
     {
-      "id": "step:tai-tai-lieu:chep-loi-tai-len",
+      "id": "step:ai-va-dong-bo:sync",
       "type": "step",
-      "name": "Chép lời âm thanh/video tải lên",
-      "summary": "Bộ chép lời đọc âm thanh bot ghi và mọi file media tải lên, ghi bản chép lời một lần khi xong.",
+      "name": "Scan theo fingerprint và quyền",
+      "summary": "Loop chờ nếu không authorized; auto xếp session, môn rồi outline theo fingerprint; không tự tạo đề thử.",
       "tags": [
-        "on-tap"
+        "tai-lieu-bai-giang",
+        "ai-va-dong-bo"
       ],
       "complexity": "moderate",
-      "filePath": "src/transcribe.py",
+      "filePath": "src/study.py",
       "lineRange": [
-        51,
-        57
+        576,
+        629
       ]
     },
     {
-      "id": "flow:dong-bo",
-      "type": "flow",
-      "name": "Tự đồng bộ ghi chú và hệ thống kiến thức",
-      "summary": "Bộ đồng bộ chạy nền phát hiện dữ liệu mới, chép lời, hệ thống hoá buổi, cập nhật hệ thống kiến thức môn, đề cương và mục lục tổng.",
+      "id": "step:ai-va-dong-bo:run",
+      "type": "step",
+      "name": "Chạy một job và giữ dấu lỗi nguồn",
+      "summary": "run_jobs kiểm authorized giữa job, thực hiện session/subject/outline/exam tuần tự; lỗi lưu phiên bản để không retry vô hạn.",
       "tags": [
-        "on-tap"
+        "tai-lieu-bai-giang",
+        "ai-va-dong-bo"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/study.py",
+      "lineRange": [
+        631,
+        666
+      ]
+    },
+    {
+      "id": "flow:he-thong-kien-thuc",
+      "type": "flow",
+      "name": "Hệ thống hóa buổi và kiến thức môn",
+      "summary": "AI dùng bản chép lời, tài liệu và slide để tạo ghi chú có nguồn rồi hợp nhất theo môn; không tự chứng minh tính chính xác.",
+      "tags": [
+        "tai-lieu-bai-giang",
+        "he-thong-kien-thuc"
       ],
       "complexity": "complex",
       "domainMeta": {
-        "entryPoint": "Có bài giảng/tài liệu mới hoặc bấm Đồng bộ lại",
+        "entryPoint": "Engine jobs session/subject; POST /study/run kind=sync",
         "entryType": "event"
       }
     },
     {
-      "id": "step:dong-bo:quet",
+      "id": "step:he-thong-kien-thuc:inputs",
       "type": "step",
-      "name": "Quét thay đổi và xếp việc",
-      "summary": "Mỗi 30 giây hoặc khi được đánh thức: khởi chạy một lượt chép lời nếu cần, xếp việc cho buổi/môn/đề cương đã cũ. Môn có buổi bot đang ghi được bỏ qua tới khi ghi xong, để slide mới không làm AI chạy lại.",
+      "name": "Chọn nguồn và cảnh báo phần thiếu",
+      "summary": "Fingerprint bao gồm transcript, tài liệu, slide; báo chép lời lỗi/thiếu, đọc upload, Claude chọn tối đa 20 slide; Ollama báo bỏ slide ghi.",
       "tags": [
-        "on-tap"
+        "tai-lieu-bai-giang",
+        "he-thong-kien-thuc"
       ],
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        645,
-        680
+        239,
+        268
       ]
     },
     {
-      "id": "step:dong-bo:van-tay",
+      "id": "step:he-thong-kien-thuc:notes",
       "type": "step",
-      "name": "So dấu vân tay nội dung",
-      "summary": "Ghi chú hợp lệ khi dấu vân tay bản chép lời, tài liệu và slide trùng lúc tạo; khác thì là cũ.",
+      "name": "Sinh và lưu ghi chú từng buổi",
+      "summary": "Nếu quá giới hạn thì chia đoạn rồi hợp nhất; tổ chức theo liên quan/độ khó, lưu JSON/MD với fingerprint, model, file và cảnh báo.",
       "tags": [
-        "on-tap"
+        "tai-lieu-bai-giang",
+        "he-thong-kien-thuc"
       ],
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        188,
-        194
+        269,
+        295
       ]
     },
     {
-      "id": "step:dong-bo:doc-tai-lieu",
+      "id": "step:he-thong-kien-thuc:subject",
       "type": "step",
-      "name": "Chuẩn bị tài liệu cho AI",
-      "summary": "PDF gửi nguyên cho Claude hoặc tách chữ cho Ollama; DOCX/PPTX đọc XML; ảnh giới hạn 5 MB; file lỗi thành cảnh báo. XML Office đọc theo luồng, không nhận DTD, giới hạn 200 MB XML và 4 triệu ký tự mỗi file.",
+      "name": "Tổng hợp kiến thức theo môn",
+      "summary": "Dùng các buổi đã có notes, gộp trùng theo chủ đề/quan hệ; chia lô khi cần rồi lưu hệ thống JSON/MD có fingerprint nguồn.",
       "tags": [
-        "on-tap"
-      ],
-      "complexity": "moderate",
-      "filePath": "src/documents.py",
-      "lineRange": [
-        63,
-        93
-      ]
-    },
-    {
-      "id": "step:dong-bo:ghi-chu-buoi",
-      "type": "step",
-      "name": "Hệ thống hoá một buổi",
-      "summary": "Gửi bản chép lời, tài liệu và tối đa 20 ảnh slide; bài quá dài được chia phần rồi gộp; kết quả sắp theo độ liên quan và độ khó; không có nội dung đọc được (chỉ có file hỏng) thì báo lỗi, không gọi AI. File .md chặn ảnh và HTML do AI chèn (escape `![` và `<`).",
-      "tags": [
-        "on-tap"
+        "tai-lieu-bai-giang",
+        "he-thong-kien-thuc"
       ],
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        244,
-        305
+        316,
+        349
       ]
     },
     {
-      "id": "step:dong-bo:goi-ai",
+      "id": "step:he-thong-kien-thuc:index",
       "type": "step",
-      "name": "Gọi AI với JSON theo schema",
-      "summary": "Claude: SDK, output_config.format, fallback máy chủ, cache, xử lý từ chối/quá dài; Ollama: /api/chat với format schema, bỏ ảnh nếu mô hình chỉ đọc chữ, trừ khi buổi chỉ có ảnh thì báo lỗi thay vì đoán.",
+      "name": "Tạo mục lục tổng khi dữ liệu đổi",
+      "summary": "Liệt kê môn/buổi/ghi chú, liên kết hệ thống/đề cương và số đề thử; chỉ ghi khi nội dung mới.",
       "tags": [
-        "on-tap"
-      ],
-      "complexity": "moderate",
-      "filePath": "src/ai_backend.py",
-      "lineRange": [
-        94,
-        102
-      ]
-    },
-    {
-      "id": "step:dong-bo:he-thong-mon",
-      "type": "step",
-      "name": "Tổng hợp kiến thức của môn",
-      "summary": "Gộp ghi chú các buổi, bỏ trùng, đánh giá lại độ liên quan/độ khó, ghi buổi nguồn và liên kết khái niệm.",
-      "tags": [
-        "on-tap"
+        "tai-lieu-bai-giang",
+        "he-thong-kien-thuc"
       ],
       "complexity": "moderate",
       "filePath": "src/study.py",
       "lineRange": [
-        326,
-        359
+        487,
+        504
       ]
     },
     {
-      "id": "step:dong-bo:de-cuong",
+      "id": "step:he-thong-kien-thuc:view",
       "type": "step",
-      "name": "Lập đề cương",
-      "summary": "Chia chương, đánh dấu ý trọng tâm, câu hỏi tự kiểm tra, trọng tâm thi và kế hoạch ôn; đánh dấu cũ khi hệ thống kiến thức đổi.",
+      "name": "Đọc trạng thái và các tầng kiến thức",
+      "summary": "API overview/subject trả trạng thái nguồn, map/outline/exam và từng buổi; UI lọc độ liên quan/độ khó/từ khóa bằng text.",
       "tags": [
-        "on-tap"
+        "tai-lieu-bai-giang",
+        "he-thong-kien-thuc"
       ],
       "complexity": "moderate",
-      "filePath": "src/study.py",
+      "filePath": "web/study.js",
       "lineRange": [
-        369,
-        380
+        28,
+        73
       ]
     },
     {
-      "id": "step:dong-bo:muc-luc",
-      "type": "step",
-      "name": "Cập nhật mục lục tổng",
-      "summary": "Ghi 00_Tong_hop/Muc_luc.md khi nội dung đổi, liên kết tới file của từng môn.",
-      "tags": [
-        "on-tap"
-      ],
-      "complexity": "moderate",
-      "filePath": "src/study.py",
-      "lineRange": [
-        540,
-        557
-      ]
-    },
-    {
-      "id": "step:dong-bo:khong-lap-loi",
-      "type": "step",
-      "name": "Không lặp lại việc lỗi",
-      "summary": "Việc lỗi được nhớ theo dữ liệu đầu vào; chỉ chạy lại khi file đổi hoặc người dùng yêu cầu. Buổi lỗi không chặn hệ thống kiến thức và đề cương của các buổi khác, lỗi của buổi vẫn hiện. Mọi loại lỗi (kể cả lỗi bất ngờ) đều được nhớ như vậy.",
-      "tags": [
-        "on-tap"
-      ],
-      "complexity": "moderate",
-      "filePath": "src/study.py",
-      "lineRange": [
-        682,
-        689
-      ]
-    },
-    {
-      "id": "flow:de-thi",
+      "id": "flow:de-cuong-va-de-thu",
       "type": "flow",
-      "name": "Tạo và làm đề thi thử",
-      "summary": "Người dùng chọn số câu và mức độ; AI soạn đề từ hệ thống kiến thức; người dùng làm trắc nghiệm và xem gợi ý chấm tự luận.",
+      "name": "Tạo đề cương, đề thử và tự ôn",
+      "summary": "Từ kiến thức môn đã có tạo đề cương và đề thi thử, lưu JSON/Markdown local. Trắc nghiệm chấm trong trình duyệt; tự luận có gợi ý chấm, chưa có lịch sử điểm server.",
       "tags": [
-        "on-tap"
+        "tai-lieu-bai-giang",
+        "de-cuong-va-de-thu"
       ],
-      "complexity": "moderate",
+      "complexity": "complex",
       "domainMeta": {
-        "entryPoint": "Bấm Tạo đề thi thử",
-        "entryType": "manual"
+        "entryPoint": "POST /study/run kind=outline/exam; /study/exam; /study/open",
+        "entryType": "http"
       }
     },
     {
-      "id": "step:de-thi:chon-de",
+      "id": "step:de-cuong-va-de-thu:request",
       "type": "step",
-      "name": "Chọn số câu và mức độ",
-      "summary": "Tối đa 60 trắc nghiệm và 10 tự luận, mức cân bằng / cơ bản / nâng cao.",
+      "name": "Kiểm yêu cầu tạo nội dung ôn tập",
+      "summary": "API kiểm loại và mức mix rồi xếp job; thư mục/tải ôn tập qua luồng riêng theo nền tảng.",
       "tags": [
-        "on-tap"
+        "tai-lieu-bai-giang",
+        "de-cuong-va-de-thu"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/server.py",
+      "lineRange": [
+        298,
+        324
+      ]
+    },
+    {
+      "id": "step:de-cuong-va-de-thu:outline",
+      "type": "step",
+      "name": "Sinh đề cương từ hệ thống môn",
+      "summary": "Cần knowledge_map, yêu cầu mục tiêu/chương/trọng tâm/kế hoạch, lưu base fingerprint và JSON/Markdown.",
+      "tags": [
+        "tai-lieu-bai-giang",
+        "de-cuong-va-de-thu"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/study.py",
+      "lineRange": [
+        352,
+        370
+      ]
+    },
+    {
+      "id": "step:de-cuong-va-de-thu:exam",
+      "type": "step",
+      "name": "Sinh đề thử theo số câu và độ khó",
+      "summary": "Giới hạn 0–60 trắc nghiệm, 0–10 tự luận, ít nhất một câu; dùng nguồn môn, chỉ giữ MC có bốn lựa chọn; lưu ID timestamp.",
+      "tags": [
+        "tai-lieu-bai-giang",
+        "de-cuong-va-de-thu"
+      ],
+      "complexity": "moderate",
+      "filePath": "src/study.py",
+      "lineRange": [
+        373,
+        416
+      ]
+    },
+    {
+      "id": "step:de-cuong-va-de-thu:practice",
+      "type": "step",
+      "name": "Làm bài và chấm trắc nghiệm ở UI",
+      "summary": "Lưu lựa chọn trong trạng thái JS, nộp hiện đúng/sai/giải thích và số câu đúng; tự luận chỉ textarea/gợi ý, chưa lưu kết quả server.",
+      "tags": [
+        "tai-lieu-bai-giang",
+        "de-cuong-va-de-thu"
       ],
       "complexity": "moderate",
       "filePath": "web/study.js",
       "lineRange": [
         86,
-        98
+        110
       ]
     },
     {
-      "id": "step:de-thi:xep-viec",
+      "id": "step:de-cuong-va-de-thu:export",
       "type": "step",
-      "name": "Xếp việc tạo đề",
-      "summary": "Server kiểm tra mức độ rồi đưa việc vào hàng chờ, không trùng việc đang chạy; tạo đề không thử lại buổi đang lỗi, Đồng bộ lại thì có.",
+      "name": "Đọc bản tổng hợp hoặc tải ZIP",
+      "summary": "Desktop mở thư mục ôn tập; Docker trả URL tải, GET có auth/license và chỉ đóng gói dữ liệu trong môn.",
       "tags": [
-        "on-tap"
+        "tai-lieu-bai-giang",
+        "de-cuong-va-de-thu"
       ],
       "complexity": "moderate",
-      "filePath": "src/study.py",
+      "filePath": "src/server.py",
       "lineRange": [
-        613,
-        624
+        391,
+        406
       ]
     },
     {
-      "id": "step:de-thi:soan-de",
-      "type": "step",
-      "name": "Soạn đề từ hệ thống kiến thức",
-      "summary": "Gửi hệ thống kiến thức trước (dùng lại cache), yêu cầu sau; câu chỉ ghi tên chủ đề thành \"Phát biểu nào đúng về…\", loại câu chỉ ghi số hoặc thiếu 4 lựa chọn; thiếu câu thì hỏi thêm một lần; lưu JSON và Markdown có đáp án cuối file.",
-      "tags": [
-        "on-tap"
-      ],
-      "complexity": "moderate",
-      "filePath": "src/study.py",
-      "lineRange": [
-        383,
-        437
-      ]
-    },
-    {
-      "id": "step:de-thi:lam-bai",
-      "type": "step",
-      "name": "Làm bài và chấm trắc nghiệm",
-      "summary": "Chọn đáp án, nộp để xem đúng/sai, giải thích và điểm; tự luận có ô trả lời và gợi ý chấm.",
-      "tags": [
-        "on-tap"
-      ],
-      "complexity": "moderate",
-      "filePath": "web/study.js",
-      "lineRange": [
-        99,
-        111
-      ]
-    },
-    {
-      "id": "flow:cau-hinh-ai",
+      "id": "flow:trien-khai-portal",
       "type": "flow",
-      "name": "Chọn và kiểm tra bộ AI",
-      "summary": "Người dùng bật Claude (khóa riêng, chọn mô hình) hoặc Ollama (địa chỉ, mô hình), lưu mã hóa và kiểm tra bằng một yêu cầu nhỏ.",
+      "name": "Chuẩn bị và triển khai portal bằng GitHub Actions",
+      "summary": "Workflow_dispatch riêng kiểm thử, sinh cấu hình công khai, migration, deploy, nạp secrets và kiểm tra health. Đây là quy trình đã viết; Cloudflare credentials còn thiếu, chưa chạy production hoặc nghiệm thu OTP thật.",
       "tags": [
-        "on-tap"
+        "van-hanh",
+        "tai-khoan",
+        "trien-khai"
       ],
-      "complexity": "moderate",
+      "complexity": "complex",
       "domainMeta": {
-        "entryPoint": "Cài đặt → AI",
-        "entryType": "manual"
+        "entryPoint": "workflow_dispatch: .github/workflows/accounts-deploy.yml",
+        "entryType": "event"
       }
     },
     {
-      "id": "step:cau-hinh-ai:luu",
+      "id": "step:trien-khai-portal:handoff",
       "type": "step",
-      "name": "Lưu cấu hình mã hóa",
-      "summary": "Kiểm tra bộ AI, khóa sk-ant-, mô hình được phép, địa chỉ Ollama http(s); giữ khóa cũ khi để trống.",
+      "name": "Đọc trạng thái bàn giao trước tiếp tục",
+      "summary": "Claude Code đọc AGENTS, đặc tả bàn giao và tài khoản; phân biệt mã/test local với production, giữ khác biệt Word về offline và dừng ghi chờ quyết định.",
       "tags": [
-        "on-tap"
+        "van-hanh",
+        "trien-khai-portal"
       ],
       "complexity": "moderate",
-      "filePath": "src/ai_backend.py",
+      "filePath": "CLAUDE.md",
       "lineRange": [
-        65,
-        87
+        1,
+        15
       ]
     },
     {
-      "id": "step:cau-hinh-ai:claude",
+      "id": "step:trien-khai-portal:environment",
       "type": "step",
-      "name": "Gửi yêu cầu Claude",
-      "summary": "Streaming với output_config.format, fallbacks default cho Opus/Sonnet 5.5, giới hạn 24 MB, báo lỗi khóa/hạn mức/mạng bằng tiếng Việt.",
+      "name": "Dispatch theo môi trường production riêng",
+      "summary": "Workflow không tự chạy khi push; dùng environment accounts-production, concurrency không cancel, vars công khai và secret Cloudflare.",
       "tags": [
-        "on-tap"
+        "van-hanh",
+        "trien-khai-portal"
       ],
       "complexity": "moderate",
-      "filePath": "src/ai_backend.py",
+      "filePath": ".github/workflows/accounts-deploy.yml",
       "lineRange": [
-        113,
-        164
+        1,
+        24
       ]
     },
     {
-      "id": "step:cau-hinh-ai:ollama",
+      "id": "step:trien-khai-portal:tests",
       "type": "step",
-      "name": "Gửi yêu cầu Ollama",
-      "summary": "POST /api/chat với schema, num_ctx 32768; thử lại không ảnh nếu mô hình không đọc ảnh. Câu trả lời giới hạn 16 MB và 1800 giây; dữ liệu sai dạng thành lỗi AI.",
+      "name": "Cài dependency và kiểm tra secret bắt buộc",
+      "summary": "Node 24/npm ci/test chạy trước; kiểm thiếu Cloudflare và OTP/admin/Resend bindings mà không in giá trị.",
       "tags": [
-        "on-tap"
+        "van-hanh",
+        "trien-khai-portal"
       ],
       "complexity": "moderate",
-      "filePath": "src/ai_backend.py",
+      "filePath": ".github/workflows/accounts-deploy.yml",
       "lineRange": [
-        165,
-        212
+        25,
+        46
       ]
     },
     {
-      "id": "step:cau-hinh-ai:kiem-tra",
+      "id": "step:trien-khai-portal:config",
       "type": "step",
-      "name": "Kiểm tra kết nối AI",
-      "summary": "Gửi một yêu cầu JSON nhỏ; chỉ đạt khi trả đúng định dạng.",
+      "name": "Sinh cấu hình công khai từ biến đã kiểm tra",
+      "summary": "Script kiểm HTTPS origin, UUID D1, sender, download HTTPS và tên worker ASCII; ghi cấu hình ignored .wrangler/production.json, SMS tắt, không ghi credentials.",
       "tags": [
-        "on-tap"
+        "van-hanh",
+        "trien-khai-portal"
       ],
       "complexity": "moderate",
-      "filePath": "src/ai_backend.py",
+      "filePath": "accounts/configure-production.mjs",
       "lineRange": [
-        105,
-        110
+        7,
+        39
+      ]
+    },
+    {
+      "id": "step:trien-khai-portal:deploy",
+      "type": "step",
+      "name": "Dry-run, migration rồi deploy",
+      "summary": "Sau sinh config, workflow dry-run bundle, áp dụng migration remote và deploy. Mã workflow không là bằng chứng đã chạy thật.",
+      "tags": [
+        "van-hanh",
+        "trien-khai-portal"
+      ],
+      "complexity": "moderate",
+      "filePath": ".github/workflows/accounts-deploy.yml",
+      "lineRange": [
+        47,
+        52
+      ]
+    },
+    {
+      "id": "step:trien-khai-portal:secrets",
+      "type": "step",
+      "name": "Nạp secrets qua stdin",
+      "summary": "Worker secrets lấy từ GitHub environment, truyền JSON vào wrangler secret bulk qua pipe; không đặt giá trị lên argv.",
+      "tags": [
+        "van-hanh",
+        "trien-khai-portal"
+      ],
+      "complexity": "moderate",
+      "filePath": ".github/workflows/accounts-deploy.yml",
+      "lineRange": [
+        53,
+        66
+      ]
+    },
+    {
+      "id": "step:trien-khai-portal:health",
+      "type": "step",
+      "name": "Kiểm tra health và giữ nghiệm thu thật riêng",
+      "summary": "Fetch origin/health không redirect, timeout 15s, yêu cầu product đúng; health đạt vẫn cần OTP/thanh toán thủ công/thiết bị/revoke nghiệm thu riêng.",
+      "tags": [
+        "van-hanh",
+        "trien-khai-portal"
+      ],
+      "complexity": "moderate",
+      "filePath": ".github/workflows/accounts-deploy.yml",
+      "lineRange": [
+        67,
+        74
       ]
     }
   ],
@@ -1759,46 +2560,88 @@
       "target": "flow:khoi-dong-docker",
       "type": "contains_flow",
       "direction": "forward",
-      "weight": 1
+      "weight": 1.0
     },
     {
       "source": "flow:khoi-dong-docker",
-      "target": "step:khoi-dong-docker:gioi-han-host",
+      "target": "step:khoi-dong-docker:volume",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.1
     },
     {
       "source": "flow:khoi-dong-docker",
-      "target": "step:khoi-dong-docker:image-khong-sdk",
+      "target": "step:khoi-dong-docker:image",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.2
     },
     {
       "source": "flow:khoi-dong-docker",
-      "target": "step:khoi-dong-docker:thiet-bi-ao",
+      "target": "step:khoi-dong-docker:virtual",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.3
     },
     {
       "source": "flow:khoi-dong-docker",
-      "target": "step:khoi-dong-docker:bien-dich",
+      "target": "step:khoi-dong-docker:worker",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.4
     },
     {
       "source": "flow:khoi-dong-docker",
-      "target": "step:khoi-dong-docker:mo-dich-vu",
+      "target": "step:khoi-dong-docker:service",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.5
     },
     {
-      "source": "flow:khoi-dong-docker",
-      "target": "step:khoi-dong-docker:gioi-han-xac-minh",
+      "source": "domain:van-hanh",
+      "target": "flow:mo-windows",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:mo-windows",
+      "target": "step:mo-windows:storage",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.1
+    },
+    {
+      "source": "flow:mo-windows",
+      "target": "step:mo-windows:migration",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:mo-windows",
+      "target": "step:mo-windows:singleton",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:mo-windows",
+      "target": "step:mo-windows:window",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:mo-windows",
+      "target": "step:mo-windows:sdk",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:mo-windows",
+      "target": "step:mo-windows:archive",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.6
@@ -1808,74 +2651,389 @@
       "target": "flow:kiem-tra-phat-hanh",
       "type": "contains_flow",
       "direction": "forward",
-      "weight": 1
+      "weight": 1.0
+    },
+    {
+      "source": "flow:kiem-tra-phat-hanh",
+      "target": "step:kiem-tra-phat-hanh:map",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.1
+    },
+    {
+      "source": "flow:kiem-tra-phat-hanh",
+      "target": "step:kiem-tra-phat-hanh:handoff",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:kiem-tra-phat-hanh",
+      "target": "step:kiem-tra-phat-hanh:checks",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:kiem-tra-phat-hanh",
+      "target": "step:kiem-tra-phat-hanh:windows",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:kiem-tra-phat-hanh",
+      "target": "step:kiem-tra-phat-hanh:exe",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:kiem-tra-phat-hanh",
+      "target": "step:kiem-tra-phat-hanh:smoke",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:kiem-tra-phat-hanh",
+      "target": "step:kiem-tra-phat-hanh:version",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "flow:kiem-tra-phat-hanh",
+      "target": "step:kiem-tra-phat-hanh:publish",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.8
     },
     {
       "source": "domain:van-hanh",
       "target": "flow:sao-luu-cap-nhat",
       "type": "contains_flow",
       "direction": "forward",
-      "weight": 1
+      "weight": 1.0
     },
     {
       "source": "flow:sao-luu-cap-nhat",
-      "target": "step:sao-luu-cap-nhat:dung-truoc",
+      "target": "step:sao-luu-cap-nhat:stop",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.1
     },
     {
       "source": "flow:sao-luu-cap-nhat",
-      "target": "step:sao-luu-cap-nhat:sao-toan-volume",
+      "target": "step:sao-luu-cap-nhat:backup",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.2
     },
     {
       "source": "flow:sao-luu-cap-nhat",
-      "target": "step:sao-luu-cap-nhat:khoi-phuc",
+      "target": "step:sao-luu-cap-nhat:restore",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.3
     },
     {
       "source": "flow:sao-luu-cap-nhat",
-      "target": "step:sao-luu-cap-nhat:cap-nhat",
+      "target": "step:sao-luu-cap-nhat:update",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.4
+    },
+    {
+      "source": "domain:tai-khoan-ban-quyen",
+      "target": "flow:cau-hinh-portal",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:cau-hinh-portal",
+      "target": "step:cau-hinh-portal:placeholder",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.1
+    },
+    {
+      "source": "flow:cau-hinh-portal",
+      "target": "step:cau-hinh-portal:secrets",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:cau-hinh-portal",
+      "target": "step:cau-hinh-portal:assets",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:cau-hinh-portal",
+      "target": "step:cau-hinh-portal:database",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:cau-hinh-portal",
+      "target": "step:cau-hinh-portal:commercial",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:cau-hinh-portal",
+      "target": "step:cau-hinh-portal:client-origin",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:tai-khoan-ban-quyen",
+      "target": "flow:dang-nhap-otp",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:dang-nhap-otp",
+      "target": "step:dang-nhap-otp:identity",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.1
+    },
+    {
+      "source": "flow:dang-nhap-otp",
+      "target": "step:dang-nhap-otp:limits",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:dang-nhap-otp",
+      "target": "step:dang-nhap-otp:challenge",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:dang-nhap-otp",
+      "target": "step:dang-nhap-otp:delivery",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:dang-nhap-otp",
+      "target": "step:dang-nhap-otp:verify",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:dang-nhap-otp",
+      "target": "step:dang-nhap-otp:session",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:dang-nhap-otp",
+      "target": "step:dang-nhap-otp:vault",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "flow:dang-nhap-otp",
+      "target": "step:dang-nhap-otp:logout",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "domain:tai-khoan-ban-quyen",
+      "target": "flow:cap-goi-va-key",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:cap-goi-va-key",
+      "target": "step:cap-goi-va-key:operator",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.1
+    },
+    {
+      "source": "flow:cap-goi-va-key",
+      "target": "step:cap-goi-va-key:grant",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:cap-goi-va-key",
+      "target": "step:cap-goi-va-key:storage",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:cap-goi-va-key",
+      "target": "step:cap-goi-va-key:overview",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:cap-goi-va-key",
+      "target": "step:cap-goi-va-key:key",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:cap-goi-va-key",
+      "target": "step:cap-goi-va-key:display",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:tai-khoan-ban-quyen",
+      "target": "flow:kich-hoat-thiet-bi",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:kich-hoat-thiet-bi",
+      "target": "step:kich-hoat-thiet-bi:redeem",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.1
+    },
+    {
+      "source": "flow:kich-hoat-thiet-bi",
+      "target": "step:kich-hoat-thiet-bi:activation",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:kich-hoat-thiet-bi",
+      "target": "step:kich-hoat-thiet-bi:capacity",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:kich-hoat-thiet-bi",
+      "target": "step:kich-hoat-thiet-bi:local",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:kich-hoat-thiet-bi",
+      "target": "step:kich-hoat-thiet-bi:remove",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:kich-hoat-thiet-bi",
+      "target": "step:kich-hoat-thiet-bi:interface",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:tai-khoan-ban-quyen",
+      "target": "flow:kiem-tra-thu-hoi",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:kiem-tra-thu-hoi",
+      "target": "step:kiem-tra-thu-hoi:server-check",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.1
+    },
+    {
+      "source": "flow:kiem-tra-thu-hoi",
+      "target": "step:kiem-tra-thu-hoi:cache",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:kiem-tra-thu-hoi",
+      "target": "step:kiem-tra-thu-hoi:gate",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:kiem-tra-thu-hoi",
+      "target": "step:kiem-tra-thu-hoi:background",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:kiem-tra-thu-hoi",
+      "target": "step:kiem-tra-thu-hoi:watchdog",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:kiem-tra-thu-hoi",
+      "target": "step:kiem-tra-thu-hoi:revoke",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
     },
     {
       "source": "domain:quyen-truy-cap",
       "target": "flow:ket-noi-quyen-zoom",
       "type": "contains_flow",
       "direction": "forward",
-      "weight": 1
+      "weight": 1.0
     },
     {
       "source": "flow:ket-noi-quyen-zoom",
-      "target": "step:ket-noi-quyen-zoom:dang-nhap",
+      "target": "step:ket-noi-quyen-zoom:local-auth",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.1
     },
     {
       "source": "flow:ket-noi-quyen-zoom",
-      "target": "step:ket-noi-quyen-zoom:bao-ve-api",
+      "target": "step:ket-noi-quyen-zoom:request",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.2
     },
     {
       "source": "flow:ket-noi-quyen-zoom",
-      "target": "step:ket-noi-quyen-zoom:luu-cau-hinh",
+      "target": "step:ket-noi-quyen-zoom:config",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.3
     },
     {
       "source": "flow:ket-noi-quyen-zoom",
-      "target": "step:ket-noi-quyen-zoom:kho-ma-hoa",
+      "target": "step:ket-noi-quyen-zoom:encryption",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.4
@@ -1889,14 +3047,14 @@
     },
     {
       "source": "flow:ket-noi-quyen-zoom",
-      "target": "step:ket-noi-quyen-zoom:nhan-token",
+      "target": "step:ket-noi-quyen-zoom:tokens",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.6
     },
     {
       "source": "flow:ket-noi-quyen-zoom",
-      "target": "step:ket-noi-quyen-zoom:lam-moi",
+      "target": "step:ket-noi-quyen-zoom:refresh",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.7
@@ -1906,32 +3064,32 @@
       "target": "flow:ket-noi-dong-bo-lich",
       "type": "contains_flow",
       "direction": "forward",
-      "weight": 1
+      "weight": 1.0
     },
     {
       "source": "flow:ket-noi-dong-bo-lich",
-      "target": "step:ket-noi-dong-bo-lich:xac-nhan-nguon",
+      "target": "step:ket-noi-dong-bo-lich:config",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.1
     },
     {
       "source": "flow:ket-noi-dong-bo-lich",
-      "target": "step:ket-noi-dong-bo-lich:tai-ical",
+      "target": "step:ket-noi-dong-bo-lich:fetch",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.2
     },
     {
       "source": "flow:ket-noi-dong-bo-lich",
-      "target": "step:ket-noi-dong-bo-lich:loc-buoi",
+      "target": "step:ket-noi-dong-bo-lich:parse",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.3
     },
     {
       "source": "flow:ket-noi-dong-bo-lich",
-      "target": "step:ket-noi-dong-bo-lich:dong-bo-loi",
+      "target": "step:ket-noi-dong-bo-lich:result",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.4
@@ -1941,74 +3099,67 @@
       "target": "flow:nhac-va-chuyen-link",
       "type": "contains_flow",
       "direction": "forward",
-      "weight": 1
+      "weight": 1.0
     },
     {
       "source": "flow:nhac-va-chuyen-link",
-      "target": "step:nhac-va-chuyen-link:theo-doi",
+      "target": "step:nhac-va-chuyen-link:poll",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.1
     },
     {
       "source": "flow:nhac-va-chuyen-link",
-      "target": "step:nhac-va-chuyen-link:moc-hanh-dong",
+      "target": "step:nhac-va-chuyen-link:window",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.2
     },
     {
       "source": "flow:nhac-va-chuyen-link",
-      "target": "step:nhac-va-chuyen-link:phat-su-kien",
+      "target": "step:nhac-va-chuyen-link:dedup",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.3
     },
     {
       "source": "flow:nhac-va-chuyen-link",
-      "target": "step:nhac-va-chuyen-link:khong-tu-vao",
+      "target": "step:nhac-va-chuyen-link:handoff",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.4
     },
     {
       "source": "flow:nhac-va-chuyen-link",
-      "target": "step:nhac-va-chuyen-link:hien-trong-ui",
+      "target": "step:nhac-va-chuyen-link:manual",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.5
-    },
-    {
-      "source": "flow:nhac-va-chuyen-link",
-      "target": "step:nhac-va-chuyen-link:mo-thu-cong",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.6
     },
     {
       "source": "domain:ghi-buoi-hoc",
       "target": "flow:kiem-tra-va-vao-phong",
       "type": "contains_flow",
       "direction": "forward",
-      "weight": 1
+      "weight": 1.0
     },
     {
       "source": "flow:kiem-tra-va-vao-phong",
-      "target": "step:kiem-tra-va-vao-phong:thu-sdk",
+      "target": "step:kiem-tra-va-vao-phong:auth-test",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.1
     },
     {
       "source": "flow:kiem-tra-va-vao-phong",
-      "target": "step:kiem-tra-va-vao-phong:doi-ket-qua",
+      "target": "step:kiem-tra-va-vao-phong:room",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.2
     },
     {
       "source": "flow:kiem-tra-va-vao-phong",
-      "target": "step:kiem-tra-va-vao-phong:xac-nhan-ghi",
+      "target": "step:kiem-tra-va-vao-phong:prepare",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.3
@@ -2022,154 +3173,364 @@
     },
     {
       "source": "flow:kiem-tra-va-vao-phong",
-      "target": "step:kiem-tra-va-vao-phong:ipc",
+      "target": "step:kiem-tra-va-vao-phong:launch",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.5
     },
     {
       "source": "flow:kiem-tra-va-vao-phong",
-      "target": "step:kiem-tra-va-vao-phong:vao-phong",
+      "target": "step:kiem-tra-va-vao-phong:native",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.6
+    },
+    {
+      "source": "flow:kiem-tra-va-vao-phong",
+      "target": "step:kiem-tra-va-vao-phong:proof",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.7
     },
     {
       "source": "domain:ghi-buoi-hoc",
       "target": "flow:ghi-va-dung",
       "type": "contains_flow",
       "direction": "forward",
-      "weight": 1
+      "weight": 1.0
     },
     {
       "source": "flow:ghi-va-dung",
-      "target": "step:ghi-va-dung:xin-quyen",
+      "target": "step:ghi-va-dung:permission",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.1
     },
     {
       "source": "flow:ghi-va-dung",
-      "target": "step:ghi-va-dung:ghi-wav",
+      "target": "step:ghi-va-dung:linux",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.2
     },
     {
       "source": "flow:ghi-va-dung",
-      "target": "step:ghi-va-dung:chup-share",
+      "target": "step:ghi-va-dung:audio",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.3
     },
     {
       "source": "flow:ghi-va-dung",
-      "target": "step:ghi-va-dung:gioi-han-loi",
+      "target": "step:ghi-va-dung:slides",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.4
     },
     {
       "source": "flow:ghi-va-dung",
-      "target": "step:ghi-va-dung:dong-file",
+      "target": "step:ghi-va-dung:linux-slides",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.5
     },
     {
       "source": "flow:ghi-va-dung",
-      "target": "step:ghi-va-dung:ket-thuc-trung-thuc",
+      "target": "step:ghi-va-dung:stop",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.6
     },
     {
       "source": "flow:ghi-va-dung",
-      "target": "step:ghi-va-dung:dung-dich-vu",
+      "target": "step:ghi-va-dung:finalize",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.7
+    },
+    {
+      "source": "flow:ghi-va-dung",
+      "target": "step:ghi-va-dung:metadata",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.8
     },
     {
       "source": "domain:tai-lieu-bai-giang",
       "target": "flow:chep-loi-local",
       "type": "contains_flow",
       "direction": "forward",
-      "weight": 1
+      "weight": 1.0
     },
     {
       "source": "flow:chep-loi-local",
-      "target": "step:chep-loi-local:tai-model",
+      "target": "step:chep-loi-local:model",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.1
     },
     {
       "source": "flow:chep-loi-local",
-      "target": "step:chep-loi-local:khoi-chay",
+      "target": "step:chep-loi-local:queue",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.2
     },
     {
       "source": "flow:chep-loi-local",
-      "target": "step:chep-loi-local:nhan-dang",
+      "target": "step:chep-loi-local:process",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.3
     },
     {
       "source": "flow:chep-loi-local",
-      "target": "step:chep-loi-local:trich-y",
+      "target": "step:chep-loi-local:whisper",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.4
     },
     {
       "source": "flow:chep-loi-local",
-      "target": "step:chep-loi-local:luu-ket-qua",
+      "target": "step:chep-loi-local:draft",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.5
+    },
+    {
+      "source": "flow:chep-loi-local",
+      "target": "step:chep-loi-local:status",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
     },
     {
       "source": "domain:tai-lieu-bai-giang",
       "target": "flow:xem-va-tai-buoi",
       "type": "contains_flow",
       "direction": "forward",
-      "weight": 1
+      "weight": 1.0
     },
     {
       "source": "flow:xem-va-tai-buoi",
-      "target": "step:xem-va-tai-buoi:lap-danh-sach",
+      "target": "step:xem-va-tai-buoi:list",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.1
     },
     {
       "source": "flow:xem-va-tai-buoi",
-      "target": "step:xem-va-tai-buoi:doc-van-ban",
+      "target": "step:xem-va-tai-buoi:read",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.2
     },
     {
       "source": "flow:xem-va-tai-buoi",
-      "target": "step:xem-va-tai-buoi:tao-link-tai",
+      "target": "step:xem-va-tai-buoi:show",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.3
     },
     {
       "source": "flow:xem-va-tai-buoi",
-      "target": "step:xem-va-tai-buoi:dong-goi-zip",
+      "target": "step:xem-va-tai-buoi:download",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.4
     },
     {
       "source": "flow:xem-va-tai-buoi",
-      "target": "step:xem-va-tai-buoi:phuc-vu-download",
+      "target": "step:xem-va-tai-buoi:zip",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "domain:tai-lieu-bai-giang",
+      "target": "flow:tai-tai-lieu",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:tai-tai-lieu",
+      "target": "step:tai-tai-lieu:ui",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.1
+    },
+    {
+      "source": "flow:tai-tai-lieu",
+      "target": "step:tai-tai-lieu:gate",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:tai-tai-lieu",
+      "target": "step:tai-tai-lieu:lesson",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:tai-tai-lieu",
+      "target": "step:tai-tai-lieu:name",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:tai-tai-lieu",
+      "target": "step:tai-tai-lieu:stream",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:tai-tai-lieu",
+      "target": "step:tai-tai-lieu:extract",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:tai-lieu-bai-giang",
+      "target": "flow:ai-va-dong-bo",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:ai-va-dong-bo",
+      "target": "step:ai-va-dong-bo:settings",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.1
+    },
+    {
+      "source": "flow:ai-va-dong-bo",
+      "target": "step:ai-va-dong-bo:test",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:ai-va-dong-bo",
+      "target": "step:ai-va-dong-bo:claude",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:ai-va-dong-bo",
+      "target": "step:ai-va-dong-bo:ollama",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:ai-va-dong-bo",
+      "target": "step:ai-va-dong-bo:queue",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:ai-va-dong-bo",
+      "target": "step:ai-va-dong-bo:sync",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:ai-va-dong-bo",
+      "target": "step:ai-va-dong-bo:run",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "domain:tai-lieu-bai-giang",
+      "target": "flow:he-thong-kien-thuc",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:he-thong-kien-thuc",
+      "target": "step:he-thong-kien-thuc:inputs",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.1
+    },
+    {
+      "source": "flow:he-thong-kien-thuc",
+      "target": "step:he-thong-kien-thuc:notes",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:he-thong-kien-thuc",
+      "target": "step:he-thong-kien-thuc:subject",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:he-thong-kien-thuc",
+      "target": "step:he-thong-kien-thuc:index",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:he-thong-kien-thuc",
+      "target": "step:he-thong-kien-thuc:view",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "domain:tai-lieu-bai-giang",
+      "target": "flow:de-cuong-va-de-thu",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:de-cuong-va-de-thu",
+      "target": "step:de-cuong-va-de-thu:request",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.1
+    },
+    {
+      "source": "flow:de-cuong-va-de-thu",
+      "target": "step:de-cuong-va-de-thu:outline",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:de-cuong-va-de-thu",
+      "target": "step:de-cuong-va-de-thu:exam",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:de-cuong-va-de-thu",
+      "target": "step:de-cuong-va-de-thu:practice",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:de-cuong-va-de-thu",
+      "target": "step:de-cuong-va-de-thu:export",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.5
@@ -2179,365 +3540,136 @@
       "target": "domain:quyen-truy-cap",
       "type": "cross_domain",
       "direction": "forward",
-      "weight": 0.6,
-      "description": "Container tạo và giữ mật khẩu local; quy trình sao lưu phải giữ đúng vault.key để cấu hình còn giải mã được."
+      "description": "Khởi động API và kho cấu hình trên từng nền tảng.",
+      "weight": 0.6
     },
     {
-      "source": "domain:quyen-truy-cap",
+      "source": "domain:van-hanh",
+      "target": "domain:tai-khoan-ban-quyen",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Build thương mại cần origin; CI kiểm account, workflow portal triển khai thủ công khi đủ cấu hình nhưng chưa chạy production.",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:tai-khoan-ban-quyen",
+      "target": "domain:quyen-truy-cap",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Quyền thương mại chốt thao tác local trước OAuth/Zoom; không thay Basic Auth Docker.",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:tai-khoan-ban-quyen",
       "target": "domain:lich-hoc",
       "type": "cross_domain",
       "direction": "forward",
-      "weight": 0.6,
-      "description": "Vault mã hóa địa chỉ iCal riêng tư trước khi watcher sử dụng."
+      "description": "Watcher nền chờ khi mất quyền theo account.authorized.",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:tai-khoan-ban-quyen",
+      "target": "domain:ghi-buoi-hoc",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Watchdog kiểm license định kỳ và shutdown worker khi quyền không còn xác minh được.",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:tai-khoan-ban-quyen",
+      "target": "domain:tai-lieu-bai-giang",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Chốt đọc/upload/download và các vòng/job xử lý nền; không xóa bài cũ.",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:quyen-truy-cap",
+      "target": "domain:ghi-buoi-hoc",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "OAuth refresh và OBF cấp cho worker sau xác nhận của người dùng.",
+      "weight": 0.6
     },
     {
       "source": "domain:lich-hoc",
       "target": "domain:ghi-buoi-hoc",
       "type": "cross_domain",
       "direction": "forward",
-      "weight": 0.6,
-      "description": "Lịch chỉ gợi nhắc và đưa link; người dùng phải vào phòng, xác nhận quyền ghi rồi tự gọi bắt đầu bot."
-    },
-    {
-      "source": "domain:quyen-truy-cap",
-      "target": "domain:ghi-buoi-hoc",
-      "type": "cross_domain",
-      "direction": "forward",
-      "weight": 0.6,
-      "description": "OAuth được làm mới trước khi xin OBF; worker cần kiểm tra SDK và sự cho phép ghi riêng của host."
+      "description": "Lịch chỉ chuyển link; người dùng tự xác nhận và bắt đầu ghi.",
+      "weight": 0.6
     },
     {
       "source": "domain:ghi-buoi-hoc",
       "target": "domain:tai-lieu-bai-giang",
       "type": "cross_domain",
       "direction": "forward",
-      "weight": 0.6,
-      "description": "Hồ sơ, WAV và slide đi vào thư viện; chỉ audio_bytes > 0 kích hoạt chép lời."
+      "description": "WAV và slide local là đầu vào transcription, thư viện và ôn tập.",
+      "weight": 0.6
     },
     {
       "source": "domain:van-hanh",
       "target": "domain:tai-lieu-bai-giang",
       "type": "cross_domain",
       "direction": "forward",
-      "weight": 0.6,
-      "description": "Sao lưu toàn bộ volume bảo toàn bài giảng và mô hình; cập nhật image giữ volume."
+      "description": "Nâng cấp giữ dữ liệu; sao lưu gồm mô hình, bài giảng và khóa.",
+      "weight": 0.6
     },
     {
       "source": "domain:van-hanh",
-      "target": "flow:chay-ban-windows",
+      "target": "flow:trien-khai-portal",
       "type": "contains_flow",
       "direction": "forward",
       "weight": 1.0
     },
     {
-      "source": "flow:kiem-tra-phat-hanh",
-      "target": "step:kiem-tra-phat-hanh:ra-lai-ban-do",
+      "source": "flow:trien-khai-portal",
+      "target": "step:trien-khai-portal:handoff",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.1
     },
     {
-      "source": "flow:kiem-tra-phat-hanh",
-      "target": "step:kiem-tra-phat-hanh:ban-giao-github",
+      "source": "flow:trien-khai-portal",
+      "target": "step:trien-khai-portal:environment",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.2
     },
     {
-      "source": "flow:kiem-tra-phat-hanh",
-      "target": "step:kiem-tra-phat-hanh:kiem-tra-nguon",
+      "source": "flow:trien-khai-portal",
+      "target": "step:trien-khai-portal:tests",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.3
     },
     {
-      "source": "flow:kiem-tra-phat-hanh",
-      "target": "step:kiem-tra-phat-hanh:chan-ban-do-lech",
+      "source": "flow:trien-khai-portal",
+      "target": "step:trien-khai-portal:config",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.4
     },
     {
-      "source": "flow:kiem-tra-phat-hanh",
-      "target": "step:kiem-tra-phat-hanh:build-exe",
+      "source": "flow:trien-khai-portal",
+      "target": "step:trien-khai-portal:deploy",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.5
     },
     {
-      "source": "flow:kiem-tra-phat-hanh",
-      "target": "step:kiem-tra-phat-hanh:build-smoke",
+      "source": "flow:trien-khai-portal",
+      "target": "step:trien-khai-portal:secrets",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.6
     },
     {
-      "source": "flow:kiem-tra-phat-hanh",
-      "target": "step:kiem-tra-phat-hanh:kiem-tra-version",
+      "source": "flow:trien-khai-portal",
+      "target": "step:trien-khai-portal:health",
       "type": "flow_step",
       "direction": "forward",
       "weight": 0.7
-    },
-    {
-      "source": "flow:kiem-tra-phat-hanh",
-      "target": "step:kiem-tra-phat-hanh:day-image",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "flow:kiem-tra-phat-hanh",
-      "target": "step:kiem-tra-phat-hanh:dong-goi-release",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.9
-    },
-    {
-      "source": "flow:chay-ban-windows",
-      "target": "step:chay-ban-windows:thu-muc-du-lieu",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.1
-    },
-    {
-      "source": "flow:chay-ban-windows",
-      "target": "step:chay-ban-windows:thu-muc-bai-giang",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.2
-    },
-    {
-      "source": "flow:chay-ban-windows",
-      "target": "step:chay-ban-windows:sao-chep-kho-khoa",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.3
-    },
-    {
-      "source": "flow:chay-ban-windows",
-      "target": "step:chay-ban-windows:goi-nang-cap",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.4
-    },
-    {
-      "source": "flow:chay-ban-windows",
-      "target": "step:chay-ban-windows:mot-phien",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "flow:chay-ban-windows",
-      "target": "step:chay-ban-windows:cua-so-khay",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "flow:chay-ban-windows",
-      "target": "step:chay-ban-windows:cai-sdk",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.7
-    },
-    {
-      "source": "domain:tai-lieu-bai-giang",
-      "target": "domain:on-tap",
-      "type": "cross_domain",
-      "direction": "forward",
-      "weight": 0.6,
-      "description": "Bản chép lời, ảnh slide và hồ sơ buổi là đầu vào cho ghi chú AI; tài liệu tải lên được chép lời bằng cùng bộ Whisper."
-    },
-    {
-      "source": "domain:quyen-truy-cap",
-      "target": "domain:on-tap",
-      "type": "cross_domain",
-      "direction": "forward",
-      "weight": 0.5,
-      "description": "Cấu hình AI lưu trong vault mã hóa; mọi thao tác ôn tập đi qua API có token và kiểm tra nguồn."
-    },
-    {
-      "source": "domain:on-tap",
-      "target": "flow:tai-tai-lieu",
-      "type": "contains_flow",
-      "direction": "forward",
-      "weight": 1.0
-    },
-    {
-      "source": "flow:tai-tai-lieu",
-      "target": "step:tai-tai-lieu:chon-file",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.1
-    },
-    {
-      "source": "flow:tai-tai-lieu",
-      "target": "step:tai-tai-lieu:nhan-luong",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.2
-    },
-    {
-      "source": "flow:tai-tai-lieu",
-      "target": "step:tai-tai-lieu:ten-an-toan",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.3
-    },
-    {
-      "source": "flow:tai-tai-lieu",
-      "target": "step:tai-tai-lieu:buoi-moi",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.4
-    },
-    {
-      "source": "flow:tai-tai-lieu",
-      "target": "step:tai-tai-lieu:chep-loi-tai-len",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "domain:on-tap",
-      "target": "flow:dong-bo",
-      "type": "contains_flow",
-      "direction": "forward",
-      "weight": 1.0
-    },
-    {
-      "source": "flow:dong-bo",
-      "target": "step:dong-bo:quet",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.1
-    },
-    {
-      "source": "flow:dong-bo",
-      "target": "step:dong-bo:van-tay",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.2
-    },
-    {
-      "source": "flow:dong-bo",
-      "target": "step:dong-bo:doc-tai-lieu",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.3
-    },
-    {
-      "source": "flow:dong-bo",
-      "target": "step:dong-bo:ghi-chu-buoi",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.4
-    },
-    {
-      "source": "flow:dong-bo",
-      "target": "step:dong-bo:goi-ai",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.5
-    },
-    {
-      "source": "flow:dong-bo",
-      "target": "step:dong-bo:he-thong-mon",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "flow:dong-bo",
-      "target": "step:dong-bo:de-cuong",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.7
-    },
-    {
-      "source": "flow:dong-bo",
-      "target": "step:dong-bo:muc-luc",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
-      "source": "flow:dong-bo",
-      "target": "step:dong-bo:khong-lap-loi",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.9
-    },
-    {
-      "source": "domain:on-tap",
-      "target": "flow:de-thi",
-      "type": "contains_flow",
-      "direction": "forward",
-      "weight": 1.0
-    },
-    {
-      "source": "flow:de-thi",
-      "target": "step:de-thi:chon-de",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.1
-    },
-    {
-      "source": "flow:de-thi",
-      "target": "step:de-thi:xep-viec",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.2
-    },
-    {
-      "source": "flow:de-thi",
-      "target": "step:de-thi:soan-de",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.3
-    },
-    {
-      "source": "flow:de-thi",
-      "target": "step:de-thi:lam-bai",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.4
-    },
-    {
-      "source": "domain:on-tap",
-      "target": "flow:cau-hinh-ai",
-      "type": "contains_flow",
-      "direction": "forward",
-      "weight": 1.0
-    },
-    {
-      "source": "flow:cau-hinh-ai",
-      "target": "step:cau-hinh-ai:luu",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.1
-    },
-    {
-      "source": "flow:cau-hinh-ai",
-      "target": "step:cau-hinh-ai:claude",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.2
-    },
-    {
-      "source": "flow:cau-hinh-ai",
-      "target": "step:cau-hinh-ai:ollama",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.3
-    },
-    {
-      "source": "flow:cau-hinh-ai",
-      "target": "step:cau-hinh-ai:kiem-tra",
-      "type": "flow_step",
-      "direction": "forward",
-      "weight": 0.4
     }
   ],
   "layers": [],

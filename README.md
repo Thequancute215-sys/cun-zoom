@@ -1,5 +1,7 @@
 # Cún Zoom
 
+**Tài khoản và bản quyền thương mại:** website đăng nhập OTP qua email/SĐT, nhận key chỉ một lần, kích hoạt và quản lý thiết bị đã có mã nguồn tại `accounts/`. Cần triển khai dịch vụ và cấu hình nhà cung cấp OTP trước khi dùng với khách thật; xem [hướng dẫn tài khoản/bản quyền](docs/ACCOUNTS.md). Website này không lưu bài giảng hay chạy Zoom thay máy khách.
+
 Trợ lý lưu bài học Zoom trên máy của bạn: theo dõi lịch Google, ghi âm cuộc họp được phép, chụp màn hình chia sẻ và sắp xếp bài giảng theo môn. Giao diện tiếng Việt, có chế độ sáng/tối, tìm kiếm và thư viện bài học.
 
 Một mã nguồn, hai cách chạy:
